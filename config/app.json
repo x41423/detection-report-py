@@ -1,0 +1,2645 @@
+{
+  "output_dir": "C:/Users/34585/Desktop/滨鲜/检测报告py文件夹/数据迁移",
+  "inspector_name": "检查员",
+  "date_format": "{y}年{m}月{d}日",
+  "high_risk": [
+    "韭菜",
+    "毛毛菜",
+    "香菜",
+    "蒜黄",
+    "小莲藕"
+  ],
+  "low_risk": [
+    "黄瓜",
+    "玉米",
+    "光玉米",
+    "毛玉米",
+    "冬瓜",
+    "老南瓜",
+    "长豆角",
+    "春笋",
+    "冬笋"
+  ],
+  "rate_ranges": {
+    "high": {
+      "min": 20.0,
+      "max": 49.0,
+      "mean": 45.882549205798334,
+      "std": 5.0
+    },
+    "low": {
+      "min": 6,
+      "max": 15.0,
+      "mean": 5.241987403620815,
+      "std": 2.0
+    },
+    "other": {
+      "min": 7.0,
+      "max": 40.0,
+      "mean": 19.038056070871814,
+      "std": 8.0
+    }
+  },
+  "big_path": "C:/Users/34585/Desktop/滨鲜/检测报告/检测报告2026/检测报告2026\\2026年4月份",
+  "small_path": "C:/Users/34585/Desktop/滨鲜/单位检测报告/单位检测报告2026/单位检测报告2026\\单位检测记录2026年4月",
+  "ui_theme": "light_blue.xml",
+  "big_table_path": "",
+  "small_templates": {
+    "滨鲜": "C:/Users/34585/Desktop/滨鲜/模板/滨鲜单表.docx",
+    "1号": "",
+    "5号": "",
+    "6号": "",
+    "7号": "",
+    "8号": "",
+    "顾家": ""
+  },
+  "last_used_small_type": "8号",
+  "data_transfer_use_shared_date": true,
+  "data_transfer_last_date": "2026-03-31",
+  "data_transfer_big_folder": "C:/Users/34585/Desktop/滨鲜/检测报告py文件夹",
+  "dish_name_aliases": {
+    "肚尖": [
+      "笃尖"
+    ],
+    "肝": [
+      "干"
+    ],
+    "绿茶佛饼": [
+      "绿茶茯饼"
+    ],
+    "毛毛菜": [
+      "毛毛毛菜"
+    ],
+    "美人椒": [
+      "每人交"
+    ],
+    "嫩南瓜": [
+      "那南瓜"
+    ],
+    "青大蒜": [
+      "请搭算"
+    ],
+    "水发笋": [
+      "碎花笋"
+    ],
+    "蒜苔": [
+      "酸苔"
+    ],
+    "香干": [
+      "香肝"
+    ],
+    "仔排": [
+      "纸排"
+    ]
+  },
+  "pesticide_last_date": "2026-04-03",
+  "weekly_price_update_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\顾家科百特报价4.20-4.26.xls",
+  "weekly_price_output_dir": "C:\\Users\\34585\\Desktop\\滨鲜",
+  "weekly_price_reference_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\每周江东执行价.xlsx",
+  "weekly_price_inplace": false,
+  "weekly_price_aliases": {
+    "水面筋（凉皮用）": "水发面筋（凉皮用）",
+    "西红柿": "红番茄",
+    "沙葛/豆薯/凉薯": "沙葛豆薯地瓜",
+    "本地油菜 花菜心": "本地油菜菜心",
+    "萧山散装萝卜干": "散装萝卜干",
+    "散装泡发绿海带丝": "绿海带丝",
+    "散装盐渍绿海带丝": "青海带丝"
+  },
+  "weekly_quote_summary_workbook_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\每周报价总结模板.xlsx",
+  "weekly_price_output_path": "C:\\Users\\34585\\Desktop\\滨鲜\\报价\\2026\\4\\顾家科百特报价4.20-4.26_weekly_updated.xlsx",
+  "weekly_quote_summary_records": {
+    "勾庄": {
+      "2026-04-20": {
+        "id": "record-1777093845260-vwa2o",
+        "quote_date": "2026-04-20",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:15:33.254Z",
+        "entries": [
+          {
+            "id": "entry-1777093973310-3xk7b",
+            "name": "花菜",
+            "unit": "斤",
+            "price": 1.8
+          },
+          {
+            "id": "entry-1777093973310-vfm2k",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777093973310-qagfg",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777093973310-cbb83",
+            "name": "长豆角",
+            "unit": "斤",
+            "price": 3.3
+          },
+          {
+            "id": "entry-1777093973310-m4g9s",
+            "name": "青线椒",
+            "unit": "斤",
+            "price": 3.74
+          },
+          {
+            "id": "entry-1777093973310-wif15",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777093973310-34nsq",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777093973310-f1al5",
+            "name": "青豆苗",
+            "unit": "板",
+            "price": 6
+          },
+          {
+            "id": "entry-1777093973310-fgp4y",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777093973310-7mxhu",
+            "name": "广东菜心",
+            "unit": "斤",
+            "price": 2.7
+          },
+          {
+            "id": "entry-1777093973310-a8i55",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777093973310-frfxr",
+            "name": "香菜",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777093973310-ngi2b",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777093973310-ptd3k",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777093973310-05tgj",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777093973310-poivp",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777093973310-6evad",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777093973310-wtbq4",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.5
+          }
+        ]
+      },
+      "2026-04-21": {
+        "id": "record-1777094138468-559zr",
+        "quote_date": "2026-04-21",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:21:14.616Z",
+        "entries": [
+          {
+            "id": "entry-1777094371140-m9c05",
+            "name": "花菜",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777094371140-3qdg1",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094371140-43jt0",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777094371140-do7lj",
+            "name": "长豆角",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094371141-sgbur",
+            "name": "大红尖椒",
+            "unit": "斤",
+            "price": 7.41
+          },
+          {
+            "id": "entry-1777094371141-nb3er",
+            "name": "大尖椒",
+            "unit": "斤",
+            "price": 2.93
+          },
+          {
+            "id": "entry-1777094371141-u6vq9",
+            "name": "青线椒",
+            "unit": "斤",
+            "price": 2.9
+          },
+          {
+            "id": "entry-1777094371141-tpjxg",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094371141-hftl0",
+            "name": "绿豆芽",
+            "unit": "板",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094371141-ycrvr",
+            "name": "青豆苗",
+            "unit": "斤",
+            "price": 6
+          },
+          {
+            "id": "entry-1777094371141-on2w8",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094371141-sl25m",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094371141-e4ocv",
+            "name": "香菜",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777094371141-514z2",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094371141-7bewi",
+            "name": "小茼蒿",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777094371141-59g1b",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094371141-pmjxh",
+            "name": "冬瓜",
+            "unit": "斤",
+            "price": 0.7
+          },
+          {
+            "id": "entry-1777094371141-ai69q",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094371141-yr78e",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777094371141-5mj34",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094371141-98xqh",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2
+          }
+        ]
+      },
+      "2026-04-22": {
+        "id": "record-1777094482600-joota",
+        "quote_date": "2026-04-22",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:23:28.277Z",
+        "entries": [
+          {
+            "id": "entry-1777094510700-vhfll",
+            "name": "小西芹",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777094510700-2u4a0",
+            "name": "菠菜",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094510700-1dp14",
+            "name": "生菜",
+            "unit": "斤",
+            "price": 2.8
+          },
+          {
+            "id": "entry-1777094510700-350wu",
+            "name": "广东菜心",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094510700-fdkjc",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094510700-d9vdb",
+            "name": "韭黄",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094510700-ytevj",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.6
+          },
+          {
+            "id": "entry-1777094510700-gwptg",
+            "name": "嫩南瓜",
+            "unit": "斤",
+            "price": 2.04
+          },
+          {
+            "id": "entry-1777094510700-wulxs",
+            "name": "毛毛菜",
+            "unit": "斤",
+            "price": 1.8
+          },
+          {
+            "id": "entry-1777094510700-si0qa",
+            "name": "长茄子",
+            "unit": "斤",
+            "price": 2.1
+          },
+          {
+            "id": "entry-1777094510700-76bbk",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3.2
+          },
+          {
+            "id": "entry-1777094510700-h5xqy",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094510700-av5td",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094510700-49f3f",
+            "name": "冬瓜",
+            "unit": "斤",
+            "price": 0.7
+          },
+          {
+            "id": "entry-1777094510700-wj4tb",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094510700-qycws",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.17
+          },
+          {
+            "id": "entry-1777094510700-h6z7r",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094510700-u893i",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094510700-mry1h",
+            "name": "大尖椒",
+            "unit": "斤",
+            "price": 2.9
+          },
+          {
+            "id": "entry-1777094510700-p1s34",
+            "name": "青线椒",
+            "unit": "斤",
+            "price": 4.6
+          },
+          {
+            "id": "entry-1777094510700-ly3d6",
+            "name": "日本南瓜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094510700-3hu0b",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          }
+        ]
+      },
+      "2026-04-23": {
+        "id": "record-1777094617847-ocjfn",
+        "quote_date": "2026-04-23",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:25:26.693Z",
+        "entries": [
+          {
+            "id": "entry-1777094644902-ewed1",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3.2
+          },
+          {
+            "id": "entry-1777094644902-duvbx",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094644902-4fitw",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777094644902-rv8m9",
+            "name": "西葫芦",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777094644902-n4qi8",
+            "name": "青线椒",
+            "unit": "斤",
+            "price": 3.4
+          },
+          {
+            "id": "entry-1777094644902-xkeni",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094644902-bl6qt",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094644902-9xhqm",
+            "name": "青豆苗",
+            "unit": "板",
+            "price": 6
+          },
+          {
+            "id": "entry-1777094644902-gu0g4",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.4
+          },
+          {
+            "id": "entry-1777094644902-d99iv",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094644902-gd9lm",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094644902-ldv2m",
+            "name": "冬瓜",
+            "unit": "斤",
+            "price": 0.7
+          },
+          {
+            "id": "entry-1777094644902-isnsl",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094644902-d778i",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094644902-ykh07",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094644902-zl4cc",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777094644902-wcix8",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777094644902-hrbqu",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094644902-aapry",
+            "name": "茭白",
+            "unit": "斤",
+            "price": 5
+          }
+        ]
+      },
+      "2026-04-24": {
+        "id": "record-1777094736220-pfks4",
+        "quote_date": "2026-04-24",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:27:22.651Z",
+        "entries": [
+          {
+            "id": "entry-1777094762989-v53ou",
+            "name": "胡萝卜",
+            "unit": "斤",
+            "price": 1.4
+          },
+          {
+            "id": "entry-1777094762989-9o93m",
+            "name": "花菜",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777094762989-i0h8z",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3.2
+          },
+          {
+            "id": "entry-1777094762989-ne9q3",
+            "name": "西葫芦",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094762989-erykm",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094762989-12u82",
+            "name": "长豆角",
+            "unit": "斤",
+            "price": 4.2
+          },
+          {
+            "id": "entry-1777094762989-ykuyb",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094762989-4eysb",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094762989-orufv",
+            "name": "菠菜",
+            "unit": "斤",
+            "price": 3.8
+          },
+          {
+            "id": "entry-1777094762989-57pov",
+            "name": "广东菜心",
+            "unit": "斤",
+            "price": 2.8
+          },
+          {
+            "id": "entry-1777094762989-7ojb6",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.6
+          },
+          {
+            "id": "entry-1777094762989-badso",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094762989-9oyjx",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777094762989-084j9",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094762989-kfv79",
+            "name": "铁棍山药",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777094762989-l5spq",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094762989-7j4xi",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777094762989-uusnw",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094762989-b28n8",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094762989-jxhls",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777094762989-bnhad",
+            "name": "白萝卜",
+            "unit": "斤",
+            "price": 0.8
+          }
+        ]
+      },
+      "2026-04-25": {
+        "id": "record-1777094869239-cxs5y",
+        "quote_date": "2026-04-25",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T05:29:13.204Z",
+        "entries": [
+          {
+            "id": "entry-1777094888112-sfqkd",
+            "name": "黄瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094888112-humwz",
+            "name": "胡萝卜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094888112-ygqjr",
+            "name": "花菜",
+            "unit": "斤",
+            "price": 2.1
+          },
+          {
+            "id": "entry-1777094888112-fp32z",
+            "name": "长茄子",
+            "unit": "斤",
+            "price": 3.1
+          },
+          {
+            "id": "entry-1777094888112-gm56p",
+            "name": "西葫芦",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094888112-dslp0",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777094888112-ekyi8",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777094888112-u2s8h",
+            "name": "长豆角",
+            "unit": "斤",
+            "price": 4.3
+          },
+          {
+            "id": "entry-1777094888112-6db3q",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094888112-psles",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777094888112-7v1b2",
+            "name": "青豆苗",
+            "unit": "板",
+            "price": 6
+          },
+          {
+            "id": "entry-1777094888112-9uar1",
+            "name": "菠菜",
+            "unit": "斤",
+            "price": 3.8
+          },
+          {
+            "id": "entry-1777094888112-6y5t1",
+            "name": "韭菜",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777094888112-0fp01",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777094888112-aevp2",
+            "name": "嫩南瓜",
+            "unit": "斤",
+            "price": 1.8
+          },
+          {
+            "id": "entry-1777094888112-7qauw",
+            "name": "小茼蒿",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777094888112-bk5hd",
+            "name": "茭白",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777094888112-ht1c8",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777094888112-j76j1",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777094888112-z2q9r",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.49
+          },
+          {
+            "id": "entry-1777094888112-9lv77",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          }
+        ]
+      },
+      "2026-04-27": {
+        "id": "record-1777612549160-l8snk",
+        "quote_date": "2026-04-27",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T05:18:40.474Z",
+        "entries": [
+          {
+            "id": "entry-1777612720474-lts9u",
+            "name": "白萝卜",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777612720474-fw9rd",
+            "name": "黄瓜",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777612720474-1ixjo",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3.4
+          },
+          {
+            "id": "entry-1777612720474-p191j",
+            "name": "西葫芦",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777612720474-lhz8q",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777612720474-oqrbw",
+            "name": "长豆角",
+            "unit": "斤",
+            "price": 4.5
+          },
+          {
+            "id": "entry-1777612720474-lq3i4",
+            "name": "蒜黄",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777612720474-b3zqc",
+            "name": "香菜",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777612720474-2szyw",
+            "name": "广东菜心",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777612720474-joe5u",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.4
+          },
+          {
+            "id": "entry-1777612720474-5ixv8",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777612720474-mmmdc",
+            "name": "毛玉米",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777612720474-85bxt",
+            "name": "青大蒜",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777612720474-2fkg4",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777612720474-1z5eu",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777612720474-xm7pl",
+            "name": "青豆苗",
+            "unit": "板",
+            "price": 6
+          },
+          {
+            "id": "entry-1777612720474-m4y66",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777612720474-hj7qn",
+            "name": "冬瓜",
+            "unit": "斤",
+            "price": 0.7
+          },
+          {
+            "id": "entry-1777612720474-utnnt",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777612720474-i05yv",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777612720474-q2m5d",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.5
+          }
+        ]
+      },
+      "2026-05-01": {
+        "id": "record-1777626818810-pn7l7",
+        "quote_date": "2026-05-01",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T09:19:10.851Z",
+        "entries": [
+          {
+            "id": "entry-1777627150850-8zj70",
+            "name": "胡萝卜",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777627150850-pwnr2",
+            "name": "包菜",
+            "unit": "斤",
+            "price": 0.8
+          },
+          {
+            "id": "entry-1777627150850-a2is8",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          }
+        ]
+      },
+      "2026-04-28": {
+        "id": "record-1777626824626-dxxuv",
+        "quote_date": "2026-04-28",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T09:15:27.636Z",
+        "entries": [
+          {
+            "id": "entry-1777626927636-o1j3u",
+            "name": "白萝卜",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777626927636-wnsl0",
+            "name": "黄瓜",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777626927636-lv7a5",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3.2
+          },
+          {
+            "id": "entry-1777626927636-y5usk",
+            "name": "西葫芦",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777626927636-7i8n8",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777626927636-2iodr",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777626927636-xage1",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777626927636-6em5e",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777626927636-nccyg",
+            "name": "广东菜心",
+            "unit": "斤",
+            "price": 2.7
+          },
+          {
+            "id": "entry-1777626927636-lyjwy",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777626927636-2fkpj",
+            "name": "嫩南瓜",
+            "unit": "斤",
+            "price": 1.8
+          },
+          {
+            "id": "entry-1777626927636-o0umb",
+            "name": "蒜黄",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777626927636-lfl2u",
+            "name": "香菜",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777626927636-si8m9",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777626927636-iveqr",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777626927636-vo95d",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.6
+          },
+          {
+            "id": "entry-1777626927636-p4dmm",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777626927636-njji1",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          }
+        ]
+      },
+      "2026-04-29": {
+        "id": "record-1777626983676-zxgha",
+        "quote_date": "2026-04-29",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T09:17:08.260Z",
+        "entries": [
+          {
+            "id": "entry-1777627028259-54w4p",
+            "name": "胡萝卜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777627028259-cmkqt",
+            "name": "黄瓜",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777627028259-6cr4s",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.8
+          },
+          {
+            "id": "entry-1777627028259-7um0i",
+            "name": "洋葱",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777627028259-l46e8",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777627028259-e6p33",
+            "name": "绿豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777627028259-wswve",
+            "name": "蒜黄",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777627028259-r9qko",
+            "name": "香菜",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777627028259-xi05f",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777627028259-q3lbb",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777627028259-3g1vz",
+            "name": "去皮小土豆",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777627028259-eo9vs",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777627028259-shyc4",
+            "name": "茭白",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777627028259-e6e5g",
+            "name": "老南瓜",
+            "unit": "斤",
+            "price": 1.2
+          },
+          {
+            "id": "entry-1777627028259-nz858",
+            "name": "土豆",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777627028259-06f3z",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.3
+          },
+          {
+            "id": "entry-1777627028259-ljsc5",
+            "name": "大红尖椒",
+            "unit": "斤",
+            "price": 7.9
+          }
+        ]
+      },
+      "2026-04-30": {
+        "id": "record-1777627043069-hg1y1",
+        "quote_date": "2026-04-30",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T09:18:24.134Z",
+        "entries": [
+          {
+            "id": "entry-1777627093211-66lgp",
+            "name": "胡萝卜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777627093211-w6eun",
+            "name": "花菜",
+            "unit": "斤",
+            "price": 1.8
+          },
+          {
+            "id": "entry-1777627093211-dshbo",
+            "name": "黄瓜",
+            "unit": "斤",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777627093211-vrpf9",
+            "name": "丝瓜",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777627093211-ut9c3",
+            "name": "小葱",
+            "unit": "斤",
+            "price": 2.8
+          },
+          {
+            "id": "entry-1777627093211-e0de5",
+            "name": "蒜黄",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777627093211-1mrbs",
+            "name": "青菜",
+            "unit": "斤",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777627093211-5xgeb",
+            "name": "去皮莴笋",
+            "unit": "斤",
+            "price": 2.2
+          },
+          {
+            "id": "entry-1777627093211-fsw1h",
+            "name": "光玉米",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777627093211-y2ayr",
+            "name": "春笋",
+            "unit": "斤",
+            "price": 2
+          },
+          {
+            "id": "entry-1777627093211-tzi6o",
+            "name": "西红柿",
+            "unit": "斤",
+            "price": 2.3
+          },
+          {
+            "id": "entry-1777627093211-0l5fq",
+            "name": "黄豆芽",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777627093211-cqufu",
+            "name": "小莲藕",
+            "unit": "斤",
+            "price": 1.5
+          }
+        ]
+      }
+    },
+    "刘慧": {
+      "2026-04-18": {
+        "id": "record-1776499124275-fiv4k",
+        "quote_date": "2026-04-18",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:24:39.687Z",
+        "entries": [
+          {
+            "id": "entry-1777098278588-70p05",
+            "name": "大红尖椒",
+            "unit": "斤",
+            "price": 8
+          },
+          {
+            "id": "entry-1777098278588-0ji31",
+            "name": "大尖椒",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098278588-4p98y",
+            "name": "美人椒",
+            "unit": "斤",
+            "price": 6
+          },
+          {
+            "id": "entry-1777098278588-5m3wr",
+            "name": "青线椒",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098278588-c2v6b",
+            "name": "茶树菇",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098278589-jw5t0",
+            "name": "生姜",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098278589-qqnbe",
+            "name": "西兰花",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098278589-zdiya",
+            "name": "紫甘蓝",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098278589-0uktx",
+            "name": "杏鲍菇",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098278589-v7pkz",
+            "name": "大蒜子",
+            "unit": "斤",
+            "price": 8
+          },
+          {
+            "id": "entry-1777098278589-0t8y5",
+            "name": "香菇",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098278589-tj15j",
+            "name": "海鲜菇",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098278589-aiem8",
+            "name": "蚕豆瓣",
+            "unit": "斤",
+            "price": 17
+          }
+        ]
+      }
+    },
+    "酱菜": {
+      "2026-04-27": {
+        "id": "record-1777676906853-lenzx",
+        "quote_date": "2026-04-27",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:08:33.743Z",
+        "entries": [
+          {
+            "id": "entry-1777676913743-wpxkr",
+            "name": "酸豆角",
+            "unit": "斤",
+            "price": 3.5
+          },
+          {
+            "id": "entry-1777676913743-5e3ud",
+            "name": "鸭血",
+            "unit": "盒",
+            "price": 16
+          },
+          {
+            "id": "entry-1777676913743-ok927",
+            "name": "腌白菜",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777676913743-2p1pc",
+            "name": "五仁酱丁",
+            "unit": "件",
+            "price": 35
+          },
+          {
+            "id": "entry-1777676913743-22561",
+            "name": "水发腊笋",
+            "unit": "斤",
+            "price": 9
+          },
+          {
+            "id": "entry-1777676913743-z8osv",
+            "name": "海蜇丝",
+            "unit": "件",
+            "price": 32
+          },
+          {
+            "id": "entry-1777676913743-40uvx",
+            "name": "红薯粉丝",
+            "unit": "包",
+            "price": 20
+          }
+        ]
+      },
+      "2026-04-28": {
+        "id": "record-1777676920100-oj64n",
+        "quote_date": "2026-04-28",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:10:13.825Z",
+        "entries": [
+          {
+            "id": "entry-1777677013824-lb7lo",
+            "name": "王守义麻辣鲜",
+            "unit": "包",
+            "price": 3
+          },
+          {
+            "id": "entry-1777677013824-bazxp",
+            "name": "轩望郫县红油豆瓣酱",
+            "unit": "桶",
+            "price": 45
+          },
+          {
+            "id": "entry-1777677013824-i0iri",
+            "name": "海带结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777677013824-ncalz",
+            "name": "酸菜",
+            "unit": "桶",
+            "price": 60
+          },
+          {
+            "id": "entry-1777677013824-r98j8",
+            "name": "外婆菜",
+            "unit": "箱",
+            "price": 35
+          },
+          {
+            "id": "entry-1777677013824-6j7nl",
+            "name": "鸭血",
+            "unit": "盒",
+            "price": 0.9
+          },
+          {
+            "id": "entry-1777677013824-s1cx3",
+            "name": "椒盐",
+            "unit": "瓶",
+            "price": 15
+          },
+          {
+            "id": "entry-1777677013825-9wdge",
+            "name": "粤师傅排骨酱",
+            "unit": "桶",
+            "price": 45
+          }
+        ]
+      },
+      "2026-04-29": {
+        "id": "record-1777677073920-mehxg",
+        "quote_date": "2026-04-29",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:12:21.373Z",
+        "entries": [
+          {
+            "id": "entry-1777677141373-nrr72",
+            "name": "鸭血",
+            "unit": "箱",
+            "price": 17
+          },
+          {
+            "id": "entry-1777677141373-sdu8m",
+            "name": "红薯粉丝",
+            "unit": "包",
+            "price": 20
+          },
+          {
+            "id": "entry-1777677141373-ddifa",
+            "name": "去壳鹌鹑蛋",
+            "unit": "斤",
+            "price": 8
+          },
+          {
+            "id": "entry-1777677141373-lrjmi",
+            "name": "云丝",
+            "unit": "件",
+            "price": 45
+          }
+        ]
+      },
+      "2026-04-30": {
+        "id": "record-1777677225822-birqk",
+        "quote_date": "2026-04-30",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:14:01.377Z",
+        "entries": [
+          {
+            "id": "entry-1777677241377-n86ig",
+            "name": "红曲粉",
+            "unit": "包",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677241377-66iep",
+            "name": "外婆菜",
+            "unit": "箱",
+            "price": 35
+          },
+          {
+            "id": "entry-1777677241377-huip7",
+            "name": "鸭血",
+            "unit": "箱",
+            "price": 17
+          },
+          {
+            "id": "entry-1777677241377-pbk5r",
+            "name": "五仁酱丁",
+            "unit": "件",
+            "price": 35
+          },
+          {
+            "id": "entry-1777677241377-eikof",
+            "name": "东北酸菜",
+            "unit": "包",
+            "price": 4
+          }
+        ]
+      }
+    },
+    "豆制品": {
+      "2026-04-20": {
+        "id": "record-1777098556895-kh6f5",
+        "quote_date": "2026-04-20",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:30:11.931Z",
+        "entries": [
+          {
+            "id": "entry-1777098610204-g53w6",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098610204-2t9oa",
+            "name": "板豆腐（普通）",
+            "unit": "斤",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098610204-u6a56",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098610204-dgaun",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098610204-6gzpo",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098610204-58mkh",
+            "name": "内酯豆腐",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098610204-dpjjl",
+            "name": "鸿光浪花豆奶",
+            "unit": "斤",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098610204-g893h",
+            "name": "千张豆皮",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098610204-2dv1b",
+            "name": "龙游干",
+            "unit": "斤",
+            "price": 4.5
+          },
+          {
+            "id": "entry-1777098610204-dlpbd",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "斤",
+            "price": 1.3
+          }
+        ]
+      },
+      "2026-04-21": {
+        "id": "record-1777098619227-n2ugc",
+        "quote_date": "2026-04-21",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:31:09.515Z",
+        "entries": [
+          {
+            "id": "entry-1777098667391-g0tow",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098667391-mgwnq",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098667391-p6wpy",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098667391-21fmy",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098667391-y0gci",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098667391-ewy5z",
+            "name": "素鸡",
+            "unit": "斤",
+            "price": 4.5
+          },
+          {
+            "id": "entry-1777098667391-z3qzk",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098667391-pzz7w",
+            "name": "千张豆皮",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098667391-7uhf7",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098667391-ztkbo",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777098667391-edvcn",
+            "name": "鸭血",
+            "unit": "盒",
+            "price": 0.9
+          }
+        ]
+      },
+      "2026-04-22": {
+        "id": "record-1777098696187-vuqfp",
+        "quote_date": "2026-04-22",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:32:20.966Z",
+        "entries": [
+          {
+            "id": "entry-1777098740966-n4p5f",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098740966-6i0wi",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098740966-ahr8t",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098740966-ty6bh",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777098740966-5q8ic",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098740966-e83fq",
+            "name": "油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098740966-j53hp",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098740966-c8bdk",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098740966-kr120",
+            "name": "手指年糕",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098740966-mkau1",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098740966-sj36v",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777098740966-086dy",
+            "name": "双片香干",
+            "unit": "斤",
+            "price": 3
+          }
+        ]
+      },
+      "2026-04-23": {
+        "id": "record-1777098749369-p7vqe",
+        "quote_date": "2026-04-23",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:33:16.926Z",
+        "entries": [
+          {
+            "id": "entry-1777098794706-bzbqx",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098794706-rk0ch",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098794706-42tpk",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098794706-bk6wr",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777098794706-qrh0u",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098794706-3dpcg",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098794706-h3zi1",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098794706-lb013",
+            "name": "鸡蛋干（箱装）",
+            "unit": "箱",
+            "price": 80
+          },
+          {
+            "id": "entry-1777098794706-s4c00",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777098794706-iadkm",
+            "name": "双片香干",
+            "unit": "斤",
+            "price": 3
+          }
+        ]
+      },
+      "2026-04-24": {
+        "id": "record-1777098818276-zwlhr",
+        "quote_date": "2026-04-24",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:34:55.107Z",
+        "entries": [
+          {
+            "id": "entry-1777098888444-mlh1v",
+            "name": "大油方",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098888444-hujiq",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098888444-ifsvy",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098888444-uwemn",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098888444-kacr1",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777098888444-s94pe",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098888444-f67v9",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098888444-egsci",
+            "name": "内酯豆腐",
+            "unit": "斤",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098888444-eb959",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098888444-y5f8v",
+            "name": "龙游干",
+            "unit": "斤",
+            "price": 4.5
+          },
+          {
+            "id": "entry-1777098888444-1fgeq",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098888444-v6wxn",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          }
+        ]
+      },
+      "2026-04-25": {
+        "id": "record-1777098909228-8sj54",
+        "quote_date": "2026-04-25",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-04-25T06:35:42.989Z",
+        "entries": [
+          {
+            "id": "entry-1777098941240-p602i",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777098941240-bn5wi",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777098941240-1v7t4",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098941240-2odxm",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777098941240-09kkl",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777098941240-l8jxu",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777098941240-8d422",
+            "name": "千张豆皮",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777098941240-i3w6p",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777098941240-rv9az",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          }
+        ]
+      },
+      "2026-04-28": {
+        "id": "record-1777676930188-jssti",
+        "quote_date": "2026-04-28",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:11:32.037Z",
+        "entries": [
+          {
+            "id": "entry-1777677092037-23dmu",
+            "name": "大油方",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677092037-0nv00",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777677092037-pc57y",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777677092037-csv4m",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777677092037-do61h",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777677092037-wwvnx",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677092037-22b6x",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777677092037-dpu2m",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777677092037-m9q0q",
+            "name": "千张豆皮",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777677092037-eomib",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777677092037-xpuqk",
+            "name": "双片香干",
+            "unit": "斤",
+            "price": 3
+          }
+        ]
+      },
+      "2026-04-27": {
+        "id": "record-1777676930721-t3sz7",
+        "quote_date": "2026-04-27",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:09:08.361Z",
+        "entries": [
+          {
+            "id": "entry-1777676948361-f2g1o",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777676948361-jtfgu",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777676948361-90y46",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777676948361-ms602",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777676948361-yfb92",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777676948361-wnj0z",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777676948361-sogjc",
+            "name": "内酯豆腐",
+            "unit": "盒",
+            "price": 1.5
+          },
+          {
+            "id": "entry-1777676948361-cazc0",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777676948361-ykk05",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777676948361-ludd9",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          }
+        ]
+      },
+      "2026-04-29": {
+        "id": "record-1777677182613-f7mt8",
+        "quote_date": "2026-04-29",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:13:11.743Z",
+        "entries": [
+          {
+            "id": "entry-1777677191743-la8th",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777677191743-ioxbh",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777677191743-zw33n",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777677191743-xrj5v",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677191743-5n3gt",
+            "name": "油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677191743-m8j1v",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777677191743-23mal",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777677191743-5g2tp",
+            "name": "千张豆皮",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777677191743-vypbd",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777677191743-o56x3",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          }
+        ]
+      },
+      "2026-04-30": {
+        "id": "record-1777677265291-l1xya",
+        "quote_date": "2026-04-30",
+        "source_type": "mixed",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:14:35.481Z",
+        "entries": [
+          {
+            "id": "entry-1777677275480-td6gl",
+            "name": "老豆腐",
+            "unit": "斤",
+            "price": 2.5
+          },
+          {
+            "id": "entry-1777677275480-hey2o",
+            "name": "板豆腐（普通）",
+            "unit": "板",
+            "price": 17
+          },
+          {
+            "id": "entry-1777677275480-dvuiw",
+            "name": "千张",
+            "unit": "斤",
+            "price": 4
+          },
+          {
+            "id": "entry-1777677275480-3mm14",
+            "name": "千张结",
+            "unit": "斤",
+            "price": 7
+          },
+          {
+            "id": "entry-1777677275480-ijmpp",
+            "name": "小油豆腐",
+            "unit": "斤",
+            "price": 5
+          },
+          {
+            "id": "entry-1777677275480-pgr2k",
+            "name": "香干",
+            "unit": "斤",
+            "price": 3
+          },
+          {
+            "id": "entry-1777677275480-8kjj7",
+            "name": "鸿光浪花豆奶",
+            "unit": "包",
+            "price": 1.1
+          },
+          {
+            "id": "entry-1777677275480-lv7kr",
+            "name": "盒豆腐",
+            "unit": "盒",
+            "price": 1
+          },
+          {
+            "id": "entry-1777677275480-6a828",
+            "name": "鸿光浪花芝麻豆奶",
+            "unit": "包",
+            "price": 1.3
+          },
+          {
+            "id": "entry-1777677275480-7qxwo",
+            "name": "双片香干",
+            "unit": "斤",
+            "price": 3
+          }
+        ]
+      },
+      "2026-05-01": {
+        "id": "record-1777677291337-58mry",
+        "quote_date": "2026-05-01",
+        "source_type": "manual",
+        "source_path": "",
+        "updated_at": "2026-05-01T23:19:26.030Z",
+        "entries": [
+          {
+            "id": "entry-1777677560088-r4yru",
+            "name": "油豆腐",
+            "unit": "斤",
+            "price": 5
+          }
+        ]
+      }
+    }
+  },
+  "weekly_quote_summary_unit_memory": {
+    "4": "斤",
+    "6": "斤",
+    "花菜": "斤",
+    "小葱": "斤",
+    "洋葱": "斤",
+    "长豆角": "斤",
+    "青线椒": "斤",
+    "黄豆芽": "斤",
+    "绿豆芽": "斤",
+    "青豆苗": "板",
+    "小莲藕": "斤",
+    "广东菜心": "斤",
+    "韭菜": "斤",
+    "香菜": "斤",
+    "青菜": "斤",
+    "去皮莴笋": "斤",
+    "去皮小土豆": "斤",
+    "春笋": "斤",
+    "土豆": "斤",
+    "西红柿": "斤",
+    "1.8": "斤",
+    "2.5": "斤",
+    "0.9": "斤",
+    "3.3": "斤",
+    "3.74": "斤",
+    "1.1": "斤",
+    "1.5": "斤",
+    "2.7": "斤",
+    "3.5": "斤",
+    "2.2": "斤",
+    "1.3": "斤",
+    "花菜2": "斤",
+    "小葱2.5": "斤",
+    "洋葱0.9": "斤",
+    "长豆角3.5": "斤",
+    "大红尖椒7.41": "斤",
+    "大尖椒2.93": "斤",
+    "曲皮薄尖椒": "斤",
+    "青线椒2.9": "斤",
+    "黄豆芽1.1": "斤",
+    "绿豆芽1.1": "斤",
+    "青豆苗6": "斤",
+    "小莲藕1.5": "斤",
+    "韭菜3.5": "斤",
+    "香菜5": "斤",
+    "青菜1.5": "斤",
+    "小茼蒿2.2": "斤",
+    "春笋1.5": "斤",
+    "冬瓜0.7": "斤",
+    "老南瓜1.2": "斤",
+    "去皮莴笋2.2": "斤",
+    "土豆1.3": "斤",
+    "西红柿2": "斤",
+    "大红尖椒": "斤",
+    "大尖椒": "斤",
+    "小茼蒿": "斤",
+    "冬瓜": "斤",
+    "老南瓜": "斤",
+    "小西芹": "斤",
+    "菠菜": "斤",
+    "生菜": "斤",
+    "韭黄": "斤",
+    "嫩南瓜": "斤",
+    "毛毛菜": "斤",
+    "长茄子": "斤",
+    "丝瓜": "斤",
+    "日本南瓜": "斤",
+    "西葫芦": "斤",
+    "茭白": "斤",
+    "胡萝卜": "斤",
+    "铁棍山药": "斤",
+    "白萝卜": "斤",
+    "黄瓜": "斤",
+    "美人椒": "斤",
+    "茶树菇": "斤",
+    "生姜": "斤",
+    "西兰花": "斤",
+    "紫甘蓝": "斤",
+    "杏鲍菇": "斤",
+    "大蒜子": "斤",
+    "香菇": "斤",
+    "海鲜菇": "斤",
+    "蚕豆瓣": "斤",
+    "老豆腐": "斤",
+    "板豆腐普通": "板",
+    "千张": "斤",
+    "小油豆腐": "斤",
+    "香干": "斤",
+    "内酯豆腐": "盒",
+    "鸿光浪花豆奶": "包",
+    "千张豆皮": "斤",
+    "龙游干": "斤",
+    "鸿光浪花芝麻豆奶": "包",
+    "素鸡": "斤",
+    "盒豆腐": "盒",
+    "鸭血": "盒",
+    "千张结": "斤",
+    "油豆腐": "斤",
+    "手指年糕": "斤",
+    "双片香干": "斤",
+    "鸡蛋干箱装": "箱",
+    "大油方": "斤",
+    "你好": "斤",
+    "蒜黄": "斤",
+    "毛玉米": "斤",
+    "青大蒜": "斤",
+    "光玉米": "斤",
+    "包菜": "斤",
+    "酸豆角": "斤",
+    "腌白菜": "斤",
+    "五仁酱丁": "件",
+    "水发腊笋": "斤",
+    "海蜇丝": "件",
+    "红薯粉丝": "包",
+    "王守义麻辣鲜": "包",
+    "轩望郫县红油豆瓣酱": "桶",
+    "海带结": "斤",
+    "酸菜": "桶",
+    "外婆菜": "箱",
+    "椒盐": "瓶",
+    "粤师傅排骨酱": "桶",
+    "去壳鹌鹑蛋": "斤",
+    "云丝": "件",
+    "红曲粉": "包",
+    "东北酸菜": "包"
+  },
+  "funasr_lab_memory": {
+    "recent_hotwords": [],
+    "name_unit_memory": [
+      {
+        "alias": "蒸肉粉",
+        "canonical_name": "蒸肉粉",
+        "unit": "包",
+        "updated_at": "2026-04-24 13:21:06",
+        "use_count": 1
+      },
+      {
+        "alias": "猪脚",
+        "canonical_name": "猪脚",
+        "unit": "斤",
+        "updated_at": "2026-04-24 13:09:34",
+        "use_count": 2
+      },
+      {
+        "alias": "鸡",
+        "canonical_name": "鸡",
+        "unit": "斤",
+        "updated_at": "2026-04-24 12:22:16",
+        "use_count": 1
+      },
+      {
+        "alias": "带骨条肉",
+        "canonical_name": "带骨条肉",
+        "unit": "斤",
+        "updated_at": "2026-04-24 12:22:02",
+        "use_count": 1
+      },
+      {
+        "alias": "蘑菇",
+        "canonical_name": "蘑菇",
+        "unit": "斤",
+        "updated_at": "2026-04-24 12:21:40",
+        "use_count": 8
+      },
+      {
+        "alias": "香菇",
+        "canonical_name": "香菇",
+        "unit": "斤",
+        "updated_at": "2026-04-24 12:19:24",
+        "use_count": 2
+      },
+      {
+        "alias": "想得美",
+        "canonical_name": "想得美",
+        "unit": "斤",
+        "updated_at": "2026-04-24 12:17:16",
+        "use_count": 1
+      },
+      {
+        "alias": "生姜",
+        "canonical_name": "生姜",
+        "unit": "斤",
+        "updated_at": "2026-04-21 16:00:23",
+        "use_count": 1
+      },
+      {
+        "alias": "小西芹",
+        "canonical_name": "小西芹",
+        "unit": "斤",
+        "updated_at": "2026-04-21 16:00:17",
+        "use_count": 1
+      },
+      {
+        "alias": "蒜苔",
+        "canonical_name": "蒜苔",
+        "unit": "斤",
+        "updated_at": "2026-04-21 15:58:37",
+        "use_count": 1
+      },
+      {
+        "alias": "莲藕",
+        "canonical_name": "莲藕",
+        "unit": "斤",
+        "updated_at": "2026-04-21 15:45:44",
+        "use_count": 1
+      },
+      {
+        "alias": "酸豆角",
+        "canonical_name": "酸豆角",
+        "unit": "斤",
+        "updated_at": "2026-04-21 15:45:30",
+        "use_count": 1
+      },
+      {
+        "alias": "大白菜",
+        "canonical_name": "大白菜",
+        "unit": "斤",
+        "updated_at": "2026-04-21 15:41:16",
+        "use_count": 3
+      }
+    ]
+  },
+  "funasr_lab_daily_tracking": {
+    "records": {
+      "2026-04-21": [
+        {
+          "id": "track-2026-04-21-1776757239500",
+          "raw_name": "大白菜",
+          "normalized_name": "大白菜",
+          "unit": "斤",
+          "quantity": 183.4,
+          "category": "vegetable",
+          "transcript": "大 白 菜 四 十 点 二 斤",
+          "source": "funasr-lab",
+          "merge_count": 4,
+          "created_at": "2026-04-21 15:40:39",
+          "updated_at": "2026-04-21 15:41:25"
+        }
+      ]
+    }
+  },
+  "inventory_low_stock_threshold": 3,
+  "pesticide_templates": {
+    "big": {
+      "path": "D:\\Users\\xln\\Desktop\\检测报告py\\data\\templates\\pesticide\\big-template.docx",
+      "filename": "农残检测记录表2026.04.01.docx",
+      "updated_at": "2026-04-30 13:52:41"
+    },
+    "small": {
+      "path": "D:\\Users\\xln\\Desktop\\检测报告py\\data\\templates\\pesticide\\small-template.docx",
+      "filename": "单位农残记录表04.1.docx",
+      "updated_at": "2026-04-30 11:30:51"
+    }
+  },
+  "transfer_templates": {},
+  "transfer_big_dir": "G:\\检测报告（测试）\\26年4月检测报告",
+  "transfer_template_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\滨鲜单表.docx",
+  "transfer_output_dir": "G:\\检测报告（测试）\\26年4月单位检测报告"
+}

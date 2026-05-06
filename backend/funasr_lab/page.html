@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qwen3-ASR 测试页</title>
+    <link rel="stylesheet" href="/tests/funasr-lab/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">独立测试页</p>
+        <h1>Qwen3-ASR 1.7B 测试页</h1>
+        <p class="lede">
+          这个页面独立放在 <code>backend/funasr_lab/</code> 下，用来调试
+          <code>Qwen/Qwen3-ASR-1.7B</code>、易错词库、日摄入解析和正式 STT 对比，不影响主业务流程。
+        </p>
+        <div class="hero__meta">
+          <span id="status-pill" class="pill pill--neutral">正在检查运行环境</span>
+          <span class="meta-note">页面路径：<code>/tests/funasr-lab</code></span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel panel--accent">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">运行环境</p>
+              <h2>状态</h2>
+            </div>
+            <button id="refresh-status" class="ghost-button" type="button">刷新</button>
+          </header>
+          <div id="runtime-status" class="status-stack"></div>
+        </article>
+
+        <article class="panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">配置</p>
+              <h2>推理参数</h2>
+            </div>
+          </header>
+          <form id="lab-form" class="form-grid">
+            <label class="form-grid__full">
+              <span>模型</span>
+              <input name="model" value="Qwen/Qwen3-ASR-1.7B" />
+            </label>
+            <label>
+              <span>设备</span>
+              <select name="device">
+                <option value="auto" selected>自动</option>
+                <option value="cpu">cpu</option>
+                <option value="cuda:0">cuda:0</option>
+              </select>
+            </label>
+            <label>
+              <span>识别语言</span>
+              <input name="language" value="Chinese" placeholder="Chinese / English（传给模型）" />
+            </label>
+            <label>
+              <span>最大输出 token</span>
+              <input name="max_new_tokens" type="number" min="1" value="256" />
+            </label>
+            <label class="checkbox form-grid__full">
+              <input name="use_domain_context" type="checkbox" checked />
+              <span>使用已确认易错词、人工热词和食材别名作为 Qwen3-ASR 上下文</span>
+            </label>
+            <label class="form-grid__full">
+              <span>临时上下文</span>
+              <textarea
+                name="extra_context"
+                rows="4"
+                placeholder="可选。比如供应商名称、当天特殊食材、临时易错词对。"
+              ></textarea>
+            </label>
+            <label class="checkbox">
+              <input name="compare_with_baseline" type="checkbox" checked />
+              <span>同时对比当前 faster-whisper 正式 STT</span>
+            </label>
+            <label class="checkbox">
+              <input name="parse_daily_intake" type="checkbox" checked />
+              <span>识别后同时按日摄入规则解析</span>
+            </label>
+            <label class="checkbox">
+              <input name="retain_training_audio" type="checkbox" />
+              <span>本次音频本地留存，用于后续训练包导出（默认关闭）</span>
+            </label>
+            <label>
+              <span>摄入日期</span>
+              <input name="intake_date" type="date" />
+            </label>
+            <label>
+              <span>分类</span>
+              <select name="category">
+                <option value="">自动</option>
+                <option value="vegetable">蔬菜</option>
+                <option value="frozen">冻品</option>
+                <option value="meat">肉类</option>
+              </select>
+            </label>
+          </form>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">音频</p>
+              <h2>录音 / 上传</h2>
+            </div>
+          </header>
+          <div class="audio-stack">
+            <div class="action-row">
+              <button id="record-start" class="action-button" type="button">开始录音</button>
+              <button id="record-stop" class="ghost-button" type="button" disabled>停止录音</button>
+              <label class="file-button">
+                <input id="audio-file" type="file" accept="audio/*" />
+                <span>选择音频文件</span>
+              </label>
+            </div>
+            <div id="audio-source" class="audio-source">尚未选择音频</div>
+            <div class="action-row">
+              <button id="submit-lab" class="submit-button" type="button">运行 Qwen3-ASR</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">结果</p>
+              <h2>输出</h2>
+            </div>
+          </header>
+          <div class="action-row">
+            <button id="save-tracking" class="ghost-button" type="button" disabled>保存到日摄入</button>
+            <button id="confirm-correction" class="ghost-button" type="button" disabled>确认易错词</button>
+            <button id="apply-lexicon" class="action-button" type="button">一键应用增量词库</button>
+            <button id="export-training-pack" class="ghost-button" type="button">导出训练包</button>
+            <span id="save-tracking-hint" class="meta-note">先运行一次可解析的日摄入识别结果。</span>
+          </div>
+          <div id="lexicon-hint" class="meta-note">
+            已确认易错词可应用到下一次 Qwen3-ASR 识别上下文；这不会训练模型权重。
+          </div>
+          <div id="result-stack" class="result-stack">
+            <div class="placeholder">ASR 输出、正式 STT 对比和日摄入解析结果会显示在这里。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel panel--accent">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">日摄入</p>
+              <h2>摄入汇总</h2>
+            </div>
+            <button id="refresh-tracking" class="ghost-button" type="button">刷新</button>
+          </header>
+          <div id="tracking-stack" class="status-stack">
+            <div class="placeholder">当天汇总和最近几天的记录会显示在这里。</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Shadow Compare</p>
+              <h2>主备模型对比记录</h2>
+            </div>
+            <div class="action-row">
+              <button id="refresh-shadow-compare" class="ghost-button" type="button">刷新</button>
+              <button id="export-shadow-compare" class="ghost-button" type="button">导出 JSONL</button>
+            </div>
+          </header>
+          <div id="shadow-compare-stack" class="status-stack">
+            <div class="placeholder">主程序语音识别产生的 shadow compare 记录会显示在这里。</div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="/tests/funasr-lab/app.js" defer></script>
+  </body>
+</html>

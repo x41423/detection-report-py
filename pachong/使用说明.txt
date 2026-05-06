@@ -1,0 +1,73 @@
+蔬菜价格爬虫 - 使用说明
+============================
+
+数据来源: CN蔬菜网 (www.cnveg.com)
+采集内容: 蔬菜批发价格（全国平均价）
+
+使用方法:
+---------
+
+1. 命令行方式（推荐）:
+
+   # 获取默认20个品种的价格
+   python -m scrapers.price_scraper
+
+   # 获取指定品种
+   python -m scrapers.price_scraper -v 白菜 西红柿 黄瓜
+
+   # 只输出JSON格式
+   python -m scrapers.price_scraper -f json
+
+   # 指定输出目录
+   python -m scrapers.price_scraper -o ./output
+
+2. Python代码调用:
+
+   from scrapers.price_scraper import PriceScraper
+
+   scraper = PriceScraper()
+
+   # 获取所有价格
+   all_prices = scraper.scrape_all_prices()
+
+   # 获取指定品种
+   data = scraper.scrape_varieties(["白菜", "西红柿", "黄瓜"])
+
+   # 保存到文件
+   scraper.save_to_json(data)
+   scraper.save_to_csv(data)
+
+输出格式:
+---------
+
+JSON格式 (vegetable_prices_YYYYMMDD_HHMMSS.json):
+[
+  {
+    "品种": "西红柿",
+    "均价": 2.43,
+    "涨跌": "↓",
+    "采集时间": "2026-04-02 12:04:44"
+  }
+]
+
+CSV格式 (vegetable_prices_YYYYMMDD_HHMMSS.csv):
+品种,均价,涨跌,采集时间
+西红柿,2.43,↓,2026-04-02 12:04:44
+
+说明:
+-----
+- 价格单位: 元/斤 (500g)
+- 涨跌符号: ↑上涨 ↓下跌 -持平
+- 数据来源为全国批发市场平均价，仅供参考
+
+文件结构:
+---------
+pachong/
+├── scrapers/
+│   ├── __init__.py
+│   ├── config.py          # 配置文件（品种列表、URL等）
+│   └── price_scraper.py   # 核心爬虫代码
+├── tests/
+│   └── test_price_scraper.py  # 测试脚本
+├── price_data/            # 输出数据目录
+└── 使用说明.txt           # 本文件

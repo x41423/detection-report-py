@@ -1,0 +1,161 @@
+{
+  // FunASR 测试页手动热词配置文件
+  // 位置：config/funasr_lab_hotwords.jsonc
+  // 使用方式：
+  // 1. 这里适合放长期固定、高频出现、容易识别错的词。
+  // 2. 页面里临时输入的热词仍然可以用；系统会自动和这里的配置合并。
+  // 3. 修改后重新跑一次测试，或刷新测试页状态后再识别，即可生效。
+
+  // 手动固定热词列表
+  // 建议优先写：
+  // - 高频菜名
+  // - 高频原材料名
+  // - 容易识别错的单位
+  "manual_hotwords": [
+    "大白菜",
+    "黄瓜",
+    "豆腐",
+    "土豆",
+    "青椒",
+    "香菇",
+    "蘑菇",
+    "斤",
+    "板",
+    "香姑",
+    "平菇",
+    "青焦",
+    "青交",
+    "豆付",
+    "连藕",
+    "酸豆角",
+    "鸡尖",
+    "生姜",
+    "山药",
+    "西芹",
+    "小西芹",
+    "蒜苔",
+    "豆腐皮"
+  ],
+
+  // 名字 / 标准菜名 / 单位 记忆
+  // alias：你平时口头常说的名字
+  // canonical_name：希望最终统一成的标准菜名
+  // unit：这个菜最常用的单位
+  "name_unit_memory": [
+    {
+      "alias": "小土豆",
+      "canonical_name": "土豆",
+      "unit": "斤"
+    },
+    {
+      "alias": "老豆腐",
+      "canonical_name": "豆腐",
+      "unit": "板"
+    },
+    {
+      "alias": "蘑菇",
+      "canonical_name": "蘑菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "香菇",
+      "canonical_name": "香菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "香姑",
+      "canonical_name": "香菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "模菇",
+      "canonical_name": "蘑菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "平菇",
+      "canonical_name": "蘑菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "磨菇",
+      "canonical_name": "蘑菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "膜菇",
+      "canonical_name": "蘑菇",
+      "unit": "斤"
+    },
+    {
+      "alias": "青交",
+      "canonical_name": "青椒",
+      "unit": "斤"
+    },
+    {
+      "alias": "青焦",
+      "canonical_name": "青椒",
+      "unit": "斤"
+    },
+    {
+      "alias": "豆付",
+      "canonical_name": "豆腐",
+      "unit": "板"
+    },
+    {
+      "alias": "豆皮",
+      "canonical_name": "豆腐皮",
+      "unit": "斤"
+    },
+    {
+      "alias": "连藕",
+      "canonical_name": "莲藕",
+      "unit": "斤"
+    },
+    {
+      "alias": "联藕",
+      "canonical_name": "莲藕",
+      "unit": "斤"
+    },
+    {
+      "alias": "酸豆脚",
+      "canonical_name": "酸豆角",
+      "unit": "斤"
+    },
+    {
+      "alias": "鸡间",
+      "canonical_name": "鸡尖",
+      "unit": "斤"
+    },
+    {
+      "alias": "鸡件",
+      "canonical_name": "鸡尖",
+      "unit": "斤"
+    },
+    {
+      "alias": "生将",
+      "canonical_name": "生姜",
+      "unit": "斤"
+    },
+    {
+      "alias": "山要",
+      "canonical_name": "山药",
+      "unit": "斤"
+    },
+    {
+      "alias": "西勤",
+      "canonical_name": "西芹",
+      "unit": "斤"
+    },
+    {
+      "alias": "小西琴",
+      "canonical_name": "小西芹",
+      "unit": "斤"
+    },
+    {
+      "alias": "算台",
+      "canonical_name": "蒜苔",
+      "unit": "斤"
+    }
+  ]
+}

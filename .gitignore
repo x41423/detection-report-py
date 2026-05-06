@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Local environment
+.env
+.env.local
+.cache/
+.runtime/
+.venv*/
+
+# IDE
+.idea/
+
+# OMX runtime state
+.omx/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Generated data / accidental files
+backups/
+recorder/
+nul
+*.db-shm
+*.db-wal
+app/data/*.db
+data/*.db
+pachong/price_data/
+data/asr_corrections/*.json
+data/asr_corrections/*.jsonl
+data/asr_corrections/audio/
+data/asr_shadow_compare/*.jsonl
+鏂板缓 鏂囨湰鏂囨。.json
