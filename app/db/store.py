@@ -382,6 +382,33 @@ def init_database():
 
         cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteBatch (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier TEXT NOT NULL,
+                quote_date TEXT NOT NULL,
+                source_label TEXT DEFAULT '',
+                source_path TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(supplier, quote_date)
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteEntry (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id INTEGER NOT NULL REFERENCES WeeklyQuoteBatch(id) ON DELETE CASCADE,
+                name TEXT NOT NULL,
+                unit TEXT NOT NULL DEFAULT '斤',
+                price REAL NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS DailyIntakeSheet (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 intake_date TEXT NOT NULL UNIQUE,

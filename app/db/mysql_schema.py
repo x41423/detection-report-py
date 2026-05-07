@@ -52,6 +52,29 @@ MYSQL_SCHEMA_STATEMENTS = [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
+    CREATE TABLE IF NOT EXISTS WeeklyQuoteBatch (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier VARCHAR(255) NOT NULL,
+        quote_date VARCHAR(32) NOT NULL,
+        source_label VARCHAR(255) DEFAULT '',
+        source_path VARCHAR(1024) DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_weekly_quote_batch (supplier, quote_date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS WeeklyQuoteEntry (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        batch_id BIGINT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        unit VARCHAR(64) NOT NULL DEFAULT '斤',
+        price DOUBLE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_weekly_quote_entry_batch (batch_id),
+        CONSTRAINT fk_weekly_quote_entry_batch FOREIGN KEY (batch_id) REFERENCES WeeklyQuoteBatch(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
     CREATE TABLE IF NOT EXISTS DailyIntakeSheet (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         intake_date VARCHAR(32) NOT NULL UNIQUE,
