@@ -12,6 +12,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 
 SUPPLIERS = ("勾庄", "理想", "刘慧", "酱菜", "豆制品")
+BUILTIN_SUPPLIERS = SUPPLIERS
 HIGHEST_PRICE_SUPPLIERS = {"勾庄", "刘慧", "酱菜", "豆制品"}
 SUPPLIER_BATCH_LIMITS = {
     "勾庄": 7,

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 
+from app.db.weekly_quote_repository import WeeklyQuoteRepository
 from app.utils.weekly_quote_summary import (
+    BUILTIN_SUPPLIERS,
     SUPPLIERS,
     export_weekly_quote_summary,
     import_weekly_quote_batch,
@@ -11,6 +13,43 @@ from app.utils.weekly_quote_summary import (
 
 
 class WeeklyQuoteSummaryService:
+
+    def __init__(self):
+        self.repo = WeeklyQuoteRepository()
+
+    def save_manual_batch(self, supplier: str, quote_date: str, entries: list[dict],
+                          source_label: str = "手动录入") -> dict:
+        saved = self.repo.save_batch(
+            supplier=supplier,
+            quote_date=quote_date,
+            entries=entries,
+            source_label=source_label,
+        )
+        return {"success": True, "batch": saved}
+
+    def list_saved_batches(self, supplier: str) -> dict:
+        batches = self.repo.list_batches(supplier)
+        return {"success": True, "batches": batches}
+
+    def delete_batch(self, supplier: str, quote_date: str) -> dict:
+        ok = self.repo.delete_batch(supplier, quote_date)
+        return {"success": ok}
+
+    def get_weekly_summary(self, supplier: str, date_str: str) -> dict:
+        items = self.repo.get_weekly_summary(supplier, date_str)
+        return {
+            "success": True,
+            "supplier": supplier,
+            "summary_items": items,
+            "total_summary_items": len(items),
+        }
+
+    def get_all_suppliers(self) -> dict:
+        builtin = list(BUILTIN_SUPPLIERS)
+        dynamic = self.repo.get_all_suppliers()
+        all_suppliers = sorted(set(builtin + dynamic))
+        return {"success": True, "suppliers": all_suppliers}
+
     def import_batch(self, supplier: str, quote_date: str, source_path: str) -> dict:
         batch = import_weekly_quote_batch(
             source_path=source_path,
