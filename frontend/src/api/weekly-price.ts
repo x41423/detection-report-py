@@ -86,6 +86,24 @@ export interface WeeklyQuoteUnitSummary {
   summary_items: WeeklyQuoteSummaryItem[]
 }
 
+export interface WeeklyQuoteSavedBatch {
+  id: number
+  supplier: string
+  quote_date: string
+  entry_count: number
+  entries: WeeklyQuoteEntryInput[]
+  source_label: string
+  source_path: string
+  created_at: string
+}
+
+export interface WeeklyQuoteWeekSummaries {
+  success: boolean
+  supplier: string
+  summary_items: WeeklyQuoteSummaryItem[]
+  total_summary_items: number
+}
+
 export interface WeeklyQuoteImportResponse {
   success: boolean
   message: string
@@ -209,4 +227,39 @@ export async function exportWeeklyQuoteSummaryUpload(params: {
     responseType: 'blob',
   })
   return toDownloadPayload(response, 'weekly_quote_summary.xlsx')
+}
+
+export async function saveQuoteBatch(payload: {
+  supplier: string
+  quote_date: string
+  entries: WeeklyQuoteEntryInput[]
+  source_label?: string
+}) {
+  return api.post<{ success: boolean; batch: WeeklyQuoteSavedBatch }>(
+    '/api/weekly-price/summary/save', payload
+  )
+}
+
+export async function listQuoteBatches(supplier: string) {
+  return api.get<{ success: boolean; batches: WeeklyQuoteSavedBatch[] }>(
+    '/api/weekly-price/summary/batches', { params: { supplier } }
+  )
+}
+
+export async function deleteQuoteBatch(supplier: string, quote_date: string) {
+  return api.post<{ success: boolean }>(
+    '/api/weekly-price/summary/delete', { supplier, quote_date }
+  )
+}
+
+export async function getWeeklyQuoteSummary(supplier: string, date: string) {
+  return api.post<WeeklyQuoteWeekSummaries>(
+    '/api/weekly-price/summary/weekly', { supplier, date }
+  )
+}
+
+export async function listSuppliers() {
+  return api.get<{ success: boolean; suppliers: string[] }>(
+    '/api/weekly-price/summary/suppliers'
+  )
 }
