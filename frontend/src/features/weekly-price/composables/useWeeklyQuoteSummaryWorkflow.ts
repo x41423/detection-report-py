@@ -1,6 +1,14 @@
-import { computed, reactive, ref, type Ref } from 'vue'
+import { computed, reactive, ref, watch, type Ref } from 'vue'
 
 import type { StatusLogHandle } from '../../shared/workflow'
+
+import {
+  saveQuoteBatch,
+  listQuoteBatches,
+  deleteQuoteBatch,
+  getWeeklyQuoteSummary,
+  listSuppliers,
+} from '../../api/weekly-price'
 
 /**
  * Weekly-quote summary workflow composable.
@@ -30,15 +38,14 @@ import type { StatusLogHandle } from '../../shared/workflow'
  * the very first recovery stub.
  */
 
-const SUPPLIERS = ['滨鲜', '1号', '5号', '6号', '7号'] as const
-type SupplierName = (typeof SUPPLIERS)[number]
+const suppliers = ref<string[]>(['勾庄', '理想', '刘慧', '酱菜', '豆制品'])
 
-const LIMITS: Record<SupplierName, number> = {
-  滨鲜: 240,
-  '1号': 180,
-  '5号': 180,
-  '6号': 180,
-  '7号': 180,
+const LIMITS: Record<string, number> = {
+  勾庄: 240,
+  理想: 180,
+  刘慧: 180,
+  酱菜: 180,
+  豆制品: 180,
 }
 
 const DAY_LABELS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'] as const
@@ -56,7 +63,7 @@ interface WeeklyQuoteRawRow {
 
 interface WeeklyQuoteSavedRecord {
   id: string
-  supplier: SupplierName
+  supplier: string
   quote_date: string
   entries: WeeklyQuoteEntry[]
   source_label: string
@@ -144,7 +151,7 @@ export function useWeeklyQuoteSummaryWorkflow(
 ) {
   const today = new Date()
 
-  const activeSupplier = ref<SupplierName>(SUPPLIERS[0])
+  const activeSupplier = ref<string>(suppliers.value[0])
   const selectedMonth = ref(`${today.getFullYear()}-${pad(today.getMonth() + 1)}`)
   const selectedWeekMonday = ref(formatDate(mondayOf(today)))
   const selectedRecordDate = ref(formatDate(today))
@@ -183,19 +190,13 @@ export function useWeeklyQuoteSummaryWorkflow(
 
   // Keyed by supplier, then by quote_date.  Persistence (localStorage /
   // backend) is deferred until the full workflow is rebuilt.
-  const savedRecords = ref<Record<SupplierName, Record<string, WeeklyQuoteSavedRecord>>>({
-    滨鲜: {},
-    '1号': {},
-    '5号': {},
-    '6号': {},
-    '7号': {},
-  })
+  const savedRecords = ref<Record<string, Record<string, WeeklyQuoteSavedRecord>>>({})
 
   const expandedWeeks = ref<Record<string, boolean>>({})
 
-  const savedRecordCounts = computed<Record<SupplierName, number>>(() => {
-    const result = {} as Record<SupplierName, number>
-    for (const supplier of SUPPLIERS) {
+  const savedRecordCounts = computed<Record<string, number>>(() => {
+    const result = {} as Record<string, number>
+    for (const supplier of suppliers.value) {
       result[supplier] = Object.keys(savedRecords.value[supplier] || {}).length
     }
     return result
@@ -296,6 +297,7 @@ export function useWeeklyQuoteSummaryWorkflow(
     rawRows.value = record
       ? record.entries.map((entry) => ({ entry: { ...entry } }))
       : []
+    refreshWeeklySummary()
   }
   function selectWeek(weekMonday: string) {
     selectedWeekMonday.value = weekMonday
@@ -326,7 +328,7 @@ export function useWeeklyQuoteSummaryWorkflow(
   }
 
   // ------------------------------------------------------------------
-  // Mutating actions – disabled until the full workflow is rebuilt
+  // Mutating actions
   // ------------------------------------------------------------------
   function applyRememberedUnit(_entry?: WeeklyQuoteEntry) {
     /* no-op while feature is offline */
@@ -355,7 +357,7 @@ export function useWeeklyQuoteSummaryWorkflow(
     disabledNotice(statusLogRef)
   }
   function confirmImport() {
-    disabledNotice(statusLogRef)
+    statusLogRef.value?.append?.('Excel导入功能正在恢复中，暂不可用。', 'info')
     importDialogVisible.value = false
   }
   function confirmPaste() {
@@ -368,12 +370,99 @@ export function useWeeklyQuoteSummaryWorkflow(
   function removeEntry(_entryId: string) {
     disabledNotice(statusLogRef)
   }
-  function saveCurrentRecord() {
-    disabledNotice(statusLogRef)
+
+  async function loadSuppliersList() {
+    try {
+      const res = await listSuppliers()
+      if (res.data.suppliers?.length) {
+        suppliers.value = res.data.suppliers
+        if (!suppliers.value.includes(activeSupplier.value)) {
+          activeSupplier.value = suppliers.value[0]
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load suppliers', e)
+    }
   }
-  function removeSavedRecord(_quoteDate: string) {
-    disabledNotice(statusLogRef)
+
+  async function loadRecords(supplier: string) {
+    try {
+      const res = await listQuoteBatches(supplier)
+      const records: Record<string, WeeklyQuoteSavedRecord> = {}
+      for (const batch of res.data.batches || []) {
+        records[batch.quote_date] = {
+          id: String(batch.id),
+          supplier: batch.supplier,
+          quote_date: batch.quote_date,
+          entries: (batch.entries || []).map((e: any, i: number) => ({
+            id: `${batch.id}-${i}`,
+            name: e.name,
+            unit: e.unit || '斤',
+            price: e.price,
+          })),
+          source_label: batch.source_label || '',
+          source_path: batch.source_path || '',
+          updated_at: batch.created_at || '',
+        }
+      }
+      savedRecords.value[supplier] = records
+    } catch (e) {
+      console.error('Failed to load records', e)
+    }
   }
+
+  async function refreshWeeklySummary() {
+    if (!activeSupplier.value || !selectedRecordDate.value) return
+    try {
+      const res = await getWeeklyQuoteSummary(activeSupplier.value, selectedRecordDate.value)
+      currentSummary.value = {
+        batch_count: 0,
+        entry_count: 0,
+        summary_items: (res.data.summary_items || []).map((item: any) => ({
+          name: item.name,
+          unit: item.unit,
+          summary_price: item.summary_price,
+        })),
+      }
+    } catch (e) {
+      console.error('Failed to load weekly summary', e)
+    }
+  }
+
+  async function saveCurrentRecord() {
+    if (!rawRows.value.length) return
+    try {
+      await saveQuoteBatch({
+        supplier: activeSupplier.value,
+        quote_date: selectedRecordDate.value,
+        entries: rawRows.value.map(r => ({
+          name: r.entry.name,
+          unit: r.entry.unit,
+          price: r.entry.price,
+        })),
+        source_label: '手动录入',
+      })
+      await loadRecords(activeSupplier.value)
+      rawRows.value = []
+      statusLogRef.value?.append?.('保存成功', 'success')
+    } catch (e: any) {
+      statusLogRef.value?.append?.(`保存失败: ${e.response?.data?.detail || e.message || e}`, 'error')
+    }
+  }
+
+  async function removeSavedRecord(date: string) {
+    try {
+      await deleteQuoteBatch(activeSupplier.value, date)
+      await loadRecords(activeSupplier.value)
+      if (selectedRecordDate.value === date) {
+        rawRows.value = []
+      }
+      statusLogRef.value?.append?.('删除成功', 'success')
+    } catch (e: any) {
+      statusLogRef.value?.append?.(`删除失败: ${e.response?.data?.detail || e.message || e}`, 'error')
+    }
+  }
+
   function openSavedRecord(quoteDate: string) {
     selectRecordDate(quoteDate)
   }
@@ -389,8 +478,21 @@ export function useWeeklyQuoteSummaryWorkflow(
     disabledNotice(statusLogRef)
   }
 
+  watch(activeSupplier, (newVal) => {
+    if (newVal && !savedRecords.value[newVal]) {
+      loadRecords(newVal)
+    }
+  })
+
+  loadSuppliersList().then(() => {
+    if (suppliers.value.length > 0) {
+      activeSupplier.value = suppliers.value[0]
+      loadRecords(activeSupplier.value)
+    }
+  })
+
   return {
-    SUPPLIERS,
+    suppliers,
     LIMITS,
     activeSupplier,
     activeSupplierCount,

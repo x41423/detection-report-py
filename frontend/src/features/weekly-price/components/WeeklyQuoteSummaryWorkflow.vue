@@ -52,7 +52,7 @@
 
           <div class="supplier-switch">
             <button
-              v-for="supplier in SUPPLIERS"
+              v-for="supplier in suppliers"
               :key="supplier"
               type="button"
               class="supplier-switch__item"
@@ -478,7 +478,7 @@ const importFileInputRef = ref<HTMLInputElement>()
 const workbookInputRef = ref<HTMLInputElement>()
 
 const {
-  SUPPLIERS,
+  suppliers,
   LIMITS,
   activeSupplier,
   activeSupplierCount,
