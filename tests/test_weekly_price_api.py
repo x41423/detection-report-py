@@ -15,6 +15,7 @@ WEEKLY_PRICE_TEST_PERMISSIONS = [
     "weekly_quote:view",
     "weekly_quote:create",
     "weekly_quote:update",
+    "weekly_quote:delete",
     "weekly_quote:export",
     "weekly_quote:aliases",
 ]
@@ -178,6 +179,103 @@ class WeeklyPriceApiTests(unittest.TestCase):
         self.assertEqual(response.json()["detail"]["code"], "PERMISSION_DENIED")
         self.client.headers.clear()
         self.client.headers.update(auth_headers_for_permissions(self.client, WEEKLY_PRICE_TEST_PERMISSIONS))
+
+
+class WeeklyQuotePersistenceApiTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.original_db_dir = store.DB_DIR
+        cls.original_db_path = store.DB_PATH
+        store.close_connection()
+        store.DB_DIR = cls.temp_dir.name
+        store.DB_PATH = os.path.join(cls.temp_dir.name, "weekly-quote-persistence-test.db")
+        store._connection = None
+        store.init_database()
+        cls.client_ctx = TestClient(app)
+        cls.client = cls.client_ctx.__enter__()
+        cls.client.headers.update(auth_headers_for_permissions(cls.client, WEEKLY_PRICE_TEST_PERMISSIONS))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.client_ctx.__exit__(None, None, None)
+        store.close_connection()
+        store.DB_DIR = cls.original_db_dir
+        store.DB_PATH = cls.original_db_path
+        store._connection = None
+        cls.temp_dir.cleanup()
+
+    def test_save_and_list_batch(self):
+        save_resp = self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "勾庄",
+            "quote_date": "2026-05-07",
+            "entries": [
+                {"name": "大白菜", "unit": "斤", "price": 0.8},
+                {"name": "西红柿", "unit": "斤", "price": 2.5},
+            ],
+        })
+        self.assertEqual(save_resp.status_code, 200)
+        self.assertTrue(save_resp.json()["success"])
+        batch = save_resp.json()["batch"]
+        self.assertEqual(batch["supplier"], "勾庄")
+        self.assertEqual(len(batch["entries"]), 2)
+
+        list_resp = self.client.get("/api/weekly-price/summary/batches?supplier=勾庄")
+        self.assertEqual(list_resp.status_code, 200)
+        self.assertEqual(len(list_resp.json()["batches"]), 1)
+
+    def test_weekly_summary_highest_price(self):
+        self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "勾庄", "quote_date": "2026-05-06",
+            "entries": [
+                {"name": "大白菜", "unit": "斤", "price": 0.9},
+            ],
+        })
+        self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "勾庄", "quote_date": "2026-05-07",
+            "entries": [
+                {"name": "大白菜", "unit": "斤", "price": 0.8},
+            ],
+        })
+        summary_resp = self.client.post("/api/weekly-price/summary/weekly", json={
+            "supplier": "勾庄", "date": "2026-05-07",
+        })
+        self.assertEqual(summary_resp.status_code, 200)
+        items = summary_resp.json()["summary_items"]
+        cabbage = next((i for i in items if i["name"] == "大白菜"), None)
+        self.assertIsNotNone(cabbage)
+        self.assertEqual(cabbage["summary_price"], 0.9)
+
+    def test_delete_batch(self):
+        self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "勾庄", "quote_date": "2026-05-07",
+            "entries": [
+                {"name": "测试菜", "unit": "斤", "price": 1.0},
+            ],
+        })
+        del_resp = self.client.post("/api/weekly-price/summary/delete", json={
+            "supplier": "勾庄", "quote_date": "2026-05-07",
+        })
+        self.assertEqual(del_resp.status_code, 200)
+        self.assertTrue(del_resp.json()["success"])
+
+        list_resp = self.client.get("/api/weekly-price/summary/batches?supplier=勾庄")
+        self.assertEqual(len(list_resp.json()["batches"]), 0)
+
+    def test_list_suppliers(self):
+        self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "勾庄", "quote_date": "2026-05-07",
+            "entries": [{"name": "大白菜", "unit": "斤", "price": 0.8}],
+        })
+        self.client.post("/api/weekly-price/summary/save", json={
+            "supplier": "豆制品", "quote_date": "2026-05-07",
+            "entries": [{"name": "老豆腐", "unit": "斤", "price": 2.5}],
+        })
+        resp = self.client.get("/api/weekly-price/summary/suppliers")
+        self.assertEqual(resp.status_code, 200)
+        suppliers = resp.json()["suppliers"]
+        self.assertIn("勾庄", suppliers)
+        self.assertIn("豆制品", suppliers)
 
 
 if __name__ == "__main__":
