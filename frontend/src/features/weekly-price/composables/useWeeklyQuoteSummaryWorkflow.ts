@@ -8,7 +8,9 @@ import {
   deleteQuoteBatch,
   getWeeklyQuoteSummary,
   listSuppliers,
-} from '../../api/weekly-price'
+  importWeeklyQuoteBatch,
+  exportWeeklyQuoteSummary,
+} from '../../../api/weekly-price'
 
 /**
  * Weekly-quote summary workflow composable.
@@ -41,11 +43,11 @@ import {
 const suppliers = ref<string[]>(['勾庄', '理想', '刘慧', '酱菜', '豆制品'])
 
 const LIMITS: Record<string, number> = {
-  勾庄: 240,
-  理想: 180,
-  刘慧: 180,
-  酱菜: 180,
-  豆制品: 180,
+  勾庄: 7,
+  理想: 7,
+  刘慧: 7,
+  酱菜: 7,
+  豆制品: 7,
 }
 
 const DAY_LABELS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'] as const
@@ -107,13 +109,6 @@ interface WeeklyQuoteDayCell {
 interface WeeklyQuoteWeekCell {
   monday: string
   label: string
-}
-
-function disabledNotice(statusLogRef: Ref<StatusLogHandle | undefined>) {
-  statusLogRef.value?.append?.(
-    '每周报价汇总流程的脚本正在恢复中，写入类操作已暂时禁用。',
-    'info',
-  )
 }
 
 function pad(n: number): string {
@@ -182,6 +177,8 @@ export function useWeeklyQuoteSummaryWorkflow(
   })
 
   const rawRows = ref<WeeklyQuoteRawRow[]>([])
+  let _nextEntryCounter = 0
+
   const previewData = ref<WeeklyQuotePreview | null>(null)
   const previewIssues = ref<string[]>([])
 
@@ -338,37 +335,133 @@ export function useWeeklyQuoteSummaryWorkflow(
     if (file) {
       importForm.source_path = (file as File & { path?: string }).path || file.name
     }
-    disabledNotice(statusLogRef)
   }
   function setWorkbookTemplateFile(files: FileList | null | undefined) {
     const file = files?.[0]
     if (file) {
       workbookPath.value = (file as File & { path?: string }).path || file.name
     }
-    disabledNotice(statusLogRef)
   }
   function openImportDialog() {
     importForm.quote_date = selectedRecordDate.value
     importDialogVisible.value = true
-    disabledNotice(statusLogRef)
   }
   function openPasteDialog() {
     pasteDialogVisible.value = true
-    disabledNotice(statusLogRef)
   }
-  function confirmImport() {
-    statusLogRef.value?.append?.('Excel导入功能正在恢复中，暂不可用。', 'info')
-    importDialogVisible.value = false
+  async function confirmImport() {
+    if (!importForm.source_path) {
+      statusLogRef.value?.append?.('请先选择要导入的 Excel 文件', 'error')
+      return
+    }
+    importing.value = true
+    try {
+      const res = await importWeeklyQuoteBatch({
+        supplier: activeSupplier.value,
+        quote_date: importForm.quote_date,
+        source_path: importForm.source_path,
+      })
+      await loadRecords(activeSupplier.value)
+      selectRecordDate(importForm.quote_date)
+      importDialogVisible.value = false
+      importForm.source_path = ''
+      statusLogRef.value?.append?.(
+        `导入成功：${res.data.message || '已完成'}`,
+        'success',
+      )
+    } catch (e: any) {
+      statusLogRef.value?.append?.(
+        `导入失败: ${e.response?.data?.detail || e.message || e}`,
+        'error',
+      )
+    } finally {
+      importing.value = false
+    }
   }
   function confirmPaste() {
-    disabledNotice(statusLogRef)
-    pasteDialogVisible.value = false
+    pasteParsing.value = true
+    try {
+      const lines =
+        pasteForm.mode === 'lines'
+          ? pasteForm.text.split('\n').filter((l) => l.trim())
+          : []
+      const names =
+        pasteForm.mode === 'columns'
+          ? pasteForm.names.split('\n').filter((l) => l.trim())
+          : []
+      const prices =
+        pasteForm.mode === 'columns'
+          ? pasteForm.prices.split('\n').filter((l) => l.trim())
+          : []
+
+      if (pasteForm.mode === 'lines') {
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/)
+          if (parts.length >= 2) {
+            _nextEntryCounter++
+            const name = parts[0]
+            const price = parseFloat(parts[parts.length - 1])
+            const unit = parts.length >= 3 ? parts[parts.length - 2] : '斤'
+            if (!Number.isNaN(price) && name) {
+              rawRows.value.push({
+                entry: {
+                  id: `paste-${Date.now()}-${_nextEntryCounter}`,
+                  name,
+                  unit: /^[\u4e00-\u9fa5a-zA-Z]+$/.test(unit) ? unit : '斤',
+                  price,
+                },
+              })
+            }
+          }
+        }
+      } else {
+        const maxLen = Math.max(names.length, prices.length)
+        for (let i = 0; i < maxLen; i++) {
+          const name = (names[i] || '').trim()
+          const price = parseFloat((prices[i] || '').trim())
+          if (name && !Number.isNaN(price)) {
+            _nextEntryCounter++
+            rawRows.value.push({
+              entry: {
+                id: `paste-${Date.now()}-${_nextEntryCounter}`,
+                name,
+                unit: '斤',
+                price,
+              },
+            })
+          }
+        }
+      }
+      statusLogRef.value?.append?.(
+        `识别完成：新增记录`,
+        'success',
+      )
+      pasteDialogVisible.value = false
+      pasteForm.names = ''
+      pasteForm.prices = ''
+      pasteForm.text = ''
+    } catch (e: any) {
+      statusLogRef.value?.append?.(
+        `识别失败: ${e.message || e}`,
+        'error',
+      )
+    } finally {
+      pasteParsing.value = false
+    }
   }
   function addEntryToCurrentRecord() {
-    disabledNotice(statusLogRef)
+    _nextEntryCounter++
+    rawRows.value.push({
+      entry: {
+        id: `new-${Date.now()}-${_nextEntryCounter}`,
+        name: '',
+        unit: '斤',
+        price: 0,
+      },
+    })
   }
-  function removeEntry(_entryId: string) {
-    disabledNotice(statusLogRef)
+  function removeEntry(entryId: string) {
+    rawRows.value = rawRows.value.filter((r) => r.entry.id !== entryId)
   }
 
   async function loadSuppliersList() {
@@ -430,7 +523,15 @@ export function useWeeklyQuoteSummaryWorkflow(
   }
 
   async function saveCurrentRecord() {
-    if (!rawRows.value.length) return
+    if (!rawRows.value.length) {
+      statusLogRef.value?.append?.('当前日期还没有录入记录，请先通过「新增一条报价」「Excel导入」或「批量粘贴识别」添加记录后再保存。', 'error')
+      return
+    }
+    const invalid = rawRows.value.filter(r => !r.entry.name.trim() || r.entry.price <= 0)
+    if (invalid.length) {
+      statusLogRef.value?.append?.(`有 ${invalid.length} 条记录缺少菜名或有效单价，请完善后重新保存。`, 'error')
+      return
+    }
     try {
       await saveQuoteBatch({
         supplier: activeSupplier.value,
@@ -474,8 +575,44 @@ export function useWeeklyQuoteSummaryWorkflow(
     selectedMonth.value = todayStr.slice(0, 7)
     selectRecordDate(todayStr)
   }
-  function exportWorkbook() {
-    disabledNotice(statusLogRef)
+  async function exportWorkbook() {
+    if (!workbookPath.value) {
+      statusLogRef.value?.append?.('请先选择导出模板文件', 'error')
+      return
+    }
+    exporting.value = true
+    try {
+      const batches: Array<{ supplier: string; quote_date: string; entries: Array<{ name: string; unit: string; price: number }> }> = []
+      for (const supplier of Object.keys(savedRecords.value)) {
+        const records = savedRecords.value[supplier] || {}
+        for (const date of Object.keys(records)) {
+          batches.push({
+            supplier,
+            quote_date: date,
+            entries: records[date].entries.map((e) => ({
+              name: e.name,
+              unit: e.unit,
+              price: e.price,
+            })),
+          })
+        }
+      }
+      const res = await exportWeeklyQuoteSummary({
+        workbook_path: workbookPath.value,
+        batches,
+      })
+      statusLogRef.value?.append?.(
+        `导出成功：${res.data.message || '已完成'}`,
+        'success',
+      )
+    } catch (e: any) {
+      statusLogRef.value?.append?.(
+        `导出失败: ${e.response?.data?.detail || e.message || e}`,
+        'error',
+      )
+    } finally {
+      exporting.value = false
+    }
   }
 
   watch(activeSupplier, (newVal) => {
