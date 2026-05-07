@@ -1,6 +1,6 @@
 # 检测报告工具
 
-这是一个本地运行的检测报告工具，包含 FastAPI 后端、Vue 3 + Vite 前端、默认 SQLite 数据库，以及可选的本地语音识别能力。
+这是一个本地运行的检测报告工具，包含 FastAPI 后端、Vue 3 + Vite 前端、默认 MySQL 数据库，以及可选的本地语音识别能力。
 
 ## 环境要求
 
@@ -61,7 +61,7 @@ Copy-Item .env.local.example .env.local
 
 `.env.local` 不会提交到 Git，用来保存本机模型、数据库、认证种子密码等私有配置。
 
-默认数据库是 SQLite，运行时会自动创建 `data/app.db`。如果要切换 MySQL，请先完成迁移并在 `.env.local` 中设置 `APP_DB_DRIVER=mysql` 及相关连接参数。
+默认数据库是 MySQL。请在 `.env.local` 中配置 MySQL 连接参数，并运行 `scripts/mysql_migration.py run-all` 初始化数据库结构。测试使用临时 SQLite 文件隔离运行。
 
 ## 语音识别
 

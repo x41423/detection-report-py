@@ -43,7 +43,7 @@ def resolve_default_db_path(paths: ProjectPaths | None = None) -> Path:
 
 DB_PATH = str(resolve_default_db_path())
 DB_DIR = os.path.dirname(DB_PATH)
-DB_DRIVER = os.getenv("APP_DB_DRIVER", "sqlite").strip().lower() or "sqlite"
+DB_DRIVER = os.getenv("APP_DB_DRIVER", "mysql").strip().lower() or "mysql"
 MYSQL_HOST = os.getenv("APP_DB_MYSQL_HOST", os.getenv("MYSQL_HOST", "localhost")).strip() or "localhost"
 MYSQL_PORT = int(os.getenv("APP_DB_MYSQL_PORT", os.getenv("MYSQL_PORT", "3306")))
 MYSQL_DATABASE = os.getenv("APP_DB_MYSQL_DATABASE", os.getenv("MYSQL_DATABASE", "inspection_report")).strip()
@@ -87,7 +87,7 @@ def get_db_driver() -> str:
 
 
 def is_mysql_driver() -> bool:
-    return DB_DRIVER == "mysql"
+    return os.getenv("APP_DB_DRIVER", "mysql").strip().lower() == "mysql"
 
 
 class MySQLCursorAdapter:
@@ -287,8 +287,6 @@ def _drop_mysql_thread_connection() -> None:
 
 
 def _is_mysql_connection_error(exc: Exception) -> bool:
-    if not is_mysql_driver():
-        return False
     if pymysql is not None and isinstance(
         exc,
         (
