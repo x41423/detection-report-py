@@ -1,3 +1,7 @@
+import csv
+import io
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
@@ -207,3 +211,60 @@ def _parse_optional_bool(raw_value: str | None) -> bool | None:
     if not normalized:
         return None
     return normalized not in {"0", "false", "no"}
+
+
+@router.post("/import",
+             dependencies=[Depends(require_permission("daily_check:create"))])
+async def import_daily_intake(
+    file: UploadFile = File(...),
+    date: str = Form(...),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="没有选择文件")
+
+    ext = Path(file.filename).suffix.lower()
+    rows = []
+
+    try:
+        content = await file.read()
+        if ext == ".csv":
+            text = content.decode("utf-8-sig")
+            reader = csv.reader(io.StringIO(text))
+            for row in reader:
+                if len(row) >= 2 and row[0].strip() and row[1].strip():
+                    rows.append({
+                        "name": row[0].strip(),
+                        "quantity": row[1].strip(),
+                        "unit": row[2].strip() if len(row) > 2 else "斤",
+                        "category": row[3].strip() if len(row) > 3 else "",
+                    })
+        else:
+            raise HTTPException(status_code=400, detail="不支持的文件格式，请上传 .csv")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"文件解析失败: {e}")
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="文件中没有有效数据")
+
+    results = []
+    errors = []
+    for row in rows:
+        try:
+            item = await run_in_threadpool(
+                service.add_item,
+                intake_date=date,
+                name=row["name"],
+                quantity=float(row["quantity"]),
+                unit=row["unit"],
+                category=row.get("category", ""),
+            )
+            results.append(item)
+        except Exception as e:
+            errors.append({"row": row, "error": str(e)})
+
+    return {
+        "success": True,
+        "imported": len(results),
+        "errors": len(errors),
+        "error_details": errors[:10],
+    }

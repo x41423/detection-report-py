@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import json
 import shutil
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from backend.services.config_service import get_config, update_config
@@ -50,6 +51,39 @@ def _file_info(record: dict | str | None) -> dict:
     }
 
 
+def _archive_previous_version(target_path: Path, target_dir: Path, kind: str) -> None:
+    if not target_path.exists():
+        return
+
+    version_suffix = date.today().strftime("%Y-%m-%d")
+    stem = target_path.stem
+    suffix = target_path.suffix
+    archived = target_dir / f"{stem}.{version_suffix}{suffix}"
+    shutil.copy2(target_path, archived)
+
+    versions_path = target_dir / "versions.json"
+    versions = {}
+    if versions_path.exists():
+        try:
+            with versions_path.open("r", encoding="utf-8") as f:
+                versions = json.load(f)
+        except Exception:
+            pass
+
+    key = f"pesticide_{kind}"
+    if key not in versions:
+        versions[key] = []
+
+    versions[key].append({
+        "version": len(versions[key]) + 1,
+        "date": version_suffix,
+        "file": archived.name,
+    })
+
+    with versions_path.open("w", encoding="utf-8") as f:
+        json.dump(versions, f, ensure_ascii=False, indent=2)
+
+
 def get_pesticide_templates() -> dict:
     templates = get_config().get("pesticide_templates") or {}
     return {
@@ -66,6 +100,7 @@ def save_pesticide_template(kind: str, source_path: Path, original_name: str | N
     target_dir.mkdir(parents=True, exist_ok=True)
     target_name = f"{kind}-template{_safe_suffix(original_name)}"
     target_path = target_dir / target_name
+    _archive_previous_version(target_path, target_dir, kind)
     shutil.copy2(source_path, target_path)
 
     cfg = get_config()
@@ -134,3 +169,64 @@ def get_transfer_template_path(small_type: str) -> Path:
     if not info or not info["configured"]:
         raise FileNotFoundError(f"尚未保存“{small_type}”小表模板")
     return Path(info["path"])
+
+
+def get_pesticide_template_versions(kind: str) -> list[dict]:
+    versions_path = _template_root() / "pesticide" / "versions.json"
+    if not versions_path.exists():
+        return []
+    try:
+        with versions_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get(f"pesticide_{kind}", [])
+    except Exception:
+        return []
+
+
+def rollback_pesticide_template(kind: str, version_date: str) -> dict:
+    target_dir = _template_root() / "pesticide"
+    target_name = f"{kind}-template.docx"
+    target_path = target_dir / target_name
+
+    archived_name = f"{kind}-template.{version_date}.docx"
+    archived_path = target_dir / archived_name
+
+    if not archived_path.exists():
+        raise FileNotFoundError(f"版本不存在: {version_date}")
+
+    _archive_previous_version(target_path, target_dir, kind)
+    shutil.copy2(archived_path, target_path)
+
+    cfg = get_config()
+    templates = dict(cfg.get("pesticide_templates") or {})
+    templates[kind] = {
+        "path": str(target_path),
+        "filename": target_name,
+        "updated_at": _now_text(),
+    }
+    update_config({"pesticide_templates": templates})
+    return get_pesticide_templates()
+
+
+def delete_pesticide_template_version(kind: str, version_date: str) -> bool:
+    target_dir = _template_root() / "pesticide"
+    archived_name = f"{kind}-template.{version_date}.docx"
+    archived_path = target_dir / archived_name
+
+    if not archived_path.exists():
+        return False
+    archived_path.unlink()
+
+    versions_path = target_dir / "versions.json"
+    if versions_path.exists():
+        try:
+            with versions_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            key = f"pesticide_{kind}"
+            if key in data:
+                data[key] = [v for v in data[key] if v.get("date") != version_date]
+            with versions_path.open("w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+    return True

@@ -2,7 +2,7 @@ import asyncio
 import json
 import tempfile
 from pathlib import Path
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 from backend.models.schemas import (
     GenerateRatesRequest, GenerateRatesResponse, GenerateRatesItem,
@@ -19,11 +19,15 @@ from backend.api.upload_utils import (
     parse_json_form_value,
     save_upload,
 )
+from backend.auth.dependencies import require_permission
 from backend.services.monthly_list_parser import MonthlyListParser
 from backend.services.pesticide_service import PesticideService
 from backend.services.template_library_service import (
     get_pesticide_template_path,
+    get_pesticide_template_versions,
     get_pesticide_templates,
+    rollback_pesticide_template,
+    delete_pesticide_template_version,
     save_pesticide_template,
 )
 
@@ -272,3 +276,33 @@ async def execute_monthly_task_upload(
                 "X-Skipped-Count": str(result.get("skipped_count", 0)),
             },
         )
+
+
+@router.get("/templates/{kind}/versions",
+            dependencies=[Depends(require_permission("pesticide:view"))])
+async def list_template_versions(kind: str):
+    kind = kind.strip().lower()
+    if kind not in {"big", "small"}:
+        raise HTTPException(status_code=400, detail="模板类型只能是 big 或 small")
+    return {"kind": kind, "versions": get_pesticide_template_versions(kind)}
+
+
+@router.post("/templates/{kind}/rollback",
+             dependencies=[Depends(require_permission("pesticide:execute"))])
+async def rollback_template(kind: str, version_date: str = Form(...)):
+    kind = kind.strip().lower()
+    try:
+        result = rollback_pesticide_template(kind, version_date)
+        return {"success": True, "templates": result}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/templates/{kind}/versions/{version_date}",
+               dependencies=[Depends(require_permission("pesticide:execute"))])
+async def delete_template_version(kind: str, version_date: str):
+    kind = kind.strip().lower()
+    ok = delete_pesticide_template_version(kind, version_date)
+    if not ok:
+        raise HTTPException(status_code=404, detail="版本不存在")
+    return {"success": True}
