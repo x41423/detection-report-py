@@ -23,7 +23,7 @@
   "dish_name_aliases": {},
   "funasr_lab_memory": {"recent_hotwords": [], "name_unit_memory": []},
   "funasr_lab_daily_tracking": {"records": {}},
-  "weekly_price_aliases": {},
+
   "weekly_price_output_path": "",
   "weekly_quote_summary_workbook_path": "",
   "weekly_quote_summary_records": {},

@@ -16,13 +16,16 @@ def _load_defaults() -> dict:
         with path.open("r", encoding="utf-8") as f:
             cfg = json.load(f)
     else:
+        import logging
+        logging.getLogger(__name__).warning("defaults.json not found at %s", path)
         cfg = {}
-    cfg.setdefault("weekly_price_aliases", get_default_weekly_price_aliases())
+    if "weekly_price_aliases" not in cfg or not cfg["weekly_price_aliases"]:
+        cfg["weekly_price_aliases"] = get_default_weekly_price_aliases()
     return cfg
 
 
 def _default_config() -> dict:
-    """Lazy-loaded default config, cached after first call."""
+    """Load default config from defaults.json."""
     return _load_defaults()
 
 
