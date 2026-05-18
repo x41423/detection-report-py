@@ -90,7 +90,6 @@ def _run_json_to_sqlite() -> bool:
 def _run_weekly_quotes() -> bool:
     """Run weekly quotes migration."""
     try:
-        import json
         from app.models.config_model import load_config
         from app.db.weekly_quote_repository import WeeklyQuoteRepository
         from app.db.store import get_connection
@@ -103,25 +102,22 @@ def _run_weekly_quotes() -> bool:
 
         repo = WeeklyQuoteRepository()
         conn = get_connection()
-        for supplier_name, entries in records.items():
-            if not isinstance(entries, list):
+        for supplier_name, date_entries in records.items():
+            if not isinstance(date_entries, list):
                 continue
-            batch_data = []
-            for entry in entries:
-                if not isinstance(entry, dict):
+            for day_entry in date_entries:
+                if not isinstance(day_entry, dict):
                     continue
-                batch_data.append({
-                    "date": entry.get("date", ""),
-                    "items": entry.get("items", []),
-                    "supplier": supplier_name,
-                })
-            if batch_data:
+                quote_date = day_entry.get("date", "")
+                items = day_entry.get("items", [])
+                if not quote_date or not items:
+                    continue
                 try:
-                    repo.save_batch(supplier_name, batch_data)
+                    repo.save_batch(supplier_name, quote_date, items,
+                                    source_label="migrated")
                 except Exception as e:
-                    logger.warning(f"Failed to migrate quotes for {supplier_name}: {e}")
+                    logger.warning(f"Failed to migrate quotes for {supplier_name} on {quote_date}: {e}")
 
-        # Mark migration version
         cursor = conn.cursor()
         cursor.execute(
             "INSERT OR REPLACE INTO app_version (category, version) VALUES ('migration', 'weekly_quotes_v1')"
