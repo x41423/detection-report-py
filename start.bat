@@ -44,7 +44,36 @@ if not exist "!PD!\frontend\package.json" (
     exit /b 1
 )
 
-echo [STEP 1/5] Resolving backend Python runtime...
+echo [STEP 0/6] Running data migration...
+pushd "!PD!"
+"!PD!\.venv-win10\Scripts\python.exe" scripts\migrate.py check >nul 2>&1
+if errorlevel 1 (
+    "!PD!\.venv-win11\Scripts\python.exe" scripts\migrate.py check >nul 2>&1
+)
+if errorlevel 1 (
+    "!PD!\.venv\Scripts\python.exe" scripts\migrate.py check >nul 2>&1
+)
+if errorlevel 1 (
+    where.exe py >nul 2>&1 && py -3 scripts\migrate.py check >nul 2>&1
+)
+if not errorlevel 1 (
+    "!PD!\.venv-win10\Scripts\python.exe" scripts\migrate.py run >nul 2>&1
+    if errorlevel 1 (
+        "!PD!\.venv-win11\Scripts\python.exe" scripts\migrate.py run >nul 2>&1
+    )
+    if errorlevel 1 (
+        "!PD!\.venv\Scripts\python.exe" scripts\migrate.py run >nul 2>&1
+    )
+    if errorlevel 1 (
+        where.exe py >nul 2>&1 && py -3 scripts\migrate.py run >nul 2>&1
+    )
+) else (
+    echo [WARN] Migration check failed, continuing startup...
+)
+popd
+echo.
+
+echo [STEP 1/6] Resolving backend Python runtime...
 if exist "!BACKEND_IMPORT_ERROR_FILE!" del /f /q "!BACKEND_IMPORT_ERROR_FILE!" >nul 2>&1
 REM ---- Try .venv-win11 ----
 if not defined BP if exist "!PD!\.venv-win11\Scripts\python.exe" (
@@ -123,7 +152,7 @@ if not defined BP (
 )
 echo [OK] Backend will use !BR!.
 
-echo [STEP 2/5] Checking npm...
+echo [STEP 2/6] Checking npm...
 set "NPM_EXE=npm"
 where.exe npm >nul 2>&1
 if errorlevel 1 (
@@ -133,7 +162,7 @@ if errorlevel 1 (
 )
 echo [OK] npm found.
 
-echo [STEP 3/5] Checking frontend dependencies...
+echo [STEP 3/6] Checking frontend dependencies...
 if not exist "!PD!\frontend\node_modules\.bin\vite.cmd" (
     echo [ERROR] Frontend dependencies are missing or incomplete.
     echo [ERROR] Please run: npm install
@@ -161,7 +190,7 @@ if "!FRONTEND_FORCE_HTTP!"=="0" (
 )
 
 echo.
-echo [STEP 4/5] Starting backend server on port !BACKEND_PORT!...
+echo [STEP 4/6] Starting backend server on port !BACKEND_PORT!...
 if defined BA (
     echo   Command: "!BP!" !BA! -m uvicorn !BACKEND_APP! --host !BACKEND_HOST! --port !BACKEND_PORT!
     start "backend" cmd /k "cd /d "!PD!" && set HF_HUB_OFFLINE=1 && echo [BACKEND] Starting backend via !BR!... && "!BP!" !BA! -m uvicorn !BACKEND_APP! --host !BACKEND_HOST! --port !BACKEND_PORT!"
@@ -174,7 +203,7 @@ echo [INFO] Waiting for backend to initialize...
 timeout /t 4 /nobreak >nul
 
 echo.
-echo [STEP 5/5] Starting frontend server on port !FRONTEND_PORT!...
+echo [STEP 5/6] Starting frontend server on port !FRONTEND_PORT!...
 if "!FRONTEND_FORCE_HTTP!"=="1" (
     echo   Mode: HTTP ^(forced by start.bat for cross-Windows compatibility^)
 ) else (
