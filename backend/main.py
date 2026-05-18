@@ -120,6 +120,7 @@ for module_name, prefix, tags in [
     ("backend.api.routes.inventory", "/api/inventory", ["库存管理"]),
     ("backend.api.routes.transfer", "/api/transfer", ["数据迁移"]),
     ("backend.api.routes.pesticide", "/api/pesticide", ["农残检测"]),
+    ("backend.api.routes.smart_detection", "/api/pesticide", ["农残检测-智能"]),
     ("backend.api.routes.weekly_price", "/api/weekly-price", ["每周报价"]),
     ("backend.funasr_lab.router", "", ["FunASR 实验"]),
 ]:

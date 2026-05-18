@@ -691,3 +691,51 @@ class WeeklyQuoteWeekOverviewResponse(BaseModel):
     total_entries: int = 0
     total_summary_items: int = 0
     issue_messages: list[str] = []
+
+
+# ==================== Smart Detection ====================
+
+from typing import Optional
+
+
+class SmartRecommendResponse(BaseModel):
+    today_intake: list[dict] = []
+    yesterday_inventory: list[dict] = []
+    missing_dates: list[str] = []
+
+
+class SmartExecuteRequest(BaseModel):
+    selected_varieties: list[str] = Field(default_factory=list)
+    date: str = ""
+    big_template: str = ""
+    small_template: str = ""
+    output_dir: str = ""
+    inspector_name: str = "检测员"
+    manual_additions: list[str] = Field(default_factory=list)
+    export_format: str = "docx"
+
+
+class SmartExecuteResponse(BaseModel):
+    success: bool = False
+    error: Optional[str] = None
+    output_paths: dict = Field(default_factory=dict)
+    pdf_files: list[str] = Field(default_factory=list)
+    low_stock_alerts: list[dict] = Field(default_factory=list)
+    summary: dict = Field(default_factory=dict)
+
+
+class BackfillRequest(BaseModel):
+    start_date: str
+    end_date: str
+    inspector_name: str = "检测员"
+
+
+class BackfillResponse(BaseModel):
+    success: bool = False
+    results: list[dict] = Field(default_factory=list)
+
+
+class GapResponse(BaseModel):
+    missing_dates: list[str] = Field(default_factory=list)
+    last_detection_date: Optional[str] = None
+    total_missing: int = 0
