@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getSmartGaps, postSmartBackfill, type GapResponse, type BackfillResponse } from '@/api/smart-detection'
+import { getSmartGaps, postSmartBackfill, type GapResponse, type BackfillResponse } from '../../../api/smart-detection'
 
 export function useGapDetection() {
   const gaps = ref<GapResponse | null>(null)

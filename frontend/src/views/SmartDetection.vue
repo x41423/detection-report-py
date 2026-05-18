@@ -165,8 +165,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useSmartDetection } from '@/features/smart-detection/composables/useSmartDetection'
-import { useGapDetection } from '@/features/smart-detection/composables/useGapDetection'
+import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
+import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
 
 const inspectorName = ref('检测员')
 const dataSource = ref<'auto' | 'manual'>('auto')

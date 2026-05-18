@@ -5,7 +5,7 @@ import {
   type SmartRecommendItem,
   type SmartExecuteRequest,
   type SmartExecuteResponse,
-} from '@/api/smart-detection'
+} from '../../../api/smart-detection'
 
 export function useSmartDetection() {
   const todayIntakeItems = ref<SmartRecommendItem[]>([])
