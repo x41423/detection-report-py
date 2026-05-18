@@ -27,6 +27,16 @@ DEFAULT_ROLES = [
         "name": "成员",
         "description": "默认注册角色，可查看基础入口并申请更多权限",
     },
+    {
+        "code": "inspector",
+        "name": "检测员",
+        "description": "可执行农残检测并生成报告",
+    },
+    {
+        "code": "operator",
+        "name": "操作员",
+        "description": "可录入每日点货数据，查看库存",
+    },
 ]
 
 DEFAULT_PERMISSIONS = [
@@ -92,6 +102,20 @@ ROLE_PERMISSION_CODES = {
         "device:rename",
         "device:revoke",
         "permission_request:create",
+    ],
+    "inspector": [
+        "dashboard:view",
+        "pesticide:view",
+        "pesticide:execute",
+        "daily_check:view",
+        "inventory:view",
+    ],
+    "operator": [
+        "dashboard:view",
+        "daily_check:view",
+        "daily_check:create",
+        "daily_check:update",
+        "inventory:view",
     ],
 }
 
