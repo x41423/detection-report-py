@@ -9,6 +9,16 @@ from fastapi.testclient import TestClient
 import app.db.store as store
 from backend.api.routes import daily_intake as daily_intake_route
 from backend.main import app
+from tests.auth_api_utils import auth_headers_for_permissions
+
+
+DAILY_INTAKE_TEST_PERMISSIONS = [
+    "daily_check:view",
+    "daily_check:create",
+    "daily_check:update",
+    "daily_check:delete",
+    "daily_check:export",
+]
 
 
 class DailyIntakeApiTests(unittest.TestCase):
@@ -22,6 +32,9 @@ class DailyIntakeApiTests(unittest.TestCase):
         store._connection = None
         self.client_ctx = TestClient(app)
         self.client = self.client_ctx.__enter__()
+        self.client.headers.update(
+            auth_headers_for_permissions(self.client, DAILY_INTAKE_TEST_PERMISSIONS)
+        )
 
     def tearDown(self):
         self.client_ctx.__exit__(None, None, None)

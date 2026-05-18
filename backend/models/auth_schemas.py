@@ -179,6 +179,11 @@ class AuthManagedUserMutationResponse(BaseModel):
     user: AuthManagedUserResponse
 
 
+class AuthManagedUserDeleteResponse(BaseModel):
+    success: bool
+    message: str
+
+
 class AuthRoleResponse(BaseModel):
     id: int
     code: str

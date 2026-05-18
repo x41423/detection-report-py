@@ -11,6 +11,7 @@ from backend.models.auth_schemas import (
     AuthLoginResponse,
     AuthLogoutResponse,
     AuthManagedUserCreateRequest,
+    AuthManagedUserDeleteResponse,
     AuthManagedUserListResponse,
     AuthManagedUserMutationResponse,
     AuthManagedUserUpdateRequest,
@@ -482,6 +483,34 @@ def update_managed_user(
         description=f"已更新用户 {updated.username}",
     )
     return AuthManagedUserMutationResponse(success=True, message="用户已更新", user=updated)
+
+
+@router.delete("/users/{user_id}", response_model=AuthManagedUserDeleteResponse)
+def delete_managed_user(
+    user_id: int,
+    request: Request,
+    context: AuthContext = Depends(get_current_auth_context),
+):
+    try:
+        deleted = user_role_management_service.delete_user(context, user_id)
+    except AuthServiceError as exc:
+        _audit_from_request(
+            request,
+            action="user_delete",
+            module="user",
+            actor_user_id=context.user_id,
+            description=f"删除用户 {user_id} 失败：{exc.code}",
+            result="failure",
+        )
+        raise auth_http_exception(exc) from exc
+    _audit_from_request(
+        request,
+        action="user_delete",
+        module="user",
+        actor_user_id=context.user_id,
+        description=f"已删除用户 {deleted['username']} (ID: {deleted['id']})",
+    )
+    return AuthManagedUserDeleteResponse(success=True, message="用户已删除")
 
 
 # ---------------------------------------------------------------------------

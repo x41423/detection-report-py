@@ -29,6 +29,7 @@ class AsrProviderDiagnostics:
     model_loaded: bool = False
     requested_device: str | None = None
     device: str | None = None
+    cuda_device_count: int = 0
     timeout_seconds: float | None = None
     max_concurrency: int | None = None
     message: str = ""

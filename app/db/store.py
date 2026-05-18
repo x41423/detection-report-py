@@ -20,6 +20,15 @@ except ImportError:  # pragma: no cover - optional dependency until MySQL mode i
 from app.db.auth_seed import seed_auth_defaults
 from shared.project_paths import ProjectPaths, get_project_paths
 
+WEEKLY_QUOTE_DEFAULT_SUPPLIERS = (
+    ("勾庄", 7, "highest", 1, 10),
+    ("理想", 1, "average", 1, 20),
+    ("刘慧", 1, "highest", 1, 30),
+    ("酱菜", 7, "highest", 1, 40),
+    ("豆制品", 7, "highest", 1, 50),
+)
+WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS = (("斤", 10),)
+
 
 def resolve_default_db_path(paths: ProjectPaths | None = None) -> Path:
     project_paths = paths or get_project_paths()
@@ -407,6 +416,36 @@ def init_database():
 
         cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteSupplierConfig (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                weekly_batch_limit INTEGER NOT NULL DEFAULT 7,
+                summary_rule TEXT NOT NULL DEFAULT 'highest',
+                is_builtin INTEGER NOT NULL DEFAULT 0,
+                sort_order INTEGER NOT NULL DEFAULT 1000,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CHECK (weekly_batch_limit >= 1 AND weekly_batch_limit <= 7),
+                CHECK (summary_rule IN ('highest', 'average')),
+                CHECK (is_builtin IN (0, 1))
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteMeasureUnitOption (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                sort_order INTEGER NOT NULL DEFAULT 1000,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS DailyIntakeSheet (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 intake_date TEXT NOT NULL UNIQUE,
@@ -494,6 +533,20 @@ def init_database():
 
         cursor.execute(
             """
+            CREATE INDEX IF NOT EXISTS idx_weekly_quote_supplier_config_order
+            ON WeeklyQuoteSupplierConfig (sort_order, id)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_weekly_quote_measure_unit_order
+            ON WeeklyQuoteMeasureUnitOption (sort_order, id)
+            """
+        )
+
+        cursor.execute(
+            """
             CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_intake_sheet_date
             ON DailyIntakeSheet (intake_date)
             """
@@ -536,6 +589,7 @@ def init_database():
         )
 
         _create_auth_indexes(cursor)
+        _seed_weekly_quote_defaults(cursor)
 
         cursor.execute(
             """
@@ -554,6 +608,37 @@ def init_database():
         raise
     finally:
         cursor.close()
+
+
+def _seed_weekly_quote_defaults(cursor: sqlite3.Cursor) -> None:
+    for name, weekly_limit, summary_rule, is_builtin, sort_order in WEEKLY_QUOTE_DEFAULT_SUPPLIERS:
+        cursor.execute(
+            """
+            INSERT INTO WeeklyQuoteSupplierConfig (
+                name, weekly_batch_limit, summary_rule, is_builtin, sort_order
+            )
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                weekly_batch_limit = excluded.weekly_batch_limit,
+                summary_rule = excluded.summary_rule,
+                is_builtin = excluded.is_builtin,
+                sort_order = excluded.sort_order,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (name, weekly_limit, summary_rule, is_builtin, sort_order),
+        )
+
+    for name, sort_order in WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS:
+        cursor.execute(
+            """
+            INSERT INTO WeeklyQuoteMeasureUnitOption (name, sort_order)
+            VALUES (?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                sort_order = excluded.sort_order,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (name, sort_order),
+        )
 
 
 def _create_auth_schema(cursor: sqlite3.Cursor) -> None:
@@ -737,6 +822,19 @@ def _create_auth_schema(cursor: sqlite3.Cursor) -> None:
 
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS auth_refresh_token_grace (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            refresh_token_hash TEXT NOT NULL UNIQUE,
+            valid_until TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (session_id) REFERENCES auth_sessions(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS auth_pending_logins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
@@ -846,6 +944,12 @@ def _create_auth_indexes(cursor: sqlite3.Cursor) -> None:
         CREATE INDEX IF NOT EXISTS idx_auth_sessions_active_refresh
         ON auth_sessions (refresh_token_hash, refresh_expires_at)
         WHERE revoked_at IS NULL AND refresh_token_hash IS NOT NULL
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_refresh_token_grace_session
+        ON auth_refresh_token_grace (session_id, valid_until)
         """
     )
     cursor.execute(

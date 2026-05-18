@@ -168,11 +168,17 @@ class Qwen3AsrProvider:
         dependency_available = not missing
         configured = self.is_configured()
         device = None
+        cuda_device_count = 0
         if dependency_available:
             try:
                 device = self._resolve_device()
             except Exception:  # pragma: no cover - defensive
                 device = None
+            try:
+                torch = importlib.import_module("torch")
+                cuda_device_count = int(torch.cuda.device_count())
+            except Exception:
+                cuda_device_count = 0
 
         model_loaded = False
         message = self.readiness_message()
@@ -202,6 +208,7 @@ class Qwen3AsrProvider:
             model_loaded=model_loaded,
             requested_device=self.requested_device,
             device=device,
+            cuda_device_count=cuda_device_count,
             timeout_seconds=self.timeout_seconds,
             max_concurrency=self.max_concurrency,
             message=message,

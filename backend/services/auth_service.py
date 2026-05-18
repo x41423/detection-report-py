@@ -62,9 +62,13 @@ def _pending_login_ttl_min() -> int:
     return _env_int_any(("AUTH_PENDING_LOGIN_MINUTES", "AUTH_PENDING_LOGIN_TTL_MIN"), 5)
 
 
+def _refresh_replay_grace_seconds() -> int:
+    return _env_int_any(("AUTH_REFRESH_REPLAY_GRACE_SECONDS",), 15)
+
+
 def _max_active_devices_per_user() -> int:
     return _env_int_any(
-        ("AUTH_MAX_DEVICES_PER_ACCOUNT", "AUTH_MAX_ACTIVE_DEVICES_PER_USER"), 3
+        ("AUTH_MAX_DEVICES_PER_ACCOUNT", "AUTH_MAX_ACTIVE_DEVICES_PER_USER"), 10
     )
 
 
@@ -73,6 +77,7 @@ def _max_active_devices_per_user() -> int:
 ACCESS_TOKEN_TTL_MIN = _access_token_ttl_min()
 REFRESH_TOKEN_TTL_DAYS = _refresh_token_ttl_days()
 PENDING_LOGIN_TTL_MIN = _pending_login_ttl_min()
+REFRESH_REPLAY_GRACE_SECONDS = _refresh_replay_grace_seconds()
 MAX_ACTIVE_DEVICES_PER_USER = _max_active_devices_per_user()
 DEFAULT_REGISTRATION_ROLE = (os.getenv("AUTH_DEFAULT_REGISTRATION_ROLE") or "member").strip() or "member"
 
@@ -304,20 +309,25 @@ class AuthService:
         if not _as_bool(session.get("is_active")):
             raise AuthServiceError(403, "ACCOUNT_DISABLED", "账号已被停用")
 
+        old_refresh_hash = _token_hash(refresh_token)
         new_access = _new_token()
         new_refresh = _new_token()
         now = _utc_now()
         access_expires_at = _utc_iso(now + timedelta(minutes=_access_token_ttl_min()))
         refresh_expires_at = _utc_iso(now + timedelta(days=_refresh_token_ttl_days()))
-        self.repository.rotate_session_tokens(
+        rotated = self.repository.rotate_session_tokens(
             session_id=int(session["id"]),
             access_token_hash=_token_hash(new_access),
             refresh_token_hash=_token_hash(new_refresh),
+            expected_refresh_hash=old_refresh_hash,
             access_expires_at=access_expires_at,
             refresh_expires_at=refresh_expires_at,
             ip_address=ip_address,
             user_agent=user_agent,
+            refresh_grace_valid_until=_utc_iso(now + timedelta(seconds=_refresh_replay_grace_seconds())),
         )
+        if not rotated:
+            raise AuthServiceError(401, "INVALID_REFRESH_TOKEN", "刷新凭证无效，请重新登录")
         user = self.repository.get_user_by_id(int(session["user_id"]))
         if not user:
             raise AuthServiceError(500, "USER_LOOKUP_FAILED", "用户数据异常")

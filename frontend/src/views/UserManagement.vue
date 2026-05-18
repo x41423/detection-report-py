@@ -119,6 +119,16 @@
             </el-icon>
             {{ user.is_active ? '禁用' : '启用' }}
           </el-button>
+          <el-button
+            v-if="canDeleteUser(user)"
+            type="danger"
+            plain
+            :loading="mutatingUserId === user.id"
+            @click="deleteUser(user)"
+          >
+            <el-icon><Delete /></el-icon>
+            删除
+          </el-button>
         </div>
       </el-card>
 
@@ -176,10 +186,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { CirclePlus, EditPen, Lock, RefreshRight, Unlock } from '@element-plus/icons-vue'
+import { CirclePlus, Delete, EditPen, Lock, RefreshRight, Unlock } from '@element-plus/icons-vue'
 
 import {
   createManagedUser,
+  deleteManagedUser,
   listManagedUsers,
   listRoles,
   updateManagedUser,
@@ -322,6 +333,30 @@ async function toggleUserActive(user: AuthManagedUser) {
   }
 }
 
+async function deleteUser(user: AuthManagedUser) {
+  try {
+    await ElMessageBox.confirm(
+      `删除账号「${user.display_name || user.username}」会永久移除该账号，并撤销相关登录、设备和权限记录。`,
+      '确认删除账号',
+      {
+        type: 'warning',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+      },
+    )
+    mutatingUserId.value = user.id
+    await deleteManagedUser(user.id)
+    users.value = users.value.filter((item) => item.id !== user.id)
+    ElMessage.success('用户已删除')
+  } catch (error) {
+    if (!isMessageBoxCancel(error)) {
+      ElMessage.error(getApiErrorMessage(error, '用户删除失败'))
+    }
+  } finally {
+    mutatingUserId.value = null
+  }
+}
+
 function replaceUser(nextUser: AuthManagedUser) {
   users.value = users.value.map((user) => (user.id === nextUser.id ? nextUser : user))
 }
@@ -332,6 +367,10 @@ function roleLabel(roleCode: string) {
 
 function isProtectedSuperAdmin(user: AuthManagedUser) {
   return user.is_super_admin && !auth.isSuperAdmin.value
+}
+
+function canDeleteUser(user: AuthManagedUser) {
+  return auth.isSuperAdmin.value && !user.is_super_admin
 }
 
 function initials(value: string) {

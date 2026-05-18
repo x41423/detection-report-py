@@ -106,6 +106,108 @@ class AuthUserRoleManagementApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["detail"]["code"], "SUPER_ADMIN_PROTECTED")
 
+    def test_super_admin_can_delete_regular_user_and_cascade_auth_records(self):
+        admin_token = self.login("lina1124", "initial-secret")
+        create_response = self.client.post(
+            "/api/auth/users",
+            json={
+                "username": "delete.target",
+                "password": "delete-password",
+                "display_name": "Delete Target",
+                "role_codes": ["member"],
+            },
+            headers=self.auth_headers(admin_token),
+        )
+        self.assertEqual(create_response.status_code, 200)
+        user = create_response.json()["user"]
+        user_id = user["id"]
+
+        user_token = self.login("delete.target", "delete-password")
+        request_response = self.client.post(
+            "/api/auth/permission-requests",
+            json={"permission_code": "inventory:view", "reason": "temporary access"},
+            headers=self.auth_headers(user_token),
+        )
+        self.assertEqual(request_response.status_code, 200)
+        refresh_response = self.client.post("/api/auth/refresh")
+        self.assertEqual(refresh_response.status_code, 200)
+
+        self.assertGreater(self.count_rows("auth_user_roles", user_id), 0)
+        self.assertGreater(self.count_rows("auth_devices", user_id), 0)
+        self.assertGreater(self.count_rows("auth_sessions", user_id), 0)
+        self.assertGreater(self.count_rows("auth_permission_requests", user_id), 0)
+        self.assertGreater(
+            store.query_one(
+                """
+                SELECT COUNT(*) AS count
+                FROM auth_refresh_token_grace g
+                JOIN auth_sessions s ON s.id = g.session_id
+                WHERE s.user_id = ?
+                """,
+                (user_id,),
+            )["count"],
+            0,
+        )
+
+        delete_response = self.client.delete(f"/api/auth/users/{user_id}", headers=self.auth_headers(admin_token))
+
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertTrue(delete_response.json()["success"])
+        self.assertIsNone(AuthRepository.get_user_by_id(user_id))
+        users_response = self.client.get("/api/auth/users", headers=self.auth_headers(admin_token))
+        self.assertNotIn("delete.target", [item["username"] for item in users_response.json()["users"]])
+        deleted_login_response = self.client.post(
+            "/api/auth/login",
+            json={"username": "delete.target", "password": "delete-password"},
+        )
+        self.assertEqual(deleted_login_response.status_code, 401)
+        self.assertEqual(deleted_login_response.json()["detail"]["code"], "INVALID_CREDENTIALS")
+        self.assertEqual(self.count_rows("auth_user_roles", user_id), 0)
+        self.assertEqual(self.count_rows("auth_devices", user_id), 0)
+        self.assertEqual(self.count_rows("auth_sessions", user_id), 0)
+        self.assertEqual(self.count_rows("auth_permission_requests", user_id), 0)
+        audit_log = store.query_one("SELECT * FROM auth_audit_logs WHERE action = 'user_delete'")
+        self.assertIsNotNone(audit_log)
+        self.assertIsNone(audit_log["target_user_id"])
+        self.assertIn("delete.target", audit_log["description"])
+        self.assertIn(str(user_id), audit_log["description"])
+
+    def test_delete_user_rejects_missing_super_admin_and_non_super_admin_actor(self):
+        admin_token = self.login("lina1124", "initial-secret")
+        missing_response = self.client.delete("/api/auth/users/999999", headers=self.auth_headers(admin_token))
+        self.assertEqual(missing_response.status_code, 404)
+        self.assertEqual(missing_response.json()["detail"]["code"], "USER_NOT_FOUND")
+
+        super_admin = AuthRepository.get_user_by_username("lina1124")
+        super_admin_response = self.client.delete(
+            f"/api/auth/users/{super_admin['id']}",
+            headers=self.auth_headers(admin_token),
+        )
+        self.assertEqual(super_admin_response.status_code, 403)
+        self.assertEqual(super_admin_response.json()["detail"]["code"], "SUPER_ADMIN_PROTECTED")
+
+        limited_admin_token = self.register_admin_and_login("delete.limited.admin", "member-password")
+        create_response = self.client.post(
+            "/api/auth/users",
+            json={
+                "username": "delete.blocked",
+                "password": "delete-password",
+                "display_name": "Delete Blocked",
+                "role_codes": ["member"],
+            },
+            headers=self.auth_headers(admin_token),
+        )
+        self.assertEqual(create_response.status_code, 200)
+        user_id = create_response.json()["user"]["id"]
+
+        blocked_response = self.client.delete(
+            f"/api/auth/users/{user_id}",
+            headers=self.auth_headers(limited_admin_token),
+        )
+        self.assertEqual(blocked_response.status_code, 403)
+        self.assertEqual(blocked_response.json()["detail"]["code"], "PERMISSION_DENIED")
+        self.assertIsNotNone(AuthRepository.get_user_by_id(user_id))
+
     def test_super_admin_can_create_update_and_delete_custom_role(self):
         token = self.login("lina1124", "initial-secret")
 
@@ -219,6 +321,10 @@ class AuthUserRoleManagementApiTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         return response.json()["access_token"]
+
+    @staticmethod
+    def count_rows(table_name: str, user_id: int) -> int:
+        return int(store.query_one(f"SELECT COUNT(*) AS count FROM {table_name} WHERE user_id = ?", (user_id,))["count"])
 
     @staticmethod
     def auth_headers(token: str) -> dict[str, str]:

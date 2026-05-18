@@ -57,11 +57,15 @@
               type="button"
               class="supplier-switch__item"
               :class="{ 'is-active': activeSupplier === supplier }"
-              @click="activeSupplier = supplier"
+              @click="selectSupplier(supplier)"
             >
               <span class="supplier-switch__name">{{ supplier }}</span>
               <span class="supplier-switch__meta">{{ savedRecordCounts[supplier] }} / {{ LIMITS[supplier] }}</span>
             </button>
+          </div>
+
+          <div class="supplier-tools">
+            <el-button plain @click="openSupplierDialog">新增报价单位</el-button>
           </div>
 
           <div class="date-nav">
@@ -96,12 +100,13 @@
                 :key="day.date"
                 type="button"
                 class="day-picker__item"
-                :class="{ 'is-active': selectedRecordDate === day.date, 'has-record': day.hasRecord }"
+                :class="{ 'is-active': selectedRecordDate === day.date, 'has-record': day.hasRecord, 'has-draft': day.hasDraft }"
                 @click="selectRecordDate(day.date)"
               >
                 <span class="day-picker__label">{{ day.dayLabel }}</span>
                 <span class="day-picker__date">{{ day.dateLabel }}</span>
                 <span v-if="day.entryCount > 0" class="day-picker__badge">{{ day.entryCount }}</span>
+                <span v-else-if="day.draftCount > 0" class="day-picker__badge draft">{{ day.draftCount }}</span>
               </button>
             </div>
           </div>
@@ -125,7 +130,7 @@
             </div>
           </div>
 
-          <div v-if="currentRecord" class="field-grid">
+          <div v-if="currentRecord || rawRows.length || hasCurrentDraft" class="field-grid">
             <div class="path-display">
               当前来源：{{ currentRecordSourceLabel }}
             </div>
@@ -134,6 +139,14 @@
               <el-button type="primary" @click="addEntryToCurrentRecord">为当前日期新增一条报价</el-button>
               <el-button class="summary-ghost-button" @click="openPasteDialog">继续粘贴识别</el-button>
               <el-button class="summary-ghost-button" @click="saveCurrentRecord">保存当前日期记录</el-button>
+              <el-button
+                v-if="currentRecord"
+                type="danger"
+                plain
+                @click="deleteCurrentRecord"
+              >
+                删除当前日期记录
+              </el-button>
             </div>
           </div>
 
@@ -157,7 +170,23 @@
               </el-table-column>
               <el-table-column label="单位" width="140">
                 <template #default="{ row }">
-                  <el-input v-model="row.entry.unit" placeholder="单位" clearable />
+                  <el-select
+                    v-model="row.entry.unit"
+                    filterable
+                    allow-create
+                    default-first-option
+                    clearable
+                    placeholder="单位"
+                    style="width: 100%"
+                    @change="(value: string) => ensureMeasureUnitOption(value)"
+                  >
+                    <el-option
+                      v-for="unit in measureUnitNames"
+                      :key="unit"
+                      :label="unit"
+                      :value="unit"
+                    />
+                  </el-select>
                 </template>
               </el-table-column>
               <el-table-column label="单价" width="160">
@@ -310,7 +339,7 @@
 
           <div class="action-cluster stretch">
             <el-button type="primary" :icon="Download" :loading="exporting" @click="exportWorkbook">
-              导出下周汇总表
+              导出选中周汇总表
             </el-button>
           </div>
         </el-card>
@@ -350,6 +379,41 @@
         <StatusLog ref="statusLogRef" />
       </div>
     </div>
+
+    <el-dialog
+      v-model="supplierDialog.visible"
+      title="新增报价单位"
+      width="min(520px, calc(100vw - 24px))"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="报价单位名称">
+          <el-input v-model="supplierDialog.name" placeholder="例如：自采、临时供应商" clearable />
+        </el-form-item>
+        <el-form-item label="每周记录上限">
+          <el-input-number
+            v-model="supplierDialog.weekly_batch_limit"
+            :min="1"
+            :max="7"
+            :step="1"
+            step-strictly
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="汇总规则">
+          <el-radio-group v-model="supplierDialog.summary_rule">
+            <el-radio-button value="highest">取最高价</el-radio-button>
+            <el-radio-button value="average">取平均价</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="summary-dialog__footer">
+          <el-button @click="supplierDialog.visible = false">取消</el-button>
+          <el-button type="primary" :loading="supplierSaving" @click="confirmCreateSupplier">添加</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <el-dialog
       v-model="importDialogVisible"
@@ -401,6 +465,7 @@
           <el-form-item label="粘贴方式">
             <el-radio-group v-model="pasteForm.mode" class="paste-mode-switch">
               <el-radio-button value="columns">分列粘贴</el-radio-button>
+              <el-radio-button value="table">表格粘贴</el-radio-button>
               <el-radio-button value="lines">完整行粘贴</el-radio-button>
             </el-radio-group>
           </el-form-item>
@@ -428,6 +493,15 @@
               </el-form-item>
             </div>
           </template>
+
+          <el-form-item v-else-if="pasteForm.mode === 'table'" label="Excel 表格区域">
+            <el-input
+              v-model="pasteForm.text"
+              type="textarea"
+              :rows="10"
+              placeholder="可直接从 Excel 复制带表头区域，例如：&#10;菜名&#9;单位&#9;单价&#10;白菜&#9;斤&#9;2.5&#10;土豆&#9;斤&#9;1.8"
+            />
+          </el-form-item>
 
           <el-form-item v-else label="完整行内容">
             <el-input
@@ -484,6 +558,7 @@ const {
   activeSupplierCount,
   addEntryToCurrentRecord,
   applyRememberedUnit,
+  confirmCreateSupplier,
   confirmImport,
   confirmPaste,
   countEntries,
@@ -493,17 +568,21 @@ const {
   currentRecordSourceLabel,
   currentSummary,
   daysForSelectedWeek,
+  deleteCurrentRecord,
   exportWorkbook,
   exporting,
+  ensureMeasureUnitOption,
   getFileName,
   getRecordSourceLabel,
   importDialogVisible,
   importForm,
   importing,
   isWeekExpanded,
+  measureUnitNames,
   onMonthChange,
   openImportDialog,
   openPasteDialog,
+  openSupplierDialog,
   openSavedRecord,
   openTodayRecord,
   pasteDialogVisible,
@@ -522,12 +601,16 @@ const {
   selectedRecordDate,
   selectedWeekMonday,
   selectRecordDate,
+  selectSupplier,
   selectWeek,
   toggleWeekExpanded,
   setImportSourceFile,
   setWorkbookTemplateFile,
+  supplierDialog,
+  supplierSaving,
   weeksForSelectedMonth,
   workbookPath,
+  hasCurrentDraft,
 } = useWeeklyQuoteSummaryWorkflow(statusLogRef)
 
 function triggerImportPicker() {
@@ -587,6 +670,12 @@ function handleWorkbookFileChange(event: Event) {
 .supplier-switch__meta {
   font-size: 12px;
   color: var(--color-muted);
+}
+
+.supplier-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
 .date-nav {
@@ -667,6 +756,11 @@ function handleWorkbookFileChange(event: Event) {
   background: rgba(255, 237, 213, 0.55);
 }
 
+.day-picker__item.has-draft:not(.has-record) {
+  border-color: rgba(14, 165, 233, 0.38);
+  background: rgba(224, 242, 254, 0.58);
+}
+
 .day-picker__item.is-active {
   border-color: #1f2937;
   background: rgba(255, 255, 255, 0.95);
@@ -705,6 +799,10 @@ function handleWorkbookFileChange(event: Event) {
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
+}
+
+.day-picker__badge.draft {
+  background: #0ea5e9;
 }
 
 .day-picker__item.is-active .day-picker__label {

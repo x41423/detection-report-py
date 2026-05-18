@@ -134,6 +134,11 @@ export interface AuthManagedUserMutationResponse {
   user: AuthManagedUser
 }
 
+export interface AuthManagedUserDeleteResponse {
+  success: boolean
+  message: string
+}
+
 export interface AuthRole {
   id: number
   code: string
@@ -317,6 +322,10 @@ export function createManagedUser(payload: CreateManagedUserPayload) {
 
 export function updateManagedUser(userId: number, payload: UpdateManagedUserPayload) {
   return api.patch<AuthManagedUserMutationResponse>(`/api/auth/users/${userId}`, payload)
+}
+
+export function deleteManagedUser(userId: number) {
+  return api.delete<AuthManagedUserDeleteResponse>(`/api/auth/users/${userId}`)
 }
 
 export function listRoles() {

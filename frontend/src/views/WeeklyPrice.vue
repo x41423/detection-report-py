@@ -26,17 +26,31 @@
     </div>
 
     <WeeklyPriceUpdateWorkflow v-show="activeWorkflow === 'update'" />
-    <WeeklyQuoteSummaryWorkflow v-show="activeWorkflow === 'summary'" />
+    <WeeklyQuoteSummaryWorkflow
+      v-if="summaryWorkflowMounted"
+      v-show="activeWorkflow === 'summary'"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import WeeklyPriceUpdateWorkflow from '../features/weekly-price/components/WeeklyPriceUpdateWorkflow.vue'
 import WeeklyQuoteSummaryWorkflow from '../features/weekly-price/components/WeeklyQuoteSummaryWorkflow.vue'
 
 const activeWorkflow = ref<'update' | 'summary'>('update')
+const summaryWorkflowMounted = ref(false)
+
+watch(
+  activeWorkflow,
+  (workflow) => {
+    if (workflow === 'summary') {
+      summaryWorkflowMounted.value = true
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>

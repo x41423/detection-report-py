@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
-from app.db.store import get_connection, query, query_one, run
+from app.db.store import get_connection, is_mysql_driver, query, query_one, run
 
 
 def _utc_now_iso() -> str:
@@ -162,6 +162,26 @@ class AuthRepository:
                     )
             conn.commit()
             return AuthRepository.get_user_by_id(user_id)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+    @staticmethod
+    def delete_managed_user(user_id: int) -> bool:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            target = cursor.execute("SELECT id FROM auth_users WHERE id = ?", (user_id,)).fetchone()
+            if target is None:
+                conn.rollback()
+                return False
+            cursor.execute("DELETE FROM auth_users WHERE id = ?", (user_id,))
+            deleted_count = cursor.rowcount
+            conn.commit()
+            return deleted_count > 0
         except Exception:
             conn.rollback()
             raise
@@ -415,34 +435,89 @@ class AuthRepository:
         session_id: int,
         access_token_hash: str,
         refresh_token_hash: str,
+        expected_refresh_hash: str,
         access_expires_at: str,
         refresh_expires_at: str,
         ip_address: str,
         user_agent: str,
-    ) -> dict:
-        run(
-            """
-            UPDATE auth_sessions
-            SET access_token_hash = ?,
-                refresh_token_hash = ?,
-                access_expires_at = ?,
-                refresh_expires_at = ?,
-                ip_address = ?,
-                user_agent = ?,
-                last_active_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            """,
-            (
-                access_token_hash,
-                refresh_token_hash,
-                access_expires_at,
-                refresh_expires_at,
-                ip_address,
-                user_agent,
-                session_id,
-            ),
+        refresh_grace_valid_until: str,
+    ) -> dict | None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        now = _utc_now_iso()
+        lock_suffix = " FOR UPDATE" if is_mysql_driver() else ""
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute("DELETE FROM auth_refresh_token_grace WHERE valid_until < ?", (now,))
+            cursor.execute(
+                f"""
+                SELECT s.*
+                FROM auth_sessions s
+                LEFT JOIN auth_refresh_token_grace g
+                  ON g.session_id = s.id
+                 AND g.refresh_token_hash = ?
+                 AND g.valid_until >= ?
+                WHERE s.id = ?
+                  AND s.revoked_at IS NULL
+                  AND (
+                    s.refresh_token_hash = ?
+                    OR g.id IS NOT NULL
+                  )
+                {lock_suffix}
+                """,
+                (expected_refresh_hash, now, session_id, expected_refresh_hash),
+            )
+            session = cursor.fetchone()
+            if not session:
+                conn.rollback()
+                return None
+
+            current_refresh_hash = session["refresh_token_hash"]
+            cursor.execute(
+                """
+                UPDATE auth_sessions
+                SET access_token_hash = ?,
+                    refresh_token_hash = ?,
+                    access_expires_at = ?,
+                    refresh_expires_at = ?,
+                    ip_address = ?,
+                    user_agent = ?,
+                    last_active_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                  AND revoked_at IS NULL
+                """,
+                (
+                    access_token_hash,
+                    refresh_token_hash,
+                    access_expires_at,
+                    refresh_expires_at,
+                    ip_address,
+                    user_agent,
+                    session_id,
+                ),
+            )
+            cursor.execute(
+                "DELETE FROM auth_refresh_token_grace WHERE refresh_token_hash = ?",
+                (current_refresh_hash,),
+            )
+            cursor.execute(
+                """
+                INSERT INTO auth_refresh_token_grace (session_id, refresh_token_hash, valid_until)
+                VALUES (?, ?, ?)
+                """,
+                (session_id, current_refresh_hash, refresh_grace_valid_until),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+        return query_one(
+            "SELECT * FROM auth_sessions WHERE id = ? AND refresh_token_hash = ? AND revoked_at IS NULL",
+            (session_id, refresh_token_hash),
         )
-        return query_one("SELECT * FROM auth_sessions WHERE id = ?", (session_id,))
 
     @staticmethod
     def get_active_session_by_access_token_hash(token_hash: str) -> dict | None:
@@ -467,11 +542,18 @@ class AuthRepository:
             FROM auth_sessions s
             JOIN auth_users u ON u.id = s.user_id
             JOIN auth_devices d ON d.id = s.device_id
-            WHERE s.refresh_token_hash = ?
+            LEFT JOIN auth_refresh_token_grace g
+              ON g.session_id = s.id
+             AND g.refresh_token_hash = ?
+             AND g.valid_until >= ?
+            WHERE (
+                s.refresh_token_hash = ?
+                OR g.id IS NOT NULL
+              )
               AND s.revoked_at IS NULL
               AND d.is_revoked = 0
             """,
-            (token_hash,),
+            (token_hash, _utc_now_iso(), token_hash),
         )
 
     @staticmethod

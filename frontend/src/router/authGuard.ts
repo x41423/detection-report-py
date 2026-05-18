@@ -5,6 +5,14 @@ import { useAuth } from '../composables/useAuth'
 let hasTriedRestoreSession = false
 let restoreSessionPromise: Promise<boolean> | null = null
 
+export function resetRestoreSessionFlag() {
+  hasTriedRestoreSession = false
+}
+
+export function markRestoreSessionAttempted() {
+  hasTriedRestoreSession = true
+}
+
 export function installAuthGuard(router: Router) {
   router.beforeEach(async (to) => {
     const auth = useAuth()

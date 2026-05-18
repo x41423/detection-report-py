@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -146,6 +147,50 @@ class WeeklyQuoteSummaryTests(unittest.TestCase):
         self.assertEqual(unit_summaries["理想"]["summary_items"][0]["summary_price"], 2.0)
         self.assertEqual(unit_summaries["勾庄"]["summary_items"][0]["average_price"], 2.5)
         self.assertEqual(unit_summaries["理想"]["summary_items"][0]["average_price"], 2.0)
+
+    def test_dynamic_supplier_config_controls_summary_and_export_sheet_creation(self):
+        supplier_configs = [
+            {
+                "name": "自采",
+                "weekly_batch_limit": 2,
+                "summary_rule": "average",
+                "is_builtin": False,
+                "sort_order": 10,
+            }
+        ]
+        batches = [
+            {
+                "supplier": "自采",
+                "quote_date": "2026-04-18",
+                "entries": [
+                    {"name": "青椒", "unit": "斤", "price": 2.1},
+                    {"name": "青椒", "unit": "斤", "price": 2.5},
+                ],
+            }
+        ]
+
+        summary = preview_weekly_quote_summary(batches, supplier_configs=supplier_configs)
+        unit_summary = summary["unit_summaries"][0]
+
+        self.assertEqual(unit_summary["supplier"], "自采")
+        self.assertEqual(unit_summary["summary_items"][0]["summary_price"], 2.3)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            template_path = Path(tmpdir) / "summary-template.xlsx"
+            workbook = Workbook()
+            workbook.active.title = "说明"
+            workbook.save(template_path)
+
+            result = export_weekly_quote_summary(
+                workbook_path=str(template_path),
+                batches=batches,
+                supplier_configs=supplier_configs,
+            )
+
+            output_workbook = load_workbook(BytesIO(Path(result["workbook_path"]).read_bytes()))
+            self.assertIn("自采", output_workbook.sheetnames)
+            self.assertEqual(output_workbook["自采"]["A2"].value, "青椒")
+            self.assertEqual(output_workbook["自采"]["C2"].value, 2.3)
 
 
 if __name__ == "__main__":

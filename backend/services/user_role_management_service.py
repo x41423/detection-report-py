@@ -96,6 +96,24 @@ class UserRoleManagementService:
             raise AuthServiceError(404, "USER_NOT_FOUND", "用户不存在")
         return _build_managed_user_response(self.repository, _user_row_for_response(user))
 
+    def delete_user(self, context: AuthContext, user_id: int) -> dict:
+        if not context.user.is_super_admin:
+            raise AuthServiceError(403, "PERMISSION_DENIED", "只有超级管理员可以删除账号")
+
+        target = self.repository.get_user_by_id(user_id)
+        if not target:
+            raise AuthServiceError(404, "USER_NOT_FOUND", "用户不存在")
+        if _as_bool(target["is_super_admin"]):
+            raise AuthServiceError(403, "SUPER_ADMIN_PROTECTED", "超级管理员账号不能删除")
+
+        if not self.repository.delete_managed_user(user_id):
+            raise AuthServiceError(404, "USER_NOT_FOUND", "用户不存在")
+        return {
+            "id": int(target["id"]),
+            "username": target["username"],
+            "display_name": target["display_name"],
+        }
+
     def list_roles(self) -> list[AuthRoleResponse]:
         return [_build_role_response(role) for role in self.repository.list_roles()]
 

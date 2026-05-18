@@ -27,6 +27,7 @@ class AuthApiTests(unittest.TestCase):
                 "SEED_SUPER_ADMIN_FORCE_CHANGE_PASSWORD": "true",
                 "AUTH_ACCESS_TOKEN_MINUTES": "60",
                 "AUTH_REFRESH_TOKEN_DAYS": "14",
+                "AUTH_REFRESH_REPLAY_GRACE_SECONDS": "15",
             },
             clear=False,
         )
@@ -167,10 +168,23 @@ class AuthApiTests(unittest.TestCase):
         self.assertNotEqual(self.client.cookies.get("auth_refresh_token"), original_refresh_token)
 
         self.client.cookies.clear()
-        self.client.cookies.set("auth_refresh_token", original_refresh_token)
+        self.client.cookies.set("auth_refresh_token", original_refresh_token, domain="testserver.local", path="/api/auth")
         replay_response = self.client.post("/api/auth/refresh")
-        self.assertEqual(replay_response.status_code, 401)
-        self.assertEqual(replay_response.json()["detail"]["code"], "INVALID_REFRESH_TOKEN")
+        self.assertEqual(replay_response.status_code, 200)
+        self.assert_refresh_cookie_is_set(replay_response)
+        self.assertTrue(self.client.cookies.get("auth_refresh_token"))
+        self.assertNotEqual(self.client.cookies.get("auth_refresh_token"), original_refresh_token)
+
+        store.get_connection().execute(
+            "UPDATE auth_refresh_token_grace SET valid_until = ?",
+            ("2000-01-01T00:00:00+00:00",),
+        )
+        store.get_connection().commit()
+        self.client.cookies.clear()
+        self.client.cookies.set("auth_refresh_token", original_refresh_token, domain="testserver.local", path="/api/auth")
+        expired_replay_response = self.client.post("/api/auth/refresh")
+        self.assertEqual(expired_replay_response.status_code, 401)
+        self.assertEqual(expired_replay_response.json()["detail"]["code"], "INVALID_REFRESH_TOKEN")
 
     def test_expired_access_token_can_be_refreshed_with_valid_refresh_cookie(self):
         login_response = self.client.post(

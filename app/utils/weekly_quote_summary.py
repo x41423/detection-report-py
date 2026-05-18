@@ -21,14 +21,30 @@ SUPPLIER_BATCH_LIMITS = {
     "酱菜": 7,
     "豆制品": 7,
 }
+DEFAULT_SUPPLIER_CONFIGS = tuple(
+    {
+        "name": supplier,
+        "weekly_batch_limit": SUPPLIER_BATCH_LIMITS[supplier],
+        "summary_rule": "highest" if supplier in HIGHEST_PRICE_SUPPLIERS else "average",
+        "is_builtin": True,
+        "sort_order": index * 10,
+    }
+    for index, supplier in enumerate(SUPPLIERS, start=1)
+)
 IMPORT_REQUIRED_COLUMNS = ("菜名", "单位", "单价")
 OUTPUT_HEADERS = ("菜名", "单位", "汇总价")
 READABLE_EXTENSIONS = {".xlsx", ".xls", ".xlsm"}
 WRITABLE_EXTENSIONS = {".xlsx", ".xlsm"}
 
 
-def import_weekly_quote_batch(source_path: str, supplier: str, quote_date: str) -> dict[str, Any]:
-    normalized_supplier = _normalize_supplier(supplier)
+def import_weekly_quote_batch(
+    source_path: str,
+    supplier: str,
+    quote_date: str,
+    supplier_configs: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    configs = _normalize_supplier_configs(supplier_configs)
+    normalized_supplier = _normalize_supplier(supplier, configs)
     normalized_date = _normalize_text(quote_date)
     if not normalized_date:
         raise ValueError("报价日期不能为空")
@@ -72,13 +88,20 @@ def import_weekly_quote_batch(source_path: str, supplier: str, quote_date: str) 
     }
 
 
-def preview_weekly_quote_summary(batches: list[dict[str, Any]]) -> dict[str, Any]:
-    normalized_batches = _normalize_batches(batches)
-    return _build_preview_from_batches(normalized_batches)
+def preview_weekly_quote_summary(
+    batches: list[dict[str, Any]],
+    supplier_configs: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    configs = _normalize_supplier_configs(supplier_configs)
+    normalized_batches = _normalize_batches(batches, configs)
+    return _build_preview_from_batches(normalized_batches, configs)
 
 
-def _build_preview_from_batches(normalized_batches: list[dict[str, Any]]) -> dict[str, Any]:
-    unit_summaries = _build_unit_summaries(normalized_batches)
+def _build_preview_from_batches(
+    normalized_batches: list[dict[str, Any]],
+    supplier_configs: list[dict[str, Any]],
+) -> dict[str, Any]:
+    unit_summaries = _build_unit_summaries(normalized_batches, supplier_configs)
     total_entries = sum(summary["entry_count"] for summary in unit_summaries)
     total_summary_items = sum(len(summary["summary_items"]) for summary in unit_summaries)
 
@@ -94,6 +117,7 @@ def _build_preview_from_batches(normalized_batches: list[dict[str, Any]]) -> dic
 def export_weekly_quote_summary(
     workbook_path: str,
     batches: list[dict[str, Any]],
+    supplier_configs: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not workbook_path or not os.path.exists(workbook_path):
         raise FileNotFoundError(f"输出工作簿不存在: {workbook_path}")
@@ -103,8 +127,10 @@ def export_weekly_quote_summary(
         supported = ", ".join(sorted(WRITABLE_EXTENSIONS))
         raise ValueError(f"总结表只支持这些格式: {supported}")
 
-    normalized_batches = _normalize_batches(batches)
-    preview = _build_preview_from_batches(normalized_batches)
+    configs = _normalize_supplier_configs(supplier_configs)
+    supplier_names = [config["name"] for config in configs]
+    normalized_batches = _normalize_batches(batches, configs)
+    preview = _build_preview_from_batches(normalized_batches, configs)
     unit_summaries = preview["unit_summaries"]
     summary_map = {
         summary["supplier"]: summary
@@ -114,9 +140,9 @@ def export_weekly_quote_summary(
     _copy_template_workbook(workbook_path, output_path)
 
     workbook = load_workbook(output_path, keep_vba=workbook_ext == ".xlsm")
-    resolved_sheet_names = _resolve_supplier_sheet_names(workbook.sheetnames)
+    resolved_sheet_names = _resolve_supplier_sheet_names(workbook.sheetnames, supplier_names)
 
-    for supplier in SUPPLIERS:
+    for supplier in supplier_names:
         summary = summary_map[supplier]
         worksheet = _prepare_summary_sheet(
             workbook=workbook,
@@ -131,7 +157,7 @@ def export_weekly_quote_summary(
 
     return {
         "workbook_path": output_path,
-        "sheet_names": [resolved_sheet_names.get(supplier, supplier) for supplier in SUPPLIERS],
+        "sheet_names": [resolved_sheet_names.get(supplier, supplier) for supplier in supplier_names],
         "unit_summaries": unit_summaries,
         "total_batches": preview["total_batches"],
         "total_entries": preview["total_entries"],
@@ -168,17 +194,22 @@ def _resolve_import_columns(columns: Any) -> dict[str, int]:
     return {name: normalized_headers[name] for name in IMPORT_REQUIRED_COLUMNS}
 
 
-def _normalize_batches(batches: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _normalize_batches(
+    batches: list[dict[str, Any]],
+    supplier_configs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     if not batches:
         raise ValueError("当前没有可汇总的报价批次")
 
     normalized_batches: list[dict[str, Any]] = []
-    supplier_counts = {supplier: 0 for supplier in SUPPLIERS}
+    supplier_names = [config["name"] for config in supplier_configs]
+    supplier_counts = {supplier: 0 for supplier in supplier_names}
+    supplier_limits = {config["name"]: int(config["weekly_batch_limit"]) for config in supplier_configs}
 
     for batch_index, batch in enumerate(batches, start=1):
-        supplier = _normalize_supplier(batch.get("supplier"))
+        supplier = _normalize_supplier(batch.get("supplier"), supplier_configs)
         supplier_counts[supplier] += 1
-        limit = SUPPLIER_BATCH_LIMITS[supplier]
+        limit = supplier_limits[supplier]
         if supplier_counts[supplier] > limit:
             raise ValueError(f"{supplier} 本周最多只允许 {limit} 个批次")
 
@@ -221,12 +252,17 @@ def _normalize_batches(batches: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return normalized_batches
 
 
-def _build_unit_summaries(batches: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    supplier_batch_counts = {supplier: 0 for supplier in SUPPLIERS}
-    supplier_entry_counts = {supplier: 0 for supplier in SUPPLIERS}
+def _build_unit_summaries(
+    batches: list[dict[str, Any]],
+    supplier_configs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    supplier_names = [config["name"] for config in supplier_configs]
+    supplier_rules = {config["name"]: config["summary_rule"] for config in supplier_configs}
+    supplier_batch_counts = {supplier: 0 for supplier in supplier_names}
+    supplier_entry_counts = {supplier: 0 for supplier in supplier_names}
     supplier_buckets: dict[str, OrderedDict[tuple[str, str], dict[str, Any]]] = {
         supplier: OrderedDict()
-        for supplier in SUPPLIERS
+        for supplier in supplier_names
     }
 
     for batch in batches:
@@ -247,10 +283,10 @@ def _build_unit_summaries(batches: list[dict[str, Any]]) -> list[dict[str, Any]]
             bucket["prices"].append(entry["price"])
 
     unit_summaries: list[dict[str, Any]] = []
-    for supplier in SUPPLIERS:
+    for supplier in supplier_names:
         summary_items = []
         for bucket in supplier_buckets[supplier].values():
-            summary_price = _summarize_prices_for_supplier(supplier, bucket["prices"])
+            summary_price = _summarize_prices_for_supplier(supplier, bucket["prices"], supplier_rules)
             summary_items.append(
                 {
                     "name": bucket["name"],
@@ -273,8 +309,12 @@ def _build_unit_summaries(batches: list[dict[str, Any]]) -> list[dict[str, Any]]
     return unit_summaries
 
 
-def _summarize_prices_for_supplier(supplier: str, prices: list[Decimal]) -> Decimal:
-    if supplier in HIGHEST_PRICE_SUPPLIERS:
+def _summarize_prices_for_supplier(
+    supplier: str,
+    prices: list[Decimal],
+    supplier_rules: dict[str, str],
+) -> Decimal:
+    if supplier_rules.get(supplier) == "highest":
         return max(prices)
     return _average_prices(prices)
 
@@ -293,9 +333,45 @@ def _round_two_drop_three_up(value: Decimal) -> Decimal:
     return base
 
 
-def _normalize_supplier(supplier: Any) -> str:
+def _normalize_supplier_configs(
+    supplier_configs: list[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    raw_configs = supplier_configs or list(DEFAULT_SUPPLIER_CONFIGS)
+    configs: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for index, config in enumerate(raw_configs, start=1):
+        name = _normalize_text(config.get("name") or config.get("supplier"))
+        if not name or name in seen:
+            continue
+        rule = _normalize_text(config.get("summary_rule") or _default_summary_rule_for_supplier(name))
+        if rule not in {"highest", "average"}:
+            rule = _default_summary_rule_for_supplier(name)
+        try:
+            limit = int(config.get("weekly_batch_limit") or config.get("limit") or SUPPLIER_BATCH_LIMITS.get(name, 7))
+        except (TypeError, ValueError):
+            limit = SUPPLIER_BATCH_LIMITS.get(name, 7)
+        limit = max(1, min(7, limit))
+        configs.append(
+            {
+                "name": name,
+                "weekly_batch_limit": limit,
+                "summary_rule": rule,
+                "is_builtin": bool(config.get("is_builtin", name in SUPPLIERS)),
+                "sort_order": int(config.get("sort_order") or index * 10),
+            }
+        )
+        seen.add(name)
+    return configs
+
+
+def _default_summary_rule_for_supplier(supplier: str) -> str:
+    return "highest" if supplier in HIGHEST_PRICE_SUPPLIERS else "average"
+
+
+def _normalize_supplier(supplier: Any, supplier_configs: list[dict[str, Any]]) -> str:
     value = _normalize_text(supplier)
-    if value not in SUPPLIERS:
+    allowed = {config["name"] for config in supplier_configs}
+    if value not in allowed:
         raise ValueError(f"不支持的单位: {supplier}")
     return value
 
@@ -369,11 +445,11 @@ def _match_supplier_sheet_name(sheet_names: list[str], supplier: str) -> str:
     return best_matches[0]
 
 
-def _resolve_supplier_sheet_names(sheet_names: list[str]) -> dict[str, str]:
+def _resolve_supplier_sheet_names(sheet_names: list[str], suppliers: list[str]) -> dict[str, str]:
     resolved: dict[str, str] = {}
     remaining_sheet_names = list(sheet_names)
 
-    for supplier in SUPPLIERS:
+    for supplier in suppliers:
         try:
             matched_sheet = _match_supplier_sheet_name(remaining_sheet_names, supplier)
         except ValueError:

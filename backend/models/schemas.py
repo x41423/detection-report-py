@@ -225,8 +225,8 @@ class WeeklyPriceExecuteResponse(BaseModel):
 
 class WeeklyQuoteEntryInput(BaseModel):
     name: str
-    unit: str
-    price: float
+    unit: str = "斤"
+    price: float = Field(gt=0)
 
 
 class WeeklyQuoteBatchInput(BaseModel):
@@ -289,6 +289,49 @@ class WeeklyQuoteExportResponse(BaseModel):
     total_batches: int = 0
     total_entries: int = 0
     total_summary_items: int = 0
+
+
+class WeeklyQuoteSupplierOption(BaseModel):
+    id: int | None = None
+    name: str
+    weekly_batch_limit: int = 7
+    summary_rule: Literal['highest', 'average'] = 'highest'
+    is_builtin: bool = False
+    sort_order: int = 1000
+
+
+class WeeklyQuoteMeasureUnitOption(BaseModel):
+    id: int | None = None
+    name: str
+    sort_order: int = 1000
+
+
+class WeeklyQuoteSummaryOptionsResponse(BaseModel):
+    success: bool
+    suppliers: list[WeeklyQuoteSupplierOption] = []
+    measure_units: list[WeeklyQuoteMeasureUnitOption] = []
+
+
+class WeeklyQuoteSupplierCreateRequest(BaseModel):
+    name: str
+    weekly_batch_limit: int = Field(default=7, ge=1, le=7)
+    summary_rule: Literal['highest', 'average'] = 'highest'
+
+
+class WeeklyQuoteSupplierCreateResponse(BaseModel):
+    success: bool
+    message: str
+    supplier: WeeklyQuoteSupplierOption
+
+
+class WeeklyQuoteMeasureUnitCreateRequest(BaseModel):
+    name: str
+
+
+class WeeklyQuoteMeasureUnitCreateResponse(BaseModel):
+    success: bool
+    message: str
+    measure_unit: WeeklyQuoteMeasureUnitOption
 
 
 class DailyIntakeItemUpsertRequest(BaseModel):
@@ -590,3 +633,61 @@ class MonthlyTransferPreviewResponse(BaseModel):
     unrecognized_files: list[str] = Field(default_factory=list)
     total_files: int = 0
     message: str = ''
+
+
+class WeeklyQuoteSaveRequest(BaseModel):
+    supplier: str
+    quote_date: str
+    entries: list[WeeklyQuoteEntryInput]
+    source_label: str = "手动录入"
+
+
+class WeeklyQuoteDeleteRequest(BaseModel):
+    supplier: str
+    quote_date: str
+
+
+class WeeklyQuoteWeekSummaryRequest(BaseModel):
+    supplier: str
+    date: str
+
+
+class WeeklyQuoteWeekSummaryResponse(BaseModel):
+    success: bool
+    supplier: str
+    batch_count: int = 0
+    entry_count: int = 0
+    summary_items: list[WeeklyQuoteSummaryItem] = []
+    total_summary_items: int = 0
+
+
+class WeeklyQuoteSavedBatchResponse(BaseModel):
+    id: int
+    supplier: str
+    quote_date: str
+    entry_count: int = 0
+    entries: list[WeeklyQuoteEntryInput] = []
+    source_label: str = ''
+    source_path: str = ''
+    created_at: str = ''
+
+
+class WeeklyQuoteSupplierWeekOverview(BaseModel):
+    supplier: str
+    limit: int
+    summary_rule: Literal['highest', 'average'] = 'highest'
+    batches: list[WeeklyQuoteSavedBatchResponse] = []
+    batch_count: int = 0
+    entry_count: int = 0
+    summary_items: list[WeeklyQuoteSummaryItem] = []
+
+
+class WeeklyQuoteWeekOverviewResponse(BaseModel):
+    success: bool
+    week_start: str
+    week_end: str
+    suppliers: list[WeeklyQuoteSupplierWeekOverview] = []
+    total_batches: int = 0
+    total_entries: int = 0
+    total_summary_items: int = 0
+    issue_messages: list[str] = []

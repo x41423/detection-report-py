@@ -22,6 +22,7 @@ function applyTokenResponse(payload: authApi.AuthTokenResponse) {
   applyAccessToken(payload.access_token)
   expiresAt.value = payload.expires_at
   currentUser.value = payload.user
+  import('../router/authGuard').then((m) => m.resetRestoreSessionFlag()).catch(() => {})
   return payload
 }
 
@@ -29,6 +30,7 @@ function resetAuthState() {
   applyAccessToken('')
   expiresAt.value = ''
   currentUser.value = null
+  import('../router/authGuard').then((m) => m.markRestoreSessionAttempted()).catch(() => {})
 }
 
 // Exported for use by the auth interceptor (which runs outside the composable tree)
@@ -138,4 +140,4 @@ export function useAuth() {
 // Register callbacks so the 401 interceptor can sync composable state
 // without creating a circular dependency.
 import { setAuthCallbacks } from '../api/authInterceptors'
-setAuthCallbacks(applyAccessToken, resetAuthState)
+setAuthCallbacks(applyTokenResponse, resetAuthState)

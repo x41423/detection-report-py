@@ -62,6 +62,16 @@ class TestWeeklyQuoteRepository(unittest.TestCase):
         self.assertIsNotNone(cabbage)
         self.assertEqual(cabbage["summary_price"], 0.9)
 
+    def test_weekly_average_price_for_lixiang(self):
+        self.repo.save_batch("理想", "2026-05-06", [
+            {"name": "青菜", "unit": "斤", "price": 1.0},
+            {"name": "青菜", "unit": "斤", "price": 1.2},
+        ])
+        summary = self.repo.get_weekly_summary("理想", "2026-05-06")
+        greens = next((i for i in summary if i["name"] == "青菜"), None)
+        self.assertIsNotNone(greens)
+        self.assertEqual(greens["summary_price"], 1.1)
+
     def test_delete_batch(self):
         self.repo.save_batch("勾庄", "2026-05-07", [
             {"name": "大白菜", "unit": "斤", "price": 0.8},
@@ -80,6 +90,30 @@ class TestWeeklyQuoteRepository(unittest.TestCase):
         suppliers = self.repo.get_all_suppliers()
         self.assertIn("勾庄", suppliers)
         self.assertIn("豆制品", suppliers)
+
+    def test_supplier_and_measure_unit_options_include_defaults_custom_and_history(self):
+        custom = self.repo.upsert_supplier_config("自采", weekly_batch_limit=2, summary_rule="average")
+        self.repo.save_batch("历史供应商", "2026-05-07", [
+            {"name": "大白菜", "unit": "箱", "price": 20.0},
+        ])
+        self.repo.upsert_measure_unit_option("袋")
+
+        supplier_configs = self.repo.get_supplier_configs()
+        by_name = {item["name"]: item for item in supplier_configs}
+        self.assertIn("勾庄", by_name)
+        self.assertEqual(by_name["理想"]["summary_rule"], "average")
+        self.assertEqual(by_name["自采"]["weekly_batch_limit"], 2)
+        self.assertEqual(by_name["自采"]["summary_rule"], "average")
+        self.assertFalse(bool(by_name["自采"]["is_builtin"]))
+        self.assertEqual(custom["name"], "自采")
+        self.assertIn("历史供应商", by_name)
+        self.assertEqual(by_name["历史供应商"]["weekly_batch_limit"], 7)
+        self.assertEqual(by_name["历史供应商"]["summary_rule"], "highest")
+
+        units = [item["name"] for item in self.repo.get_measure_unit_options()]
+        self.assertIn("斤", units)
+        self.assertIn("袋", units)
+        self.assertIn("箱", units)
 
     def test_get_entries_by_date_range(self):
         self.repo.save_batch("勾庄", "2026-05-06", [

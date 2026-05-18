@@ -1,9 +1,11 @@
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 import * as authApi from './auth'
+import type { AuthTokenResponse } from './auth'
 
 let isRefreshing = false
 let refreshPromise: Promise<string> | null = null
+let hasNotifiedSessionExpired = false
 
 interface QueueEntry {
   resolve: (token: string) => void
@@ -23,20 +25,28 @@ function processQueue(error: unknown, token: string | null = null) {
   failedQueue = []
 }
 
-let onTokenRefreshed: ((token: string) => void) | null = null
+let onTokenRefreshed: ((payload: AuthTokenResponse) => void) | null = null
 let onRefreshFailed: (() => void) | null = null
+let onSessionExpired: (() => void) | null = null
 
 export function setAuthCallbacks(
-  onRefreshed: (token: string) => void,
+  onRefreshed: (payload: AuthTokenResponse) => void,
   onFailed: () => void,
 ) {
   onTokenRefreshed = onRefreshed
   onRefreshFailed = onFailed
 }
 
+export function setAuthSessionExpiredCallback(callback: (() => void) | null) {
+  onSessionExpired = callback
+}
+
 export function installAuthInterceptors(api: AxiosInstance) {
   api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      hasNotifiedSessionExpired = false
+      return response
+    },
     async (error: AxiosError) => {
       const config = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
 
@@ -53,6 +63,7 @@ export function installAuthInterceptors(api: AxiosInstance) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         }).then((token) => {
+          config._retry = true
           config.headers.Authorization = `Bearer ${token}`
           return api.request(config)
         })
@@ -64,7 +75,8 @@ export function installAuthInterceptors(api: AxiosInstance) {
         .then((response) => {
           const newToken: string = response.data.access_token
           api.defaults.headers.common.Authorization = `Bearer ${newToken}`
-          onTokenRefreshed?.(newToken)
+          hasNotifiedSessionExpired = false
+          onTokenRefreshed?.(response.data)
           processQueue(null, newToken)
           isRefreshing = false
           refreshPromise = null
@@ -74,6 +86,10 @@ export function installAuthInterceptors(api: AxiosInstance) {
           api.defaults.headers.common.Authorization = undefined
           delete api.defaults.headers.common.Authorization
           onRefreshFailed?.()
+          if (!hasNotifiedSessionExpired) {
+            hasNotifiedSessionExpired = true
+            onSessionExpired?.()
+          }
           processQueue(refreshError, null)
           isRefreshing = false
           refreshPromise = null

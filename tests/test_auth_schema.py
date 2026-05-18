@@ -17,6 +17,7 @@ AUTH_TABLES = {
     "auth_permission_requests",
     "auth_devices",
     "auth_sessions",
+    "auth_refresh_token_grace",
     "auth_pending_logins",
     "auth_audit_logs",
 }

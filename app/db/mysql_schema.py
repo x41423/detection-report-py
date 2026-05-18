@@ -4,6 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+WEEKLY_QUOTE_DEFAULT_SUPPLIERS = (
+    ("勾庄", 7, "highest", 1, 10),
+    ("理想", 1, "average", 1, 20),
+    ("刘慧", 1, "highest", 1, 30),
+    ("酱菜", 7, "highest", 1, 40),
+    ("豆制品", 7, "highest", 1, 50),
+)
+WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS = (("斤", 10),)
+
 
 MYSQL_SCHEMA_STATEMENTS = [
     """
@@ -72,6 +81,32 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_weekly_quote_entry_batch (batch_id),
         CONSTRAINT fk_weekly_quote_entry_batch FOREIGN KEY (batch_id) REFERENCES WeeklyQuoteBatch(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS WeeklyQuoteSupplierConfig (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(31) NOT NULL UNIQUE,
+        weekly_batch_limit INT NOT NULL DEFAULT 7,
+        summary_rule VARCHAR(16) NOT NULL DEFAULT 'highest',
+        is_builtin TINYINT NOT NULL DEFAULT 0,
+        sort_order INT NOT NULL DEFAULT 1000,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CHECK (weekly_batch_limit >= 1 AND weekly_batch_limit <= 7),
+        CHECK (summary_rule IN ('highest', 'average')),
+        CHECK (is_builtin IN (0, 1)),
+        KEY idx_weekly_quote_supplier_config_order (sort_order, id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS WeeklyQuoteMeasureUnitOption (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(64) NOT NULL UNIQUE,
+        sort_order INT NOT NULL DEFAULT 1000,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_weekly_quote_measure_unit_order (sort_order, id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -305,6 +340,17 @@ MYSQL_SCHEMA_STATEMENTS = [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
+    CREATE TABLE IF NOT EXISTS auth_refresh_token_grace (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        session_id BIGINT NOT NULL,
+        refresh_token_hash VARCHAR(255) NOT NULL UNIQUE,
+        valid_until VARCHAR(64) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_auth_refresh_token_grace_session (session_id, valid_until),
+        CONSTRAINT fk_auth_refresh_token_grace_session FOREIGN KEY (session_id) REFERENCES auth_sessions(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
     CREATE TABLE IF NOT EXISTS auth_pending_logins (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -346,10 +392,37 @@ def create_mysql_schema(cursor) -> None:
         cursor.execute(statement)
 
 
+def seed_weekly_quote_defaults(cursor) -> None:
+    cursor.executemany(
+        """
+        INSERT INTO WeeklyQuoteSupplierConfig (
+            name, weekly_batch_limit, summary_rule, is_builtin, sort_order
+        )
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            weekly_batch_limit = VALUES(weekly_batch_limit),
+            summary_rule = VALUES(summary_rule),
+            is_builtin = VALUES(is_builtin),
+            sort_order = VALUES(sort_order)
+        """,
+        WEEKLY_QUOTE_DEFAULT_SUPPLIERS,
+    )
+    cursor.executemany(
+        """
+        INSERT INTO WeeklyQuoteMeasureUnitOption (name, sort_order)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE
+            sort_order = VALUES(sort_order)
+        """,
+        WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS,
+    )
+
+
 def init_mysql_database(conn, seed_auth_defaults: Callable) -> None:
     cursor = conn.cursor()
     try:
         create_mysql_schema(cursor)
+        seed_weekly_quote_defaults(cursor)
         cursor.execute(
             """
             INSERT IGNORE INTO schema_migrations (version, name)
