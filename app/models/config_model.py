@@ -6,57 +6,27 @@ from app.utils.weekly_price_update import get_default_weekly_price_aliases
 from shared.project_paths import get_project_paths
 
 
-DEFAULT_CONFIG = {
-    "output_dir": r"C:\Users\34585\Desktop\滨鲜\检测报告py文件夹",
-    "inspector_name": "朱林初",
-    "date_format": "{y}年{m}月{d}日",
-    "high_risk": ["韭菜", "小葱", "毛毛菜", "香菜", "蒜黄", "白萝卜", "小莲藕", "菠菜"],
-    "low_risk": ["黄瓜", "玉米", "光玉米", "毛玉米", "冬瓜", "老南瓜", "长豆角", "春笋", "冬笋"],
-    "rate_ranges": {
-        "high": {"min": 20.0, "max": 60.0, "mean": 40.0, "std": 5.0},
-        "low": {"min": 0.5, "max": 15.0, "mean": 6.0, "std": 2.0},
-        "other": {"min": 5.0, "max": 40.0, "mean": 20.0, "std": 8.0}
-    },
-    "big_table_path": "",
-    "small_templates": {
-        "滨鲜": "",
-        "1号": "",
-        "5号": "",
-        "6号": "",
-        "7号": "",
-        "8号": "",
-        "顾家": ""
-    },
-    "pesticide_templates": {
-        "big": {},
-        "small": {},
-    },
-    "transfer_templates": {},
-    "last_used_small_type": "滨鲜",
-    "ui_theme": "light_cyan.xml",
-    "data_transfer_use_shared_date": True,
-    "data_transfer_last_date": "",
-    "data_transfer_big_folder": "",
-    "dish_name_aliases": {},
-    "funasr_lab_memory": {
-        "recent_hotwords": [],
-        "name_unit_memory": [],
-    },
-    "funasr_lab_daily_tracking": {
-        "records": {},
-    },
-    "weekly_price_aliases": get_default_weekly_price_aliases(),
-    "weekly_price_output_path": "",
-    "weekly_quote_summary_workbook_path": "",
-    "weekly_quote_summary_records": {},
-    "weekly_quote_summary_unit_memory": {},
-    "inventory_low_stock_threshold": 3,
-}
+def _get_defaults_path() -> Path:
+    return Path(__file__).resolve().parent.parent / "config" / "defaults.json"
+
+
+def _load_defaults() -> dict:
+    path = _get_defaults_path()
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    else:
+        cfg = {}
+    cfg.setdefault("weekly_price_aliases", get_default_weekly_price_aliases())
+    return cfg
+
+
+def _default_config() -> dict:
+    """Lazy-loaded default config, cached after first call."""
+    return _load_defaults()
 
 
 def get_config_path() -> str:
-    """返回 config.json 的绝对路径（项目根目录）。"""
-    # 获取当前文件所在目录的上两级（根目录）
     return str(get_project_paths().config_file)
 
 
@@ -73,13 +43,40 @@ def resolve_read_config_path() -> Path:
     return paths.config_file
 
 
+def _merge_and_remove_legacy(cfg: dict):
+    """If legacy root config.json exists, merge its unique keys into canonical config/app.json and rename legacy to .bak."""
+    paths = get_project_paths()
+    legacy = paths.legacy_root_config_file
+    canonical = paths.config_file
+    if not legacy.exists() or legacy == canonical:
+        return
+    try:
+        with legacy.open("r", encoding="utf-8") as f:
+            legacy_cfg = json.load(f)
+    except Exception:
+        return
+    changed = False
+    for k, v in legacy_cfg.items():
+        if k not in cfg:
+            cfg[k] = v
+            changed = True
+    if changed:
+        canonical.parent.mkdir(parents=True, exist_ok=True)
+        with canonical.open("w", encoding="utf-8") as f:
+            json.dump(cfg, f, ensure_ascii=False, indent=2)
+    bak = legacy.with_suffix(".merged.bak")
+    legacy.rename(bak)
+    print(f"[CONFIG] 已合并 legacy config.json → {bak}")
+
+
 def load_config() -> dict:
-    """加载配置文件，如果不存在则以默认值创建并返回。"""
     path = resolve_read_config_path()
     canonical_path = Path(get_config_path())
+    defaults = _default_config()
+
     if not path.exists():
-        save_config(DEFAULT_CONFIG)
-        return copy.deepcopy(DEFAULT_CONFIG)
+        save_config(defaults)
+        return copy.deepcopy(defaults)
 
     try:
         with path.open("r", encoding="utf-8") as f:
@@ -88,7 +85,7 @@ def load_config() -> dict:
         cfg = {}
 
     changed = False
-    for k, v in DEFAULT_CONFIG.items():
+    for k, v in defaults.items():
         if k not in cfg:
             cfg[k] = copy.deepcopy(v)
             changed = True
@@ -96,10 +93,13 @@ def load_config() -> dict:
     if changed or path != canonical_path:
         save_config(cfg)
 
+    # Merge legacy root config.json if it still exists
+    _merge_and_remove_legacy(cfg)
+
     return cfg
 
+
 def save_config(cfg: dict):
-    """保存配置到 config.json。"""
     path = Path(get_config_path())
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
