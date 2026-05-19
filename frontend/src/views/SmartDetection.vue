@@ -9,6 +9,24 @@
             @blur="saveInspectorName" />
         </div>
       </div>
+      <div class="template-bar">
+        <div class="template-item">
+          <span class="template-label">大表</span>
+          <el-tag v-if="bigTemplateInfo.configured" type="success" size="small">{{ bigTemplateInfo.filename }}</el-tag>
+          <el-tag v-else type="danger" size="small">未上传</el-tag>
+          <el-upload :show-file-list="false" :auto-upload="false" :accept="'.docx,.doc'" @change="(f:any) => uploadTemplate('big', f.raw)">
+            <el-button size="small" text type="primary">更换</el-button>
+          </el-upload>
+        </div>
+        <div class="template-item">
+          <span class="template-label">小表</span>
+          <el-tag v-if="smallTemplateInfo.configured" type="success" size="small">{{ smallTemplateInfo.filename }}</el-tag>
+          <el-tag v-else type="danger" size="small">未上传</el-tag>
+          <el-upload :show-file-list="false" :auto-upload="false" :accept="'.docx,.doc'" @change="(f:any) => uploadTemplate('small', f.raw)">
+            <el-button size="small" text type="primary">更换</el-button>
+          </el-upload>
+        </div>
+      </div>
       <el-radio-group v-model="dataSource" class="source-switch">
         <el-radio-button value="auto">自动推荐</el-radio-button>
         <el-radio-button value="manual">完全手动</el-radio-button>
@@ -26,7 +44,7 @@
     <!-- Config warnings -->
     <el-alert v-if="!bigTemplate || !smallTemplate" type="error" :closable="false" show-icon style="margin-bottom:12px">
       <template #title>
-        模板未配置 — 请先在 农残检测 页面中上传大表/小表模板
+        模板未配置 — 请在顶部上传大表/小表模板（.docx 格式）
       </template>
     </el-alert>
     <el-alert v-if="!outputDir" type="warning" :closable="false" show-icon style="margin-bottom:12px">
@@ -209,6 +227,7 @@ import { ElMessage } from 'element-plus'
 import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
 import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
 import { getSmartPrepare, putSmartPrepare } from '../api/smart-detection'
+import { getPesticideTemplates, uploadPesticideTemplate } from '../api/pesticide'
 
 const inspectorName = ref('检测员')
 const bigTemplate = ref('')
@@ -232,6 +251,9 @@ const { gaps, backfilling, backfillResult, checkGaps, backfill } = useGapDetecti
 
 const backfillDialogVisible = ref(false)
 const backfillDateRange = ref<[string, string] | null>(null)
+
+const bigTemplateInfo = ref<{ configured: boolean; filename: string }>({ configured: false, filename: '' })
+const smallTemplateInfo = ref<{ configured: boolean; filename: string }>({ configured: false, filename: '' })
 
 function addManualVeg() {
   if (newVegName.value.trim()) {
@@ -293,6 +315,35 @@ async function runBackfill() {
   ElMessage.success('补做完成')
 }
 
+async function refreshPrepare() {
+  try {
+    const prep = await getSmartPrepare()
+    bigTemplate.value = prep.big_template
+    smallTemplate.value = prep.small_template
+    outputDir.value = prep.output_dir || outputDir.value
+  } catch { /* ignore */ }
+}
+
+async function loadTemplateInfo() {
+  try {
+    const { data } = await getPesticideTemplates()
+    bigTemplateInfo.value = { configured: data.big_template.configured, filename: data.big_template.filename }
+    smallTemplateInfo.value = { configured: data.small_template.configured, filename: data.small_template.filename }
+  } catch { /* ignore */ }
+}
+
+async function uploadTemplate(kind: 'big' | 'small', file: File | null) {
+  if (!file) return
+  try {
+    await uploadPesticideTemplate(kind, file)
+    ElMessage.success(`${kind === 'big' ? '大表' : '小表'}模板已更新`)
+    await loadTemplateInfo()
+    await refreshPrepare()
+  } catch {
+    ElMessage.error('模板上传失败')
+  }
+}
+
 onMounted(async () => {
   try {
     const prep = await getSmartPrepare()
@@ -303,6 +354,7 @@ onMounted(async () => {
   } catch {
     console.warn('获取工作台配置失败，将使用默认值')
   }
+  loadTemplateInfo()
   loadRecommendations(detectionDate.value)
   checkGaps(7)
 })
@@ -314,6 +366,9 @@ onMounted(async () => {
 .header-row { display: flex; justify-content: space-between; align-items: center; }
 .header-row h2 { margin: 0; font-size: 20px; }
 .inspector { color: #909399; font-size: 14px; }
+.template-bar { display: flex; gap: 24px; margin: 12px 0 4px; align-items: center; }
+.template-item { display: flex; align-items: center; gap: 6px; }
+.template-label { font-size: 13px; color: #606266; }
 .source-switch { margin-top: 8px; }
 
 .panels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
