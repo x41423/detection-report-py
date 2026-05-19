@@ -39,6 +39,13 @@ export interface GapResponse {
   total_missing: number
 }
 
+export interface PrepareResponse {
+  big_template: string
+  small_template: string
+  output_dir: string
+  inspector_name: string
+}
+
 export interface BackfillRequest {
   start_date: string
   end_date: string
@@ -68,5 +75,10 @@ export async function getSmartGaps(days = 7): Promise<GapResponse> {
 
 export async function postSmartBackfill(req: BackfillRequest): Promise<BackfillResponse> {
   const { data } = await api.post('/api/pesticide/smart/backfill', req)
+  return data
+}
+
+export async function getSmartPrepare(): Promise<PrepareResponse> {
+  const { data } = await api.get('/api/pesticide/smart/prepare')
   return data
 }

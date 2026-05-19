@@ -167,8 +167,12 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
 import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
+import { getSmartPrepare } from '../api/smart-detection'
 
 const inspectorName = ref('检测员')
+const bigTemplate = ref('')
+const smallTemplate = ref('')
+const outputDir = ref('')
 const dataSource = ref<'auto' | 'manual'>('auto')
 const detectionDate = ref(new Date().toISOString().split('T')[0])
 const newVegName = ref('')
@@ -197,15 +201,23 @@ function addManualVeg() {
 
 async function runDetection() {
   await execute({
-    date: detectionDate.value, big_template: '', small_template: '',
-    output_dir: '', inspector_name: inspectorName.value, export_format: 'docx',
+    date: detectionDate.value,
+    big_template: bigTemplate.value,
+    small_template: smallTemplate.value,
+    output_dir: outputDir.value,
+    inspector_name: inspectorName.value,
+    export_format: 'docx',
   })
 }
 
 async function runDetectionWithPdf() {
   await execute({
-    date: detectionDate.value, big_template: '', small_template: '',
-    output_dir: '', inspector_name: inspectorName.value, export_format: 'both',
+    date: detectionDate.value,
+    big_template: bigTemplate.value,
+    small_template: smallTemplate.value,
+    output_dir: outputDir.value,
+    inspector_name: inspectorName.value,
+    export_format: 'both',
   })
 }
 
@@ -224,7 +236,16 @@ async function runBackfill() {
   ElMessage.success('补做完成')
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const prep = await getSmartPrepare()
+    bigTemplate.value = prep.big_template
+    smallTemplate.value = prep.small_template
+    outputDir.value = prep.output_dir
+    inspectorName.value = prep.inspector_name || '检测员'
+  } catch {
+    console.warn('获取工作台配置失败，将使用默认值')
+  }
   loadRecommendations(detectionDate.value)
   checkGaps(7)
 })

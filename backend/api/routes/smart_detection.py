@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from backend.auth.dependencies import require_permission
 from backend.models.schemas import (
     SmartRecommendResponse, SmartExecuteRequest, SmartExecuteResponse,
-    BackfillRequest, BackfillResponse, GapResponse,
+    BackfillRequest, BackfillResponse, GapResponse, PrepareResponse,
 )
 from backend.services.smart_detection_service import SmartDetectionService
 from backend.services.gap_detection_service import GapDetectionService
@@ -32,6 +32,29 @@ async def smart_recommend(target_date: str = Query(None)):
 
     result = detection_service.recommend(dt)
     return SmartRecommendResponse(**result)
+
+
+@router.get("/smart/prepare", response_model=PrepareResponse,
+            dependencies=[Depends(require_permission("pesticide:view"))])
+async def smart_prepare():
+    """Return templates and output config for the detection workflow."""
+    cfg = get_config()
+    try:
+        from backend.services.template_library_service import get_pesticide_template_path
+        big_template = str(get_pesticide_template_path("big"))
+    except FileNotFoundError:
+        big_template = ""
+    try:
+        small_template = str(get_pesticide_template_path("small"))
+    except FileNotFoundError:
+        small_template = ""
+
+    return PrepareResponse(
+        big_template=big_template,
+        small_template=small_template,
+        output_dir=cfg.get("output_dir", ""),
+        inspector_name=cfg.get("inspector_name", "检测员"),
+    )
 
 
 @router.post("/smart/execute", response_model=SmartExecuteResponse,

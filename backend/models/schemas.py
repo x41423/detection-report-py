@@ -739,3 +739,10 @@ class GapResponse(BaseModel):
     missing_dates: list[str] = Field(default_factory=list)
     last_detection_date: Optional[str] = None
     total_missing: int = 0
+
+
+class PrepareResponse(BaseModel):
+    big_template: str = ""
+    small_template: str = ""
+    output_dir: str = ""
+    inspector_name: str = ""

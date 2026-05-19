@@ -24,6 +24,11 @@
             <span class="hero-metric__note">{{ workflow.parseMessage.value || '可继续录入' }}</span>
           </div>
         </div>
+        <router-link to="/smart-detection" style="margin-top:12px;display:inline-block">
+          <el-button type="success">
+            生成农残报告
+          </el-button>
+        </router-link>
       </template>
     </PageHeader>
 
