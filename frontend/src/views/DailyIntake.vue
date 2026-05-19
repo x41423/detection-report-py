@@ -289,6 +289,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+
+defineOptions({ name: 'DailyIntake' })
 import { Refresh } from '@element-plus/icons-vue'
 import PageHeader from '../components/PageHeader.vue'
 import StatusLog from '../components/StatusLog.vue'

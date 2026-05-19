@@ -168,6 +168,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+
+defineOptions({ name: 'SmartDetection' })
 import { ElMessage } from 'element-plus'
 import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
 import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
