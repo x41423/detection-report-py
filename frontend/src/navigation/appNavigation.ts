@@ -208,7 +208,7 @@ export const appNavigationItems: AppNavigationItem[] = [
     order: 3,
     icon: MagicStick,
     component: () => import('../views/SmartDetection.vue'),
-    requiredPermission: 'smart_detection:view',
+    requiredPermission: 'pesticide:view',
     home: {
       eyebrow: '智能检测',
       points: ['自动推荐', '遗漏补做', '一键报告'],

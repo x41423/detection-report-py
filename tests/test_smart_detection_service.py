@@ -9,11 +9,13 @@ def test_recommend_returns_structure():
         mock_di_instance = MagicMock()
         mock_di.return_value = mock_di_instance
         mock_di_instance.get_sheet.return_value = {
-            "date": "2026-05-18",
-            "items": [
-                {"veg_name": "大白菜", "normalized_name": "大白菜"},
-                {"veg_name": "黄瓜", "normalized_name": "黄瓜"},
-            ]
+            "success": True,
+            "sheet": {
+                "items": [
+                    {"raw_name": "大白菜", "normalized_name": "大白菜"},
+                    {"raw_name": "黄瓜", "normalized_name": "黄瓜"},
+                ]
+            }
         }
 
         svc = SmartDetectionService()

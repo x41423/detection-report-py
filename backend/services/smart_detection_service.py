@@ -37,9 +37,10 @@ class SmartDetectionService:
             from backend.services.daily_intake_service import DailyIntakeService
             di_service = DailyIntakeService()
             sheet = di_service.get_sheet(target_date.isoformat())
+            sheet_data = sheet.get("sheet", {})
             seen = set()
-            for item in sheet.get("items", []):
-                name = item.get("normalized_name") or item.get("veg_name", "")
+            for item in sheet_data.get("items", []):
+                name = item.get("normalized_name") or item.get("raw_name", "")
                 if name and name not in seen:
                     seen.add(name)
                     result["today_intake"].append({
@@ -59,8 +60,9 @@ class SmartDetectionService:
                 from backend.services.daily_intake_service import DailyIntakeService
                 di_service = DailyIntakeService()
                 yesterday_sheet = di_service.get_sheet(yesterday.isoformat())
-                for item in yesterday_sheet.get("items", []):
-                    name = item.get("normalized_name") or item.get("veg_name", "")
+                yesterday_data = yesterday_sheet.get("sheet", {})
+                for item in yesterday_data.get("items", []):
+                    name = item.get("normalized_name") or item.get("raw_name", "")
                     if name and name not in seen:
                         seen.add(name)
                         result["yesterday_inventory"].append({
@@ -98,9 +100,12 @@ class SmartDetectionService:
             return {"success": False, "error": f"抑制率生成失败: {e}"}
 
         try:
+            # Ensure output directory exists
+            out_dir = Path(output_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
             process_documents(
                 big_template, small_template, rates,
-                target_date, Path(output_dir), inspector_name
+                target_date, str(out_dir), inspector_name
             )
         except Exception as e:
             return {"success": False, "error": f"文档生成失败: {e}"}
