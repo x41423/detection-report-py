@@ -3,7 +3,11 @@
     <el-card class="header-card">
       <div class="header-row">
         <h2>智能检测工作台</h2>
-        <span class="inspector">检查员: {{ inspectorName }}</span>
+        <div class="inspector">
+          检查员:
+          <el-input v-model="inspectorName" size="small" style="width:120px;margin-left:4px"
+            @blur="saveInspectorName" />
+        </div>
       </div>
       <el-radio-group v-model="dataSource" class="source-switch">
         <el-radio-button value="auto">自动推荐</el-radio-button>
@@ -167,7 +171,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
 import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
-import { getSmartPrepare } from '../api/smart-detection'
+import { getSmartPrepare, putSmartPrepare } from '../api/smart-detection'
 
 const inspectorName = ref('检测员')
 const bigTemplate = ref('')
@@ -196,6 +200,15 @@ function addManualVeg() {
   if (newVegName.value.trim()) {
     addManual(newVegName.value.trim())
     newVegName.value = ''
+  }
+}
+
+async function saveInspectorName() {
+  if (!inspectorName.value.trim()) return
+  try {
+    await putSmartPrepare(inspectorName.value.trim())
+  } catch {
+    // silent fail on blur save
   }
 }
 

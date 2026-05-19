@@ -57,6 +57,15 @@ async def smart_prepare():
     )
 
 
+@router.put("/smart/prepare", response_model=PrepareResponse,
+           dependencies=[Depends(require_permission("pesticide:execute"))])
+async def smart_prepare_update(inspector_name: str = Query(..., min_length=1)):
+    """Update inspector_name in config."""
+    from backend.services.config_service import update_config
+    update_config({"inspector_name": inspector_name})
+    return await smart_prepare()
+
+
 @router.post("/smart/execute", response_model=SmartExecuteResponse,
              dependencies=[Depends(require_permission("pesticide:execute"))])
 async def smart_execute(req: SmartExecuteRequest):
