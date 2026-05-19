@@ -23,6 +23,20 @@
       </template>
     </el-alert>
 
+    <!-- Config warnings -->
+    <el-alert v-if="!bigTemplate || !smallTemplate" type="error" :closable="false" show-icon style="margin-bottom:12px">
+      <template #title>
+        模板未配置 — 请先在 农残检测 页面中上传大表/小表模板
+      </template>
+    </el-alert>
+    <el-alert v-if="!outputDir" type="warning" :closable="false" show-icon style="margin-bottom:12px">
+      <template #title>
+        输出目录未配置 — 报告将保存到应用默认位置
+      </template>
+    </el-alert>
+
+    <el-alert v-if="smartError" :title="smartError" type="error" show-icon style="margin-bottom:12px" closable />
+
     <el-skeleton v-if="loading" :rows="6" animated />
 
     <div v-else class="panels" :class="{ 'manual-mode': dataSource === 'manual' }">
@@ -95,22 +109,27 @@
     <div v-if="!loading" class="action-bar">
       <div class="action-info">
         <span>检测日期: <strong>{{ detectionDate }}</strong></span>
-        <span>已选 <strong>{{ selectedCount }}</strong> 种蔬菜</span>
-        <span>模板: 自动匹配</span>
+        <span>已选 <strong :class="{ 'zero-count': selectedCount === 0 }">{{ selectedCount }}</strong> 种蔬菜</span>
+        <span :class="{ 'warn-text': !bigTemplate || !smallTemplate }">模板: {{ bigTemplate && smallTemplate ? '已就绪' : '未配置' }}</span>
       </div>
       <div class="action-buttons">
-        <el-button type="primary" size="large" :loading="executing" @click="runDetection">
+        <el-button type="primary" size="large" :loading="executing"
+          :disabled="selectedCount === 0 || !bigTemplate || !smallTemplate"
+          @click="runDetection">
           一键生成报告
         </el-button>
-        <el-button size="large" :loading="executing" @click="runDetectionWithPdf">
+        <el-button size="large" :loading="executing"
+          :disabled="selectedCount === 0 || !bigTemplate || !smallTemplate"
+          @click="runDetectionWithPdf">
           生成并导出 PDF
         </el-button>
       </div>
     </div>
 
     <el-card v-if="lastResult" class="result-card">
-      <template #header>检测结果</template>
-      <el-descriptions :column="2" border>
+      <template #header>{{ lastResult.success ? '检测结果' : '检测失败' }}</template>
+      <el-alert v-if="!lastResult.success && lastResult.error" :title="lastResult.error" type="error" show-icon style="margin-bottom:12px" />
+      <el-descriptions v-if="lastResult.success" :column="2" border>
         <el-descriptions-item label="状态">
           <el-tag :type="lastResult.success ? 'success' : 'danger'">
             {{ lastResult.success ? '成功' : '失败' }}
@@ -145,7 +164,7 @@
 
     <el-alert v-if="smartError" :title="smartError" type="error" show-icon style="margin-top:12px" />
 
-    <el-dialog v-model="backfillDialogVisible" title="批量补做遗漏检测" width="500px">
+    <el-dialog v-model="backfillDialogVisible" title="批量补做遗漏检测" width="550px">
       <el-form label-width="100px">
         <el-form-item label="日期范围">
           <el-date-picker
@@ -158,8 +177,24 @@
           />
         </el-form-item>
       </el-form>
+      <div v-if="backfillResult" style="margin-top:12px">
+        <el-divider />
+        <div class="backfill-summary">
+          <span>共 {{ backfillResult.results.length }} 天:
+            <el-tag size="small" type="success">{{ backfillResult.results.filter(r => r.success).length }} 成功</el-tag>
+            <el-tag v-if="backfillResult.results.filter(r => !r.success).length > 0" size="small" type="danger" style="margin-left:4px">
+              {{ backfillResult.results.filter(r => !r.success).length }} 失败
+            </el-tag>
+          </span>
+        </div>
+        <ul v-if="backfillResult.results.filter(r => !r.success).length > 0" class="backfill-errors">
+          <li v-for="r in backfillResult.results.filter(r => !r.success)" :key="r.date">
+            {{ r.date }}: {{ r.error || '未知错误' }}
+          </li>
+        </ul>
+      </div>
       <template #footer>
-        <el-button @click="backfillDialogVisible = false">取消</el-button>
+        <el-button @click="backfillDialogVisible = false">关闭</el-button>
         <el-button type="primary" :loading="backfilling" @click="runBackfill">开始补做</el-button>
       </template>
     </el-dialog>
@@ -193,7 +228,7 @@ const {
   addManual, removeManual, execute,
 } = useSmartDetection()
 
-const { gaps, backfilling, checkGaps, backfill } = useGapDetection()
+const { gaps, backfilling, backfillResult, checkGaps, backfill } = useGapDetection()
 
 const backfillDialogVisible = ref(false)
 const backfillDateRange = ref<[string, string] | null>(null)
@@ -209,13 +244,14 @@ async function saveInspectorName() {
   if (!inspectorName.value.trim()) return
   try {
     await putSmartPrepare(inspectorName.value.trim())
+    ElMessage.success('检测员已保存')
   } catch {
-    // silent fail on blur save
+    ElMessage.error('保存检测员失败')
   }
 }
 
 async function runDetection() {
-  await execute({
+  const result = await execute({
     date: detectionDate.value,
     big_template: bigTemplate.value,
     small_template: smallTemplate.value,
@@ -223,10 +259,13 @@ async function runDetection() {
     inspector_name: inspectorName.value,
     export_format: 'docx',
   })
+  if (result && !result.success) {
+    ElMessage.error(result.error || '检测执行失败')
+  }
 }
 
 async function runDetectionWithPdf() {
-  await execute({
+  const result = await execute({
     date: detectionDate.value,
     big_template: bigTemplate.value,
     small_template: smallTemplate.value,
@@ -234,6 +273,9 @@ async function runDetectionWithPdf() {
     inspector_name: inspectorName.value,
     export_format: 'both',
   })
+  if (result && !result.success) {
+    ElMessage.error(result.error || '检测执行失败')
+  }
 }
 
 function showBackfillDialog() {
@@ -289,4 +331,10 @@ onMounted(async () => {
 .action-buttons { display: flex; gap: 8px; }
 
 .result-card { margin-top: 16px; }
+
+.zero-count { color: var(--el-color-danger); }
+.warn-text { color: var(--el-color-warning); }
+.backfill-summary { margin-bottom: 8px; }
+.backfill-errors { padding: 0; margin: 8px 0 0; list-style: none; }
+.backfill-errors li { color: var(--el-color-danger); font-size: 13px; padding: 3px 0; }
 </style>
