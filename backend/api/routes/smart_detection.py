@@ -38,16 +38,26 @@ async def smart_recommend(target_date: str = Query(None)):
             dependencies=[Depends(require_permission("pesticide:view"))])
 async def smart_prepare():
     """Return templates and output config for the detection workflow."""
+    from pathlib import Path
+
     cfg = get_config()
+    big_template = ""
+    small_template = ""
+
     try:
         from backend.services.template_library_service import get_pesticide_template_path
-        big_template = str(get_pesticide_template_path("big"))
+        bp = get_pesticide_template_path("big")
+        if bp.exists() and bp.stat().st_size > 0:
+            big_template = str(bp)
     except FileNotFoundError:
-        big_template = ""
+        pass
+
     try:
-        small_template = str(get_pesticide_template_path("small"))
+        sp = get_pesticide_template_path("small")
+        if sp.exists() and sp.stat().st_size > 0:
+            small_template = str(sp)
     except FileNotFoundError:
-        small_template = ""
+        pass
 
     return PrepareResponse(
         big_template=big_template,
