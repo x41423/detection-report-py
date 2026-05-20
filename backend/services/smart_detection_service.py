@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -107,6 +108,7 @@ class SmartDetectionService:
                 big_template, small_template, rates,
                 target_date, str(out_dir), inspector_name
             )
+            self._rename_output_files(out_dir, target_date)
         except Exception as e:
             return {"success": False, "error": f"文档生成失败: {e}"}
 
@@ -155,3 +157,36 @@ class SmartDetectionService:
             return date.fromisoformat(date_str)
         except (ValueError, TypeError):
             return date.today()
+
+    def _rename_output_files(self, out_dir: Path, date_str: str) -> None:
+        """Rename template-named outputs to date-based detection report names."""
+        d = self._parse_date(date_str)
+        mappings = [
+            ("big-template.docx", f"农残检测记录表{d.year}.{d.month:02d}.{d.day:02d}.docx"),
+            ("big-template-0.docx", f"农残检测记录表{d.year}.{d.month:02d}.{d.day:02d}.docx"),
+            ("small-template.docx", f"单位农残记录表{d.month}.{d.day}.docx"),
+        ]
+        for old_name, new_name in mappings:
+            old_path = out_dir / old_name
+            new_path = out_dir / new_name
+            if old_path.exists():
+                try:
+                    new_path.unlink(missing_ok=True)
+                    old_path.rename(new_path)
+                    logger.info(f"Renamed {old_name} -> {new_name}")
+                except Exception as e:
+                    logger.warning(f"Failed to rename {old_name}: {e}")
+
+        # Also rename overflow big pages (-1, -2, ...)
+        for f in out_dir.glob("big-template-*.docx"):
+            try:
+                match = re.match(r"big-template-(\d+).docx", f.name)
+                if match:
+                    idx = int(match.group(1))
+                    new_name = f"农残检测记录表{d.year}.{d.month:02d}.{d.day:02d}-{idx}.docx"
+                    new_path = out_dir / new_name
+                    new_path.unlink(missing_ok=True)
+                    f.rename(new_path)
+                    logger.info(f"Renamed {f.name} -> {new_name}")
+            except Exception as e:
+                logger.warning(f"Failed to rename overflow page {f.name}: {e}")

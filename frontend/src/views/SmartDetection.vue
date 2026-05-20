@@ -27,6 +27,11 @@
           </el-upload>
         </div>
       </div>
+      <div class="output-bar">
+        <span class="template-label">输出路径</span>
+        <el-input v-model="outputDir" size="small" placeholder="报告输出目录" style="flex:1;max-width:480px"
+          @blur="saveOutputDir" clearable />
+      </div>
       <el-radio-group v-model="dataSource" class="source-switch">
         <el-radio-button value="auto">自动推荐</el-radio-button>
         <el-radio-button value="manual">完全手动</el-radio-button>
@@ -272,6 +277,13 @@ async function saveInspectorName() {
   }
 }
 
+async function saveOutputDir() {
+  if (!outputDir.value.trim() || !inspectorName.value.trim()) return
+  try {
+    await putSmartPrepare(inspectorName.value.trim(), outputDir.value.trim())
+  } catch { /* silent */ }
+}
+
 async function runDetection() {
   const result = await execute({
     date: detectionDate.value,
@@ -369,6 +381,7 @@ onMounted(async () => {
 .template-bar { display: flex; gap: 24px; margin: 12px 0 4px; align-items: center; }
 .template-item { display: flex; align-items: center; gap: 6px; }
 .template-label { font-size: 13px; color: #606266; }
+.output-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
 .source-switch { margin-top: 8px; }
 
 .panels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }

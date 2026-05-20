@@ -69,10 +69,19 @@ async def smart_prepare():
 
 @router.put("/smart/prepare", response_model=PrepareResponse,
            dependencies=[Depends(require_permission("pesticide:execute"))])
-async def smart_prepare_update(inspector_name: str = Query(..., min_length=1)):
-    """Update inspector_name in config."""
+async def smart_prepare_update(
+    inspector_name: str = Query("", min_length=0),
+    output_dir: str = Query("", min_length=0),
+):
+    """Update inspector_name or output_dir in config."""
     from backend.services.config_service import update_config
-    update_config({"inspector_name": inspector_name})
+    updates = {}
+    if inspector_name:
+        updates["inspector_name"] = inspector_name
+    if output_dir:
+        updates["output_dir"] = output_dir
+    if updates:
+        update_config(updates)
     return await smart_prepare()
 
 

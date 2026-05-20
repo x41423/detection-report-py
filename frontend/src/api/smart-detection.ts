@@ -83,7 +83,9 @@ export async function getSmartPrepare(): Promise<PrepareResponse> {
   return data
 }
 
-export async function putSmartPrepare(inspectorName: string): Promise<PrepareResponse> {
-  const { data } = await api.put(`/api/pesticide/smart/prepare?inspector_name=${encodeURIComponent(inspectorName)}`)
+export async function putSmartPrepare(inspectorName: string, outputDir?: string): Promise<PrepareResponse> {
+  let url = `/api/pesticide/smart/prepare?inspector_name=${encodeURIComponent(inspectorName)}`
+  if (outputDir) url += `&output_dir=${encodeURIComponent(outputDir)}`
+  const { data } = await api.put(url)
   return data
 }
