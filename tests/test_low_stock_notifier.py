@@ -4,9 +4,9 @@ from backend.services.low_stock_notifier import LowStockNotifier
 
 def test_check_low_stock():
     mock_data = [
-        {"item_name": "菠菜", "balance": 2.0, "unit": "斤"},
-        {"item_name": "大白菜", "balance": 10.0, "unit": "斤"},
-        {"item_name": "白萝卜", "balance": 3.0, "unit": "斤"},
+        {"display_name": "菠菜", "available_quantity": 2.0, "unit_name": "斤"},
+        {"display_name": "大白菜", "available_quantity": 10.0, "unit_name": "斤"},
+        {"display_name": "白萝卜", "available_quantity": 3.0, "unit_name": "斤"},
     ]
 
     with patch.object(LowStockNotifier, "_query_balances", return_value=mock_data):
@@ -19,7 +19,7 @@ def test_check_low_stock():
 
 def test_check_no_alerts():
     mock_data = [
-        {"item_name": "菠菜", "balance": 10.0, "unit": "斤"},
+        {"display_name": "菠菜", "available_quantity": 10.0, "unit_name": "斤"},
     ]
     with patch.object(LowStockNotifier, "_query_balances", return_value=mock_data):
         notifier = LowStockNotifier(threshold=3)

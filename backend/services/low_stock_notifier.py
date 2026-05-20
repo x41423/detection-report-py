@@ -26,12 +26,12 @@ class LowStockNotifier:
         balances = self._query_balances()
         alerts = []
         for item in balances:
-            balance = item.get("balance", 0)
+            balance = item.get("available_quantity", 0)
             if isinstance(balance, (int, float)) and balance <= self.threshold:
                 alerts.append({
-                    "item_name": item.get("item_name", item.get("veg_name", "")),
+                    "item_name": item.get("display_name") or item.get("normalized_name", ""),
                     "balance": balance,
-                    "unit": item.get("unit", ""),
+                    "unit": item.get("unit_name", ""),
                     "threshold": self.threshold,
                 })
         if alerts:
