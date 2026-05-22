@@ -34,22 +34,13 @@ withDefaults(
 .page-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
-  gap: 20px;
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  background: #ffffff;
-  box-shadow: var(--shadow-glass);
-  overflow: hidden;
-}
-
-.page-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  box-shadow: inset 3px 0 0 #242424;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+  gap: 24px;
+  padding: 28px;
+  border-radius: var(--radius-xl);
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .page-hero__copy,
@@ -65,10 +56,10 @@ withDefaults(
 }
 
 .page-hero__eyebrow {
-  color: var(--color-muted-soft);
+  color: var(--color-muted);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -86,9 +77,9 @@ withDefaults(
 .page-hero__description {
   max-width: 760px;
   margin: 0;
-  color: var(--color-muted);
-  font-size: 14px;
-  line-height: 1.7;
+  color: var(--color-body);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .page-hero__actions {
@@ -112,7 +103,7 @@ withDefaults(
 .tone-orange,
 .tone-green,
 .tone-sun {
-  background: #ffffff;
+  background: var(--color-surface);
 }
 
 @media (max-width: 1080px) {
@@ -124,11 +115,11 @@ withDefaults(
 
 @media (max-width: 900px) {
   .page-hero {
-    padding: 22px;
+    padding: 22px 20px;
   }
 
   .page-hero__title {
-    font-size: clamp(26px, 6vw, 34px);
+    font-size: clamp(24px, 6vw, 32px);
   }
 
   .page-hero__description {
@@ -139,12 +130,12 @@ withDefaults(
 
 @media (max-width: 720px) {
   .page-hero {
-    padding: 20px;
+    padding: 20px 16px;
     border-radius: var(--radius-lg);
   }
 
   .page-hero__title {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .page-hero__actions {
@@ -159,7 +150,7 @@ withDefaults(
   }
 
   .page-hero__title {
-    font-size: 26px;
+    font-size: 22px;
   }
 
   .page-hero__description {

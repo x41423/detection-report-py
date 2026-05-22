@@ -385,6 +385,7 @@
       title="新增报价单位"
       width="min(520px, calc(100vw - 24px))"
       :close-on-click-modal="false"
+      append-to-body
     >
       <el-form label-position="top">
         <el-form-item label="报价单位名称">
@@ -420,6 +421,7 @@
       title="导入日期记录"
       width="min(620px, calc(100vw - 24px))"
       :close-on-click-modal="false"
+      append-to-body
     >
       <div class="field-grid">
         <el-form label-position="top">
@@ -455,6 +457,7 @@
       title="批量粘贴识别"
       width="min(680px, calc(100vw - 24px))"
       :close-on-click-modal="false"
+      append-to-body
     >
       <div class="field-grid">
         <div class="path-display">
@@ -645,25 +648,22 @@ function handleWorkbookFileChange(event: Event) {
   display: grid;
   gap: 6px;
   padding: 15px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
-  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
   cursor: pointer;
   text-align: left;
 }
 
 .supplier-switch__item.is-active {
-  border-color: rgba(255, 255, 255, 0.92);
-  background:
-    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 42%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.16));
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .supplier-switch__name {
   font-family: var(--font-heading);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -706,9 +706,9 @@ function handleWorkbookFileChange(event: Event) {
 
 .week-picker__item {
   padding: 6px 13px;
-  border: 1px solid rgba(34, 42, 53, 0.12);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
   color: var(--color-text);
   font-size: 13px;
   font-weight: 600;
@@ -717,14 +717,13 @@ function handleWorkbookFileChange(event: Event) {
 }
 
 .week-picker__item:hover {
-  border-color: rgba(34, 42, 53, 0.24);
-  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--color-border-highlight);
+  background: var(--color-surface);
 }
 
 .week-picker__item.is-active {
-  border-color: #1f2937;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 0 0 1px #1f2937;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
 }
 
 .day-picker {
@@ -738,33 +737,32 @@ function handleWorkbookFileChange(event: Event) {
   display: grid;
   gap: 2px;
   padding: 9px 5px;
-  border: 1px solid rgba(34, 42, 53, 0.10);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.16s, background 0.16s;
 }
 
 .day-picker__item:hover {
-  border-color: rgba(34, 42, 53, 0.22);
-  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--color-border-highlight);
+  background: var(--color-surface);
 }
 
 .day-picker__item.has-record {
-  border-color: rgba(251, 146, 60, 0.45);
-  background: rgba(255, 237, 213, 0.55);
+  border-color: #fb923c;
+  background: rgba(251, 146, 60, 0.08);
 }
 
 .day-picker__item.has-draft:not(.has-record) {
-  border-color: rgba(14, 165, 233, 0.38);
-  background: rgba(224, 242, 254, 0.58);
+  border-color: var(--color-brand-accent);
+  background: rgba(59, 130, 246, 0.06);
 }
 
 .day-picker__item.is-active {
-  border-color: #1f2937;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 0 0 1px #1f2937;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
 }
 
 .day-picker__label {
@@ -815,10 +813,10 @@ function handleWorkbookFileChange(event: Event) {
 }
 
 .week-group {
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+  background: var(--color-surface-card);
 }
 
 .week-group__header {
@@ -835,13 +833,13 @@ function handleWorkbookFileChange(event: Event) {
 }
 
 .week-group__header:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--color-surface);
 }
 
 .week-group__label {
   font-family: var(--font-heading);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -876,8 +874,8 @@ function handleWorkbookFileChange(event: Event) {
 }
 
 .summary-ghost-button {
-  border-color: rgba(15, 23, 42, 0.12);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 249, 255, 0.72));
+  border-color: var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
@@ -897,14 +895,13 @@ function handleWorkbookFileChange(event: Event) {
   display: grid;
   gap: 10px;
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
 }
 
 .saved-record-item.is-active {
-  border-color: rgba(14, 165, 233, 0.42);
-  box-shadow: 0 14px 28px rgba(14, 165, 233, 0.08);
+  border-color: var(--color-primary);
 }
 
 .saved-record-item__main {
@@ -921,7 +918,7 @@ function handleWorkbookFileChange(event: Event) {
 .saved-record-item__date {
   font-family: var(--font-heading);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -939,9 +936,9 @@ function handleWorkbookFileChange(event: Event) {
 
 .panel-empty {
   padding: 22px 18px;
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 255, 255, 0.5);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-card);
   color: var(--color-muted);
   text-align: center;
 }

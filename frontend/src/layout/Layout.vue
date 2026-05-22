@@ -74,6 +74,7 @@
             <component :is="Component" />
           </keep-alive>
         </router-view>
+        <AppFooter />
       </main>
     </div>
   </div>
@@ -86,6 +87,7 @@ import { ElMessage } from 'element-plus'
 import { CaretBottom } from '@element-plus/icons-vue'
 
 import { useAuth } from '../composables/useAuth'
+import AppFooter from '../components/AppFooter.vue'
 import {
   filterNavigationSectionsByPermissions,
   sidebarNavigationSections,
@@ -153,7 +155,7 @@ async function onUserCommand(command: string) {
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background: #f7f7f8;
+  background: #f8f9fa;
 }
 
 .app-layout__sidebar {
@@ -227,8 +229,8 @@ async function onUserCommand(command: string) {
 .app-layout__nav-group {
   margin: 14px 12px 6px;
   font-size: 11px;
-  color: var(--color-muted-soft);
-  letter-spacing: 0.14em;
+  color: var(--color-muted);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -249,12 +251,13 @@ async function onUserCommand(command: string) {
   border-radius: 8px;
   color: var(--color-muted);
   font-size: 13px;
+  font-weight: 500;
   text-decoration: none;
   transition: background 0.18s ease, color 0.18s ease;
 }
 
 .app-layout__nav-link:hover {
-  background: rgba(34, 42, 53, 0.05);
+  background: rgba(17, 17, 17, 0.06);
   color: var(--color-text);
 }
 
@@ -325,12 +328,13 @@ async function onUserCommand(command: string) {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 28px;
+  padding: 12px 24px;
+  height: 64px;
   background: #ffffff;
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 3000;
 }
 
 .app-layout__topbar-left {
@@ -341,12 +345,13 @@ async function onUserCommand(command: string) {
   margin: 0;
   font-family: var(--font-heading);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
+  line-height: 1.3;
 }
 
 .app-layout__page-desc {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   font-size: 12px;
   color: var(--color-muted);
 }

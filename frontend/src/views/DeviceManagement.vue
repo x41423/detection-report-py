@@ -344,14 +344,12 @@ function isMessageBoxCancel(error: unknown) {
 }
 
 .device-card--current {
-  box-shadow:
-    inset 0 0 0 1px rgba(36, 36, 36, 0.34),
-    var(--shadow-glass);
+  border-color: var(--color-primary);
 }
 
 .device-card--revoked {
   opacity: 0.72;
-  background: #fafafa;
+  background: var(--color-surface-card);
 }
 
 .device-card__topline {
@@ -367,7 +365,7 @@ function isMessageBoxCancel(error: unknown) {
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  background: #242424;
+  background: var(--color-primary);
   color: #ffffff;
   font-size: 20px;
 }
@@ -413,8 +411,7 @@ function isMessageBoxCancel(error: unknown) {
   min-width: 0;
   padding: 12px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
 }
 
 .device-card__facts span {

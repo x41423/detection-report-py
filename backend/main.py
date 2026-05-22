@@ -123,6 +123,7 @@ for module_name, prefix, tags in [
     ("backend.api.routes.smart_detection", "/api/pesticide", ["农残检测-智能"]),
     ("backend.api.routes.weekly_price", "/api/weekly-price", ["每周报价"]),
     ("backend.funasr_lab.router", "", ["FunASR 实验"]),
+    ("backend.api.routes.mimo", "/api", ["MiMo"]),
 ]:
     router = _load_router(module_name)
     if router is None:

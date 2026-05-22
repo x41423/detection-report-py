@@ -29,8 +29,11 @@
       </div>
       <div class="output-bar">
         <span class="template-label">输出路径</span>
-        <el-input v-model="outputDir" size="small" placeholder="报告输出目录" style="flex:1;max-width:480px"
-          @blur="saveOutputDir" clearable />
+        <el-input :model-value="outputDir" size="small" placeholder="点击右侧浏览选择输出目录" readonly style="flex:1;max-width:480px">
+          <template #append>
+            <el-button @click="onBrowseOutputDir">浏览</el-button>
+          </template>
+        </el-input>
       </div>
       <el-radio-group v-model="dataSource" class="source-switch">
         <el-radio-button value="auto">自动推荐</el-radio-button>
@@ -187,7 +190,9 @@
 
     <el-alert v-if="smartError" :title="smartError" type="error" show-icon style="margin-top:12px" />
 
-    <el-dialog v-model="backfillDialogVisible" title="批量补做遗漏检测" width="550px">
+    <DirBrowser ref="dirBrowserRef" />
+
+    <el-dialog v-model="backfillDialogVisible" title="批量补做遗漏检测" width="550px" append-to-body>
       <el-form label-width="100px">
         <el-form-item label="日期范围">
           <el-date-picker
@@ -226,6 +231,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { DirBrowserHandle } from '../features/shared/workflow'
+import { openPath } from '../features/shared/workflow'
 
 defineOptions({ name: 'SmartDetection' })
 import { ElMessage } from 'element-plus'
@@ -234,6 +241,7 @@ import { useGapDetection } from '../features/smart-detection/composables/useGapD
 import { getSmartPrepare, putSmartPrepare } from '../api/smart-detection'
 import { getPesticideTemplates, uploadPesticideTemplate } from '../api/pesticide'
 
+const dirBrowserRef = ref<DirBrowserHandle>()
 const inspectorName = ref('检测员')
 const bigTemplate = ref('')
 const smallTemplate = ref('')
@@ -267,6 +275,17 @@ function addManualVeg() {
   }
 }
 
+async function onBrowseOutputDir() {
+  const selected = await openPath(dirBrowserRef, outputDir.value || '', {
+    title: '选择报告输出目录',
+    mode: 'directory',
+  })
+  if (selected) {
+    outputDir.value = selected
+    await putSmartPrepare(inspectorName.value.trim(), selected)
+  }
+}
+
 async function saveInspectorName() {
   if (!inspectorName.value.trim()) return
   try {
@@ -275,13 +294,6 @@ async function saveInspectorName() {
   } catch {
     ElMessage.error('保存检测员失败')
   }
-}
-
-async function saveOutputDir() {
-  if (!outputDir.value.trim() || !inspectorName.value.trim()) return
-  try {
-    await putSmartPrepare(inspectorName.value.trim(), outputDir.value.trim())
-  } catch { /* silent */ }
 }
 
 async function runDetection() {

@@ -411,8 +411,7 @@ function formatDateTime(value: string | null) {
 .audit-item__agent {
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
   color: var(--color-muted);
   font-size: 12px;
   line-height: 1.6;

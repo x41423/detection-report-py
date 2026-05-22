@@ -138,8 +138,7 @@ const unmatchedVarieties = computed(() =>
 .variety-preview__empty {
   padding: 28px 18px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
   color: var(--color-muted);
   text-align: center;
   line-height: 1.7;

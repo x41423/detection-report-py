@@ -2625,17 +2625,17 @@
       ]
     }
   },
-  "inventory_low_stock_threshold": 3,
+  "inventory_low_stock_threshold": 1,
   "pesticide_templates": {
     "big": {
       "path": "D:\\Users\\xln\\Desktop\\检测报告py\\data\\templates\\pesticide\\big-template.docx",
       "filename": "农残检测记录表2026.04.01.docx",
-      "updated_at": "2026-04-30 13:52:41"
+      "updated_at": "2026-05-19 13:06:54"
     },
     "small": {
       "path": "D:\\Users\\xln\\Desktop\\检测报告py\\data\\templates\\pesticide\\small-template.docx",
       "filename": "单位农残记录表04.1.docx",
-      "updated_at": "2026-04-30 11:30:51"
+      "updated_at": "2026-05-19 13:06:58"
     }
   },
   "transfer_templates": {},

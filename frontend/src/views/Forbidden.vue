@@ -124,8 +124,7 @@ const missingPermission = computed(() =>
   gap: 6px;
   padding: 14px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
 }
 
 .forbidden-card__facts span {

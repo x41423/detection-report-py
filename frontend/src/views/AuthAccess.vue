@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="deviceDialog.visible" title="该账号已达设备上限" width="480px">
+    <el-dialog v-model="deviceDialog.visible" title="该账号已达设备上限" width="480px" append-to-body>
       <p class="auth-dialog__desc">{{ deviceDialog.message }}</p>
       <el-radio-group v-model="deviceDialog.selectedId" class="auth-dialog__list">
         <el-radio
@@ -241,16 +241,17 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   width: 100%;
   min-height: 100vh;
   padding: 32px 16px;
-  background: linear-gradient(135deg, #f5f5f5 0%, #ebebeb 100%);
+  background: #f8f9fa;
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
   padding: 32px 28px;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: var(--shadow-glass-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
 }
 
 .auth-card__header {
@@ -262,7 +263,7 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   width: 48px;
   height: 48px;
   margin: 0 auto 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--color-primary);
   color: #ffffff;
   display: flex;
@@ -270,14 +271,14 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   justify-content: center;
   font-family: var(--font-heading);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .auth-card__title {
   margin: 0 0 8px;
   font-family: var(--font-heading);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -295,7 +296,7 @@ function extractErrorMessage(error: unknown, fallback: string): string {
 
 .auth-form__hint {
   margin-top: 6px;
-  color: var(--color-muted-soft);
+  color: var(--color-muted);
   font-size: 11px;
 }
 
@@ -330,7 +331,7 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   margin: 0 !important;
   padding: 10px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   align-items: flex-start;
 }
 

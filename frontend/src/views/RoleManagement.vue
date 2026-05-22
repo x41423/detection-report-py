@@ -133,7 +133,7 @@
       <el-empty v-if="!isLoading && roles.length === 0" description="暂无角色" />
     </div>
 
-    <el-dialog v-model="roleDialogOpen" :title="roleDialogTitle" width="min(92vw, 720px)">
+    <el-dialog v-model="roleDialogOpen" :title="roleDialogTitle" width="min(92vw, 720px)" append-to-body>
       <el-form label-position="top" class="role-form">
         <el-form-item v-if="roleDialogMode === 'create'" label="角色编码">
           <el-input
@@ -481,15 +481,11 @@ function isMessageBoxCancel(error: unknown) {
 }
 
 .role-card--system {
-  box-shadow:
-    inset 0 0 0 1px rgba(34, 42, 53, 0.14),
-    var(--shadow-glass);
+  border-color: var(--color-border);
 }
 
 .role-card--locked {
-  box-shadow:
-    inset 0 0 0 1px rgba(36, 36, 36, 0.28),
-    var(--shadow-glass);
+  border-color: var(--color-primary);
 }
 
 .role-card__topline,
@@ -556,8 +552,7 @@ function isMessageBoxCancel(error: unknown) {
   min-width: 0;
   padding: 12px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
 }
 
 .role-card__facts span {

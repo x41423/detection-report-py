@@ -134,8 +134,7 @@ defineExpose({ append, clear })
 .status-log__count {
   padding: 6px 10px;
   border-radius: 999px;
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
   color: var(--color-muted);
   font-size: 12px;
   font-weight: 600;
@@ -190,9 +189,8 @@ defineExpose({ append, clear })
   width: 38px;
   height: 38px;
   border-radius: var(--radius-md);
-  background: #fafafa;
+  background: var(--color-surface-card);
   color: var(--color-text);
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
 }
 
 .status-log__item--success .status-log__marker {

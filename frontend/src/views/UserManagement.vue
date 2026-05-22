@@ -135,7 +135,7 @@
       <el-empty v-if="!isLoading && users.length === 0" description="暂无用户" />
     </div>
 
-    <el-dialog v-model="userDialogOpen" :title="userDialogTitle" width="min(92vw, 520px)">
+    <el-dialog v-model="userDialogOpen" :title="userDialogTitle" width="min(92vw, 520px)" append-to-body>
       <el-form label-position="top" class="user-form">
         <el-form-item v-if="userDialogMode === 'create'" label="账号">
           <el-input v-model.trim="userForm.username" placeholder="例如：buyer.team1" />
@@ -466,9 +466,7 @@ function isMessageBoxCancel(error: unknown) {
 }
 
 .user-card--super {
-  box-shadow:
-    inset 0 0 0 1px rgba(36, 36, 36, 0.28),
-    var(--shadow-glass);
+  border-color: var(--color-primary);
 }
 
 .user-card--disabled {
@@ -493,7 +491,7 @@ function isMessageBoxCancel(error: unknown) {
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  background: #242424;
+  background: var(--color-primary);
   color: #ffffff;
   font-family: var(--font-heading);
   font-weight: 600;
@@ -541,8 +539,7 @@ function isMessageBoxCancel(error: unknown) {
   min-width: 0;
   padding: 12px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
 }
 
 .user-card__facts span {

@@ -209,6 +209,7 @@
       title="确认语音条目"
       width="480px"
       :close-on-click-modal="false"
+      append-to-body
       @close="onVoiceConfirmClose"
     >
       <p

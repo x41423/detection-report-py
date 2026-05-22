@@ -46,10 +46,30 @@ class InventoryRepository:
         )
 
     @staticmethod
+    def count_transactions(
+        *,
+        search: str = "",
+        source_type: str | None = None,
+    ) -> int:
+        normalized_search = f"%{str(search or '').strip()}%"
+        row = query_one(
+            """
+            SELECT COUNT(*) AS cnt
+            FROM InventoryTransaction tx
+            JOIN Unit unit ON unit.id = tx.unit_id
+            WHERE (? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)
+              AND (? IS NULL OR tx.source_type = ?)
+            """,
+            (normalized_search, normalized_search, normalized_search, source_type, source_type),
+        )
+        return row["cnt"] if row else 0
+
+    @staticmethod
     def list_transactions(
         *,
         search: str = "",
         limit: int = 100,
+        offset: int = 0,
         source_type: str | None = None,
     ) -> list[dict[str, Any]]:
         normalized_search = f"%{str(search or '').strip()}%"
@@ -76,9 +96,9 @@ class InventoryRepository:
             WHERE (? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)
               AND (? IS NULL OR tx.source_type = ?)
             ORDER BY tx.business_date DESC, tx.id DESC
-            LIMIT ?
+            LIMIT ? OFFSET ?
             """,
-            (normalized_search, normalized_search, normalized_search, source_type, source_type, limit),
+            (normalized_search, normalized_search, normalized_search, source_type, source_type, limit, offset),
         )
 
     @staticmethod

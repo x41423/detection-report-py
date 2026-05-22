@@ -114,9 +114,8 @@
               class="panel-card launch-card"
               @click="$router.push(item.path)"
             >
-              <div class="launch-card__mesh" :style="{ background: getCardGlow(item.accent) }" />
-              <div class="launch-card__icon" :style="{ background: getCardIconBg(item.accent) }">
-                <el-icon :size="28" :color="item.accent === 'orange' ? '#7c2d12' : '#0f172a'">
+              <div class="launch-card__icon">
+                <el-icon :size="28" color="#111111">
                   <component :is="item.icon" />
                 </el-icon>
               </div>
@@ -267,28 +266,6 @@ const tips = [
   '每周报价建议先预检查，再保存需要的别名映射，最后才做正式写回。',
 ]
 
-function getCardGlow(accent: string) {
-  switch (accent) {
-    case 'orange':
-      return 'radial-gradient(circle at top right, rgba(251, 146, 60, 0.24), rgba(255, 255, 255, 0))'
-    case 'sun':
-      return 'radial-gradient(circle at top right, rgba(250, 204, 21, 0.24), rgba(255, 255, 255, 0))'
-    default:
-      return 'radial-gradient(circle at top right, rgba(45, 212, 191, 0.22), rgba(255, 255, 255, 0))'
-  }
-}
-
-function getCardIconBg(accent: string) {
-  switch (accent) {
-    case 'orange':
-      return 'linear-gradient(135deg, rgba(251, 146, 60, 0.24), rgba(255, 255, 255, 0.18))'
-    case 'sun':
-      return 'linear-gradient(135deg, rgba(250, 204, 21, 0.24), rgba(255, 255, 255, 0.18))'
-    default:
-      return 'linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(255, 255, 255, 0.18))'
-  }
-}
-
 function countEntries(section: AppNavigationSection) {
   return countNavigationEntries(section)
 }
@@ -315,9 +292,8 @@ function countEntries(section: AppNavigationSection) {
   grid-template-columns: 40px minmax(0, 1fr);
   gap: 12px;
   padding: 14px 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
 }
 
 .dashboard-check__icon {
@@ -325,14 +301,14 @@ function countEntries(section: AppNavigationSection) {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: rgba(16, 185, 129, 0.12);
   color: var(--color-success);
 }
 
 .dashboard-check__title {
   color: var(--color-text);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dashboard-check__description {
@@ -349,9 +325,15 @@ function countEntries(section: AppNavigationSection) {
   align-items: start;
   margin-top: 18px;
   padding: 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.52);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(255, 255, 255, 0.18));
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+}
+
+.dashboard-sidebar__status {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .dashboard-sidebar__pulse {
@@ -387,10 +369,8 @@ function countEntries(section: AppNavigationSection) {
   justify-items: start;
   gap: 14px;
   padding: 28px;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.12), transparent 32%),
-    #ffffff;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
 }
 
 .dashboard-empty__mark {
@@ -444,8 +424,8 @@ function countEntries(section: AppNavigationSection) {
   place-items: center;
   width: 48px;
   height: 48px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(45, 212, 191, 0.18), rgba(14, 165, 233, 0.12));
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
   color: var(--color-text);
   font-size: 22px;
 }
@@ -457,10 +437,10 @@ function countEntries(section: AppNavigationSection) {
 }
 
 .dashboard-launchpad-section__kicker {
-  color: var(--color-muted-soft);
+  color: var(--color-muted);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -468,17 +448,17 @@ function countEntries(section: AppNavigationSection) {
   margin: 8px 0 0;
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1.08;
 }
 
 .dashboard-launchpad-section__description {
   max-width: 360px;
   margin: 0;
-  color: var(--color-muted);
+  color: var(--color-body);
   font-size: 13px;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .dashboard-launchpad-section__pills {
@@ -494,14 +474,14 @@ function countEntries(section: AppNavigationSection) {
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.12);
+  background: var(--color-primary-soft);
   color: var(--color-text);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dashboard-launchpad-section__pill--muted {
-  background: rgba(71, 85, 105, 0.1);
+  background: var(--color-surface-card);
   color: var(--color-muted);
 }
 
@@ -515,10 +495,70 @@ function countEntries(section: AppNavigationSection) {
   position: relative;
   min-height: 246px;
   cursor: pointer;
+  background: var(--color-surface-card);
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.launch-card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+.launch-card :deep(.el-card__body) {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-height: 246px;
+}
+
+.launch-card__mesh {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.launch-card__icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+
+.launch-card__eyebrow {
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.launch-card__title {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.12;
+}
+
+.launch-card__description {
+  margin: 0;
+  color: var(--color-body);
+  line-height: 1.6;
+}
+
+.launch-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
 .launch-card:hover {
@@ -604,8 +644,8 @@ function countEntries(section: AppNavigationSection) {
   align-items: center;
   gap: 6px;
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
 .dashboard-foot {
@@ -621,16 +661,15 @@ function countEntries(section: AppNavigationSection) {
 
 .dashboard-lane {
   padding: 16px 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
 }
 
 .dashboard-lane__step {
-  color: var(--color-muted-soft);
+  color: var(--color-muted);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -638,15 +677,15 @@ function countEntries(section: AppNavigationSection) {
   margin-top: 8px;
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .dashboard-lane__description {
   margin-top: 8px;
-  color: var(--color-muted);
+  color: var(--color-body);
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 @media (max-width: 1240px) {
@@ -713,7 +752,7 @@ function countEntries(section: AppNavigationSection) {
   .dashboard-sidebar__footer,
   .dashboard-lane {
     padding: 14px;
-    border-radius: 16px;
+    border-radius: var(--radius-md);
   }
 
   .dashboard-launchpad-section {
@@ -724,7 +763,7 @@ function countEntries(section: AppNavigationSection) {
   .launch-card__icon {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
   }
 }
 </style>

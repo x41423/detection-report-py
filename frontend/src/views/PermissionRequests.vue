@@ -452,10 +452,9 @@ onMounted(() => {
   display: grid;
   gap: 4px;
   padding: 14px 18px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.14));
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(16px) saturate(140%);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
 }
 
 .permission-hero-metric span {
@@ -487,11 +486,10 @@ onMounted(() => {
 }
 
 .permission-card {
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px) saturate(155%);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
 }
 
 .panel-heading {
@@ -539,9 +537,9 @@ onMounted(() => {
 
 .permission-selected {
   padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px dashed rgba(56, 189, 248, 0.45);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  border: 1px dashed var(--color-border-highlight);
   display: grid;
   gap: 4px;
 }
@@ -568,9 +566,9 @@ onMounted(() => {
 .permission-request,
 .permission-review-item {
   padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
   display: grid;
   gap: 10px;
 }
@@ -614,8 +612,22 @@ onMounted(() => {
 .permission-request__review {
   font-size: 12px;
   padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.06);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-card);
+}
+
+.permission-review-item__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  flex-shrink: 0;
 }
 
 .permission-review__toolbar {

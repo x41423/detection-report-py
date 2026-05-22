@@ -5,6 +5,7 @@
     width="980px"
     class="dir-browser"
     :close-on-click-modal="false"
+    append-to-body
     @close="handleClose"
   >
     <div class="dir-browser__toolbar">
@@ -326,8 +327,7 @@ defineExpose({ open })
 .dir-browser__selection {
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: #fafafa;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface-card);
 }
 
 .dir-browser__breadcrumb {
@@ -360,8 +360,8 @@ defineExpose({ open })
 
 .dir-browser__panel {
   border-radius: var(--radius-lg);
-  background: #ffffff;
-  box-shadow: var(--shadow-glass);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
@@ -371,7 +371,7 @@ defineExpose({ open })
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  box-shadow: inset 0 -1px 0 rgba(34, 42, 53, 0.08);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
   font-family: var(--font-heading);
   font-size: 15px;
@@ -391,32 +391,24 @@ defineExpose({ open })
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 10px;
-  border: 0;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.08);
+  background: var(--color-surface);
   cursor: pointer;
   text-align: left;
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .dir-browser__entry:hover {
-  transform: translateY(-1px);
-  background: #fafafa;
-  box-shadow:
-    inset 0 0 0 1px rgba(34, 42, 53, 0.12),
-    0 2px 6px rgba(17, 17, 17, 0.05);
+  border-color: var(--color-border-highlight);
+  background: var(--color-surface-card);
 }
 
 .dir-browser__entry.is-active {
-  background: #f7f7f7;
-  box-shadow:
-    inset 0 0 0 1px rgba(36, 36, 36, 0.4),
-    0 2px 6px rgba(17, 17, 17, 0.05);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .dir-browser__entry-icon {
@@ -425,7 +417,7 @@ defineExpose({ open })
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
-  background: #242424;
+  background: var(--color-primary);
   color: #ffffff;
   font-family: var(--font-heading);
   font-size: 11px;
@@ -434,20 +426,19 @@ defineExpose({ open })
 }
 
 .dir-browser__entry--folder .dir-browser__entry-icon {
-  background: #242424;
+  background: var(--color-primary);
   color: #ffffff;
 }
 
 .dir-browser__entry--file .dir-browser__entry-icon {
-  background: #f5f5f5;
+  background: var(--color-surface-card);
   color: var(--color-text);
-  box-shadow: inset 0 0 0 1px rgba(34, 42, 53, 0.1);
 }
 
 .dir-browser__entry-name {
   color: var(--color-text);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dir-browser__entry-path {

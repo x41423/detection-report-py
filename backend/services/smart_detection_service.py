@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 from datetime import date, timedelta
 from pathlib import Path
@@ -140,11 +141,24 @@ class SmartDetectionService:
         except Exception as e:
             logger.warning(f"Low stock check failed: {e}")
 
+        mimo_analysis = None
+        if os.getenv("MIMO_ENABLED", "").strip().lower() in ("1", "true", "yes"):
+            try:
+                from backend.services.mimo_service import MimoService
+                ms = MimoService()
+                reply = ms.analyze_rates(all_veggies, {"rates": rates})
+                if reply:
+                    mimo_analysis = reply
+                    logger.info("MiMo analysis appended to detection result")
+            except Exception:
+                logger.debug("MiMo analysis skipped")
+
         return {
             "success": True,
             "output_paths": archive_result,
             "pdf_files": pdf_files,
             "low_stock_alerts": alerts,
+            "mimo_analysis": mimo_analysis,
             "summary": {
                 "total_varieties": len(all_veggies),
                 "generated_date": target_date,

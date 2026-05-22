@@ -1,0 +1,16 @@
+{
+  "pesticide_big": [
+    {
+      "version": 1,
+      "date": "2026-05-19",
+      "file": "big-template.2026-05-19.docx"
+    }
+  ],
+  "pesticide_small": [
+    {
+      "version": 1,
+      "date": "2026-05-19",
+      "file": "small-template.2026-05-19.docx"
+    }
+  ]
+}

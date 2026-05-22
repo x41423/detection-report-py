@@ -44,11 +44,12 @@ def list_inventory_balances(
 def list_inventory_transactions(
     search: str = Query(default=""),
     limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     source_type: str | None = Query(default=None),
 ):
     try:
         return InventoryTransactionListResponse(
-            **service.list_transactions(search=search, limit=limit, source_type=source_type)
+            **service.list_transactions(search=search, limit=limit, offset=offset, source_type=source_type)
         )
     except ValueError as exc:
         _raise_http_error(exc)

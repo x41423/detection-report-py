@@ -31,10 +31,11 @@ withDefaults(
 
 <style scoped>
 .page-header {
-  padding: 14px 20px;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: var(--shadow-glass);
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .page-header__row {
@@ -58,10 +59,10 @@ withDefaults(
   padding: 3px 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--color-muted-soft);
+  color: var(--color-muted);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -90,7 +91,7 @@ withDefaults(
 .page-header__stats {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(34, 42, 53, 0.07);
+  border-top: 1px solid var(--color-border);
 }
 
 /* Override hero-metric-grid to display as a horizontal strip inside PageHeader */
@@ -108,7 +109,7 @@ withDefaults(
   padding: 6px 16px 8px;
   border-radius: 0;
   border: none;
-  border-right: 1px solid rgba(34, 42, 53, 0.07);
+    border-right: 1px solid var(--color-border);
   background: transparent;
   box-shadow: none;
 }
@@ -142,9 +143,7 @@ withDefaults(
 .tone-green,
 .tone-orange,
 .tone-sun {
-  box-shadow:
-    inset 3px 0 0 #242424,
-    var(--shadow-glass);
+  background: var(--color-surface);
 }
 
 @media (max-width: 900px) {

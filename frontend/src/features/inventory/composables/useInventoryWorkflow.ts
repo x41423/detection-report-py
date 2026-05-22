@@ -94,8 +94,16 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
   const transactions = ref<InventoryTransaction[]>([])
 
   const balanceSearch = ref('')
+  const balanceCurrentPage = ref(1)
+  const balancePageSize = ref(20)
+  const balanceStatusFilter = ref<'all' | 'low_stock' | 'negative'>('all')
+  const balanceSortKey = ref('')
+  const balanceSortDir = ref<'asc' | 'desc' | ''>('')
   const transactionSearch = ref('')
   const transactionSourceFilter = ref<'all' | 'daily_intake' | 'manual_outbound' | 'manual_adjust'>('all')
+  const transactionCurrentPage = ref(1)
+  const transactionPageSize = ref(20)
+  const transactionTotalCount = ref(0)
   const lowStockThreshold = ref(3)
 
   const loadingInbound = ref(false)
@@ -124,6 +132,40 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
   )
   const negativeStockCount = computed(() => balances.value.filter((item) => item.available_quantity < 0).length)
   const inboundItems = computed(() => inboundSheet.value?.items || [])
+
+  const filteredBalances = computed(() => {
+    let list = balances.value
+    if (balanceStatusFilter.value === 'low_stock') {
+      list = list.filter((item) => item.available_quantity > 0 && item.available_quantity <= Number(lowStockThreshold.value || 0))
+    } else if (balanceStatusFilter.value === 'negative') {
+      list = list.filter((item) => item.available_quantity < 0)
+    }
+    return list
+  })
+
+  const sortedBalances = computed(() => {
+    const list = [...filteredBalances.value]
+    if (!balanceSortKey.value || !balanceSortDir.value) return list
+    list.sort((a, b) => {
+      let va: string | number, vb: string | number
+      switch (balanceSortKey.value) {
+        case 'name': va = a.display_name; vb = b.display_name; break
+        case 'quantity': va = a.available_quantity; vb = b.available_quantity; break
+        case 'date': va = a.last_business_date || ''; vb = b.last_business_date || ''; break
+        case 'count': va = a.transaction_count; vb = b.transaction_count; break
+        default: return 0
+      }
+      if (va < vb) return balanceSortDir.value === 'asc' ? -1 : 1
+      if (va > vb) return balanceSortDir.value === 'asc' ? 1 : -1
+      return 0
+    })
+    return list
+  })
+
+  const pagedBalances = computed(() => {
+    const start = (balanceCurrentPage.value - 1) * balancePageSize.value
+    return sortedBalances.value.slice(start, start + balancePageSize.value)
+  })
 
   function resetOutboundDraft() {
     Object.assign(outboundDraft, createOutboundDraft(), {
@@ -182,7 +224,7 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
     try {
       const { data } = await getInventoryBalances({
         search: balanceSearch.value.trim(),
-        limit: 200,
+        limit: 500,
       })
       balances.value = data.items
     } catch (error: unknown) {
@@ -194,15 +236,35 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
     }
   }
 
+  function onBalancePageChange() {
+    // currentPage is bound via v-model, just reading new slice from pagedBalances
+  }
+
+  function onBalanceSizeChange() {
+    balanceCurrentPage.value = 1
+  }
+
+  function onBalanceStatusChange() {
+    balanceCurrentPage.value = 1
+  }
+
+  function onBalanceSortChange({ prop, order }: { prop: string; order: string | null }) {
+    balanceSortKey.value = prop || ''
+    balanceSortDir.value = (order as 'asc' | 'desc' | '') || ''
+    balanceCurrentPage.value = 1
+  }
+
   async function loadTransactions() {
     loadingTransactions.value = true
     try {
       const { data } = await getInventoryTransactions({
         search: transactionSearch.value.trim(),
-        limit: 100,
+        limit: transactionPageSize.value,
+        offset: (transactionCurrentPage.value - 1) * transactionPageSize.value,
         source_type: transactionSourceFilter.value === 'all' ? undefined : transactionSourceFilter.value,
       })
       transactions.value = data.items
+      transactionTotalCount.value = data.total
     } catch (error: unknown) {
       const detail = getApiErrorMessage(error, '加载库存流水失败')
       appendStatus(statusLogRef, detail, 'error')
@@ -210,6 +272,15 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
     } finally {
       loadingTransactions.value = false
     }
+  }
+
+  function onTransactionPageChange() {
+    loadTransactions()
+  }
+
+  function onTransactionSizeChange() {
+    transactionCurrentPage.value = 1
+    loadTransactions()
   }
 
   async function refreshAll() {
@@ -476,8 +547,19 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
     loadingTransactions,
     lowStockCount,
     negativeStockCount,
+    onBalancePageChange,
+    onBalanceSizeChange,
+    onBalanceSortChange,
+    onBalanceStatusChange,
+    onTransactionPageChange,
+    onTransactionSizeChange,
     openEditTransaction,
     outboundDraft,
+    pagedBalances,
+    balanceCurrentPage,
+    balancePageSize,
+    balanceStatusFilter,
+    filteredBalances,
     positiveBalanceCount,
     prefillFromBalance,
     refreshAll,
@@ -492,6 +574,9 @@ export function useInventoryWorkflow(statusLogRef: Ref<StatusLogHandle | undefin
     submittingOutbound,
     transactionSourceFilter,
     transactionSearch,
+    transactionCurrentPage,
+    transactionPageSize,
+    transactionTotalCount,
     transactions,
     downloadBalanceExport,
   }

@@ -403,21 +403,15 @@ onMounted(async () => {
 
 <style scoped>
 .alias-page__ghost-button {
-  border-color: rgba(15, 23, 42, 0.12);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(240, 249, 255, 0.68));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
-    0 10px 20px rgba(15, 23, 42, 0.04);
+  border-color: var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
 .alias-page__ghost-button:hover,
 .alias-page__ghost-button:focus {
-  border-color: rgba(14, 165, 233, 0.4);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(224, 242, 254, 0.88));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.74),
-    0 12px 24px rgba(14, 165, 233, 0.08);
+  border-color: var(--color-border-highlight);
+  background: var(--color-surface-card);
 }
 
 .table-toolbar__actions {
@@ -440,27 +434,27 @@ onMounted(async () => {
 }
 
 .row-actions :deep(.alias-row-actions__edit) {
-  border-color: rgba(14, 165, 233, 0.28);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(255, 255, 255, 0.48));
+  border-color: var(--color-border);
+  background: var(--color-surface-card);
   color: var(--color-text);
 }
 
 .row-actions :deep(.alias-row-actions__edit:hover),
 .row-actions :deep(.alias-row-actions__edit:focus) {
-  border-color: rgba(14, 165, 233, 0.5);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(255, 255, 255, 0.68));
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .row-actions :deep(.alias-row-actions__delete) {
-  border-color: rgba(239, 68, 68, 0.26);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(255, 255, 255, 0.44));
-  color: #991b1b;
+  border-color: var(--color-border);
+  background: var(--color-surface-card);
+  color: var(--color-danger);
 }
 
 .row-actions :deep(.alias-row-actions__delete:hover),
 .row-actions :deep(.alias-row-actions__delete:focus) {
-  border-color: rgba(239, 68, 68, 0.46);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(255, 255, 255, 0.64));
+  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 @media (max-width: 768px) {

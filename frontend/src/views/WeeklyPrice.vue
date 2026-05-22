@@ -70,14 +70,13 @@ watch(
 }
 
 .workflow-tab:hover {
-  border-color: rgba(34, 42, 53, 0.22);
-  background: #f8f8f8;
+  border-color: var(--color-border-highlight);
+  background: var(--color-surface-card);
 }
 
 .workflow-tab.is-active {
-  border-color: #242424;
-  background: #f7f7f7;
-  box-shadow: inset 0 0 0 1px #242424;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .workflow-tab__badge {
@@ -92,7 +91,7 @@ watch(
 }
 
 .workflow-tab.is-active .workflow-tab__badge {
-  background: #242424;
+  background: var(--color-primary);
   color: #ffffff;
 }
 

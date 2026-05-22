@@ -44,6 +44,7 @@ class InventoryService:
         *,
         search: str = "",
         limit: int = 100,
+        offset: int = 0,
         source_type: str | None = None,
     ) -> dict[str, Any]:
         self._ensure_backfill()
@@ -53,14 +54,19 @@ class InventoryService:
             for item in InventoryRepository.list_transactions(
                 search=search,
                 limit=limit,
+                offset=offset,
                 source_type=normalized_source_type,
             )
         ]
+        total = InventoryRepository.count_transactions(
+            search=search,
+            source_type=normalized_source_type,
+        )
         return {
             "success": True,
             "message": f"已加载 {len(items)} 条库存流水",
             "items": items,
-            "total": len(items),
+            "total": total,
         }
 
     def export_balances_csv(

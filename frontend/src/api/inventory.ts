@@ -37,6 +37,7 @@ export function getInventoryBalances(params?: {
 export function getInventoryTransactions(params?: {
   search?: string
   limit?: number
+  offset?: number
   source_type?: string
 }) {
   return api.get<InventoryTransactionListResponse>('/api/inventory/transactions', { params })
