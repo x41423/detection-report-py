@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>观麦业务平台 — 页面结构原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+.sb{width:220px;background:#1e293b;color:#cbd5e1;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.sb .lo{padding:14px 16px;font-size:16px;font-weight:bold;color:#fff;border-bottom:1px solid #334155;display:flex;align-items:center;gap:8px}
+.sb .lo span{background:#3b82f6;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.sb .if{padding:10px 16px;font-size:11px;color:#64748b;background:#0f172a;line-height:1.6}
+.mn{flex:1;overflow-y:auto;padding:4px 0}
+.mi{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12px;cursor:pointer;color:#94a3b8;border-left:3px solid transparent;user-select:none}
+.mi:hover{background:#1e293b;color:#e2e8f0}
+.mi .ar{font-size:9px;margin-left:auto}
+.mi .ar.op{transform:rotate(90deg)}
+.ms{padding:6px 14px 6px 32px;font-size:11px;cursor:pointer;color:#64748b;border-left:3px solid transparent}
+.ms:hover{color:#94a3b8}
+.ml{padding:5px 14px 5px 44px;font-size:11px;cursor:pointer;color:#475569;border-left:3px solid transparent}
+.ml:hover{color:#94a3b8;background:#1e293b}
+.ml.ac{color:#60a5fa;border-left-color:#3b82f6}
+#sr{width:calc(100%-16px);margin:8px;height:26px;border:1px solid #334155;border-radius:6px;padding:0 10px;font-size:11px;background:#0f172a;color:#94a3b8;outline:none}
+.ct{flex:1;overflow-y:auto;padding:20px;max-width:1100px}
+h2{font-size:18px;margin-bottom:6px}
+.sub{font-size:11px;color:#94a3b8;margin-bottom:16px}
+.card{background:#fff;border-radius:8px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ch{padding:10px 14px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.cb{padding:14px}
+.badge{background:#10b981;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px}
+.tag{background:#eff6ff;color:#3b82f6;padding:3px 9px;border-radius:3px;font-size:11px;border:1px solid #bfdbfe}
+.tag.gr{background:#fff;border:1px solid #d1d5db;color:#64748b}
+.inp{height:28px;border:1px solid #d1d5db;border-radius:3px;padding:0 8px;font-size:11px;width:220px;outline:none}
+.btn{padding:4px 12px;border-radius:3px;font-size:11px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
+.btn.pr{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.fr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{background:#f8fafc;padding:6px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e5e7eb;white-space:nowrap}
+td{padding:5px 6px;border-bottom:1px solid #f1f5f9;color:#64748b}
+.em{text-align:center;padding:40px 0;color:#94a3b8}
+.info{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:14px;font-size:12px;line-height:1.7}
+.info .rt{font-family:monospace;background:#dcfce7;padding:1px 6px;border-radius:3px;font-size:11px;color:#166534}
+.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+</style></head><body>
+<div class="sb"><div class="lo"><span>观</span>观麦业务平台</div>
+<div class="if"><b>T173960</b> 杭州滨鲜食品<br>👤 17305485571<br>📊 <span id="capCount">22</span>/103页结构已抓取</div>
+<input id="sr" placeholder="🔍 搜索页面..." oninput="fn()">
+<div class="mn" id="nm"></div></div>
+<div class="ct" id="pc"></div>
+<script>
+const ND=[{id:"merchandise",ico:"📦",name:"商品",children:[{id:"g1",name:"商品管理",children:[{id:"merchandise_manage_sale_index",name:"报价单管理"},{id:"merchandise_manage_list_index",name:"商品列表"},{id:"merchandise_manage_category_management_index",name:"分类管理"},{id:"merchandise_manage_commission_index",name:"佣金管理"},{id:"merchandise_manage_demand_index",name:"新品需求"},{id:"merchandise_manage_quotation_record_index",name:"报价记录"},{id:"merchandise_manage_spu_remark_index",name:"SPU备注"},{id:"merchandise_manage_supply_list_index",name:"供应商品"},{id:"merchandise_manage_tax_rate_index",name:"税率管理"}]},{id:"g2",name:"合约定价",children:[{id:"merchandise_contract_price_comeup_pricing_index",name:"涨价定价"},{id:"merchandise_contract_price_whole_order_discount_pricing_index",name:"整单折扣定价"}]}]},{id:"order_manage",ico:"📋",name:"订单",children:[{id:"o1",name:"订单管理",children:[{id:"order_manage_order_list_index",name:"订单列表"},{id:"order_manage_order_create",name:"新建订单"},{id:"order_manage_order_list_batch",name:"批量订单"},{id:"order_manage_order_list_after_sales",name:"售后管理"},{id:"order_manage_order_customize_index",name:"自定义字段"},{id:"order_manage_order_list_history_index",name:"历史订单"}]},{id:"o2",name:"订单审核",children:[{id:"order_manage_order_review_list_index",name:"改单审核"}]},{id:"o3",name:"其他",children:[{id:"order_manage_order_report_print",name:"检测报告打印"},{id:"order_manage_no_order_index",name:"未下单商户"}]}]},{id:"sales_invoicing",ico:"📐",name:"进销存",children:[{id:"i1",name:"入库管理",children:[{id:"sales_invoicing_stock_in_product_index",name:"采购入库"},{id:"sales_invoicing_stock_in_return",name:"退货入库"},{id:"sales_invoicing_stock_in_adjust_sheet_detail",name:"入库调整"}]},{id:"i2",name:"出库管理",children:[{id:"sales_invoicing_stock_out_product",name:"销售出库"},{id:"sales_invoicing_stock_out_refund",name:"采购退货"},{id:"sales_invoicing_stock_out_adjust_record_detail",name:"出库调整"}]},{id:"i3",name:"库存管理",children:[{id:"sales_invoicing_inventory_product",name:"商品盘点"},{id:"sales_invoicing_inventory_stock_overview_index",name:"库存总览"},{id:"sales_invoicing_inventory_summary",name:"出入库汇总"},{id:"sales_invoicing_inventory_record",name:"出入库记录"},{id:"sales_invoicing_inventory_stock_record",name:"库存台账"}]},{id:"i4",name:"加工调拨",children:[{id:"sales_invoicing_processing_division_split_document_index",name:"分割单据"},{id:"sales_invoicing_processing_division_loss_report_index",name:"损耗报表"},{id:"sales_invoicing_transfer_outbound_index",name:"调拨出库"},{id:"sales_invoicing_transfer_receipt_index",name:"调拨入库"}]},{id:"i5",name:"基础与财务",children:[{id:"sales_invoicing_base_supplier_supplier_info",name:"供应商"},{id:"sales_invoicing_base_tax_rate_index",name:"税率"},{id:"sales_invoicing_finance_payment_review",name:"付款审核"}]}]},{id:"data",ico:"📊",name:"数据",children:[{id:"d1",name:"驾驶舱",children:[{id:"data_dashboard_sale_dashboard_index",name:"销售驾驶舱"},{id:"data_dashboard_purchase_dashboard_index",name:"采购驾驶舱"}]},{id:"d2",name:"报表",children:[{id:"data_sale_summary_index",name:"销售汇总"},{id:"data_sale_goods_analysis_index",name:"商品分析"},{id:"data_sale_merchant_analysis_index",name:"商户分析"},{id:"data_purchase_cost_analysis_index",name:"成本分析"}]}]},{id:"supply_chain",ico:"🔗",name:"供应链",children:[{id:"s1",name:"采购",children:[{id:"supply_chain_purchase_task",name:"采购任务"},{id:"supply_chain_purchase_bills_index",name:"采购单据"},{id:"supply_chain_purchase_overview",name:"采购总览"}]},{id:"s2",name:"分拣配送",children:[{id:"supply_chain_sorting_task_sorting_list",name:"分拣任务"},{id:"supply_chain_distribute_task",name:"配送任务"},{id:"supply_chain_distribute_driver_manage",name:"司机管理"}]},{id:"s3",name:"加工",children:[{id:"supply_chain_process_plan_index",name:"生产计划"},{id:"supply_chain_process_receipt_index",name:"生产收货"}]},{id:"s4",name:"食品安全",children:[{id:"supply_chain_food_security_sku_report_search_index",name:"商品报告"}]}]},{id:"marketing",ico:"📢",name:"营销",children:[{id:"mk1",name:"营销工具",children:[{id:"marketing_manage_price_rule_index",name:"限时锁价"},{id:"marketing_manage_coupon_index",name:"优惠券"},{id:"marketing_manage_limit_time_special_index",name:"限时特价"},{id:"marketing_manage_seckill_index",name:"秒杀"}]},{id:"mk2",name:"其他",children:[{id:"marketing_flash_sale_index",name:"闪购"},{id:"marketing_member_index",name:"会员管理"}]}]},{id:"system",ico:"⚙",name:"系统",children:[{id:"sy1",name:"运营设置",children:[{id:"system_setting_service_time_index",name:"运营时间"},{id:"system_setting_system_setting_index",name:"系统设置"},{id:"system_setting_freight_index",name:"运费模板"},{id:"system_setting_mp_index",name:"小程序设置"}]},{id:"sy2",name:"日志",children:[{id:"system_log_operate_index",name:"操作记录"},{id:"system_log_recycle_bin_index",name:"回收站"}]}]},{id:"application_center",ico:"🧩",name:"应用中心",children:[{id:"ap1",name:"应用中心",children:[{id:"application_center_index",name:"应用中心"}]}]},{id:"ma",ico:"ℹ️",name:"信息平台",children:[{id:"inf1",name:"信息平台",children:[{id:"ma_index",name:"信息平台"}]}]}];
+
+const PG={
+order_manage_order_list_index:{t:"订单列表",bc:["订单","订单管理","订单列表"],h:`<div class="card"><div class="ch">筛选条件</div><div class="cb"><div class="fr"><span class="tag">按下单日期 ▾</span><span class="tag gr">2026-05-25</span><span class="tag">按订单/商户 ▾</span><input class="inp" placeholder="输入订单号、商户信息搜索"></div><div class="fr"><button class="btn pr">搜索</button><button class="btn">导出 ▾</button><button class="btn">高级筛选 ▾</button><span style="flex:1"></span><button class="btn pr">+ 新建订单</button><button class="btn">更多功能 ▾</button></div></div></div>
+<div class="card"><div class="ch">统计 <span class="badge">订单总数:0 | 下单金额:—</span></div><div class="cb"><table><thead><tr><th>☐</th><th>订单号</th><th>下单日期</th><th>关联出库单</th><th>线路</th><th>商户名/ID</th><th>下单金额</th><th>订单状态</th><th>支付状态</th><th>司机</th><th>操作</th></tr></thead></table><div class="em">📭 2026-05-25 无订单数据</div></div></div>`},
+order_manage_order_create:{t:"新建订单",bc:["订单","订单管理","新建订单"],h:`<div class="card"><div class="ch">表单字段 <span class="badge">17个字段</span></div><div class="cb">
+<table><tr><th style="width:120px">字段</th><th>类型</th><th>说明</th></tr>
+<tr><td>商户</td><td><span class="tag">下拉搜索</span></td><td>输入商户名、商户ID或自定义编码搜索</td></tr>
+<tr><td>运营时间</td><td><span class="tag">下拉选择</span></td><td>请选择运营时间</td></tr>
+<tr><td>收货时间</td><td><span class="tag">日期范围</span></td><td>开始日期 ~ 结束日期</td></tr>
+<tr><td>收货方式</td><td><span class="tag">下拉选择</span></td><td>请选择收货方式</td></tr>
+<tr><td>订单类型</td><td><span class="tag">下拉选择</span></td><td>请选择订单类型</td></tr>
+<tr><td>订单备注</td><td><span class="tag">文本域</span></td><td>128字以内</td></tr>
+<tr><td>收货人/收货地址</td><td><span class="tag">自动/输入</span></td><td>从商户信息带出</td></tr>
+</table>
+<div class="fr" style="margin-top:8px"><button class="btn pr">核对订单</button><button class="btn pr">保存</button><button class="btn">保存并新建</button><button class="btn">取消</button></div>
+</div></div>`},
+order_manage_order_list_batch:{t:"批量订单",bc:["订单","订单管理","批量订单"],h:`<div class="card"><div class="ch">高级筛选 <span class="badge">22项筛选条件</span></div><div class="cb">
+<div class="fr"><span class="tag gr">商户: 全部</span><span class="tag gr">订单状态: 全部</span><span class="tag gr">支付状态: 全部</span><span class="tag gr">线路: 全部</span><span class="tag gr">报价单: 全部</span><span class="tag gr">司机: 全部</span></div>
+<div class="fr"><span class="tag gr">打印状态: 全部</span><span class="tag gr">装车状态: 全部</span><span class="tag gr">订单来源: 全部</span><span class="tag gr">出库状态: 全部</span><span class="tag gr">收货方式: 全部</span><span class="tag gr">订单类型: 全部</span></div>
+<div class="fr"><span class="tag gr">商户标签: 全部</span><span class="tag gr">订单售后: 全部</span><span class="tag gr">分拣状态: 全部</span><span class="tag gr">验货状态: 全部</span><span class="tag gr">投框状态: 全部</span><span class="tag gr">地理标签: 全部</span></div>
+<div class="fr"><span class="tag gr">自提点: 全部</span><span class="tag gr">集包状态: 全部</span><span class="tag gr">订单备注: 全部</span></div>
+<div class="fr" style="margin-top:8px"><input class="inp" placeholder="输入备注关键词"><button class="btn pr">搜索</button><button class="btn">重置</button></div>
+</div></div>`},
+order_manage_order_list_after_sales:{t:"商品异常(售后)",bc:["订单","订单管理","售后管理"],h:`<div class="card"><div class="ch">售后明细 <span class="badge">14列表头</span></div><div class="cb">
+<table><thead><tr><th>商品ID</th><th>商品名</th><th>下单数</th><th>单价</th><th>下单金额</th><th>出库数</th><th>实收数</th><th>售后类型</th><th>记账数</th><th>总异常数</th><th>总退货数</th></tr></thead></table>
+<div class="fr" style="margin-top:8px"><button class="btn pr">保存</button><button class="btn">取消</button></div>
+<div class="info" style="margin-top:8px">📌 更多售后信息请前往 <b>信息平台-订单管理-订单异常</b></div>
+</div></div>`},
+order_manage_order_customize_index:{t:"自定义字段",bc:["订单","订单管理","自定义字段"],h:`<div class="card"><div class="ch">字段管理</div><div class="cb">
+<div class="fr"><span class="tag gr">所属对象: 全部</span><span class="tag gr">字段格式: 全部</span><input class="inp" placeholder="搜索字段名称"><button class="btn pr">搜索</button><button class="btn pr">新建自定义字段</button></div>
+<table><thead><tr><th>序号</th><th>自定义字段名</th><th>所属对象</th><th>字段格式</th><th>操作</th></tr></thead></table>
+<div class="warn info" style="margin-top:8px">⚠️ 此页面需切回旧版UI访问，新版UI不支持</div>
+</div></div>`},
+order_manage_order_review_list_index:{t:"改单审核",bc:["订单","订单审核","改单审核"],h:`<div class="card"><div class="ch">审核列表 <span class="badge">12列表头</span></div><div class="cb">
+<div class="fr"><span class="tag gr">改单日期: 2026-05-25</span><span class="tag gr">改单类型: 全部</span><span class="tag gr">审核状态: 全部</span><input class="inp" placeholder="输入订单号/商户名/ID"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn">导出</button></div>
+<table><thead><tr><th>☐</th><th>订单号</th><th>改单日期</th><th>改单类型</th><th>商户名/ID</th><th>改动商品数</th><th>订单状态</th><th>审核状态</th><th>申请人</th><th>操作</th></tr></thead></table>
+<div class="warn info" style="margin-top:8px">⚠️ 此页面需切回旧版UI访问</div>
+</div></div>`},
+order_manage_order_report_print:{t:"检测报告打印",bc:["订单","其他","检测报告打印"],h:`<div class="card"><div class="ch">食品安全快速检测结果报告单 <span class="badge">14列</span></div><div class="cb">
+<div class="fr"><button class="btn pr">生成示例数据</button><button class="btn pr">打印报告</button></div>
+<table><thead><tr><th>报告编号</th><th>受检单位</th><th>样品生产单位</th><th>检测项目</th><th>抽样时间</th><th>样品名称</th><th>测定结果</th><th>送检数量</th><th>抑制率(%)</th><th>备注</th></tr></thead></table>
+<div class="info" style="margin-top:8px">📌 此报告仅做样板，请点击更换抬头。检测依据: GB5009-2003，检测方法: GB5009-2003</div>
+</div></div>`},
+merchandise_manage_sale_index:{t:"报价单管理",bc:["商品","商品管理","报价单管理"],h:`<div class="card"><div class="ch">筛选 <span class="badge">报价单:11个</span></div><div class="cb"><div class="fr"><span class="tag">运营时间 ▾</span><span class="tag gr">全部运营时间</span><input class="inp" placeholder="输入报价单ID或报价单名称"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn pr">+ 新建报价单</button><button class="btn">批量新建销售规格</button></div>
+<table><thead><tr><th>报价单ID</th><th>报价单名称</th><th>运营时间</th><th>在售商品数</th><th>状态</th><th>操作</th></tr></thead>
+<tr><td>S82092</td><td>默认报价单</td><td>默认运营时间</td><td>3400</td><td>✅ 已激活</td><td><button class="btn">查看</button></td></tr>
+<tr><td>S272410</td><td>顾家家居商城</td><td>默认运营时间</td><td>201</td><td>✅ 已激活</td><td><button class="btn">查看</button></td></tr>
+<tr><td>S141210</td><td>杭州滨鲜食品</td><td>默认运营时间</td><td>304</td><td>✅ 已激活</td><td><button class="btn">查看</button></td></tr></table></div></div>`},
+sales_invoicing_stock_in_product_index:{t:"采购入库",bc:["进销存","入库管理","采购入库"],h:`<div class="card"><div class="ch">入库单列表</div><div class="cb"><div class="fr"><span class="tag">入库日期 ▾</span><span class="tag gr">选择日期</span><span class="tag">供应商 ▾</span><span class="tag">入库单状态 ▾</span><input class="inp" placeholder="搜索入库单号"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn pr">+ 新建入库单</button><button class="btn">导入入库</button></div>
+<table><thead><tr><th>入库单号</th><th>入库日期</th><th>供应商</th><th>商品数</th><th>总数量</th><th>入库金额</th><th>状态</th><th>操作</th></tr></thead></table><div class="em">📭 暂无入库单数据</div></div></div>`},
+sales_invoicing_stock_in_return:{t:"商户退货入库",bc:["进销存","入库管理","退货入库"],h:`<div class="card"><div class="ch">退货入库列表 <span class="badge">14列表头</span></div><div class="cb">
+<div class="fr"><span class="tag">按下单日期 ▾</span><span class="tag gr">2026-05-22~2026-05-25</span><span class="tag gr">处理方式:全部</span><input class="inp" placeholder="输入订单号/流转单号"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div>
+<table><thead><tr><th>下单日期</th><th>待处理商品</th><th>应退数/金额</th><th>处理方式</th><th>实退数</th><th>实退金额</th><th>入库数</th><th>入库单价</th><th>供应商</th><th>操作</th></tr></thead></table>
+<div class="em">📭 入库记录总数: 0</div></div></div>`},
+sales_invoicing_stock_out_product:{t:"销售出库",bc:["进销存","出库管理","销售出库"],h:`<div class="card"><div class="ch">出库单列表 <span class="badge">8列表头</span></div><div class="cb">
+<div class="fr"><span class="tag">按建单日期 ▾</span><span class="tag gr">2026-05-25</span><span class="tag gr">单据状态:全部</span><span class="tag gr">商户标签:全部</span><input class="inp" placeholder="输入单号、商户名"></div>
+<div class="fr"><button class="btn pr">+ 新建出库单</button><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div>
+<table><thead><tr><th>出库时间</th><th>建单时间</th><th>下单号</th><th>商户信息</th><th>成本金额</th><th>单据状态</th><th>单据备注</th><th>操作</th></tr></thead></table></div></div>`},
+sales_invoicing_stock_out_refund:{t:"采购退货",bc:["进销存","出库管理","采购退货"],h:`<div class="card"><div class="ch">退货单列表 <span class="badge">5列表头</span></div><div class="cb">
+<div class="fr"><span class="tag">按建单日期 ▾</span><span class="tag gr">2026-05-25</span><span class="tag gr">单据状态:全部</span><input class="inp" placeholder="输入单号、供应商信息"></div>
+<div class="fr"><button class="btn pr">新建退货单</button><button class="btn">批量导入</button><button class="btn pr">搜索</button><button class="btn">导出</button></div>
+<table><thead><tr><th>建单时间</th><th>退货单号</th><th>供应商信息</th><th>退货金额</th><th>单据状态</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_product:{t:"商品盘点",bc:["进销存","库存管理","商品盘点"],h:`<div class="card"><div class="ch">盘点列表 <span class="badge">2962种商品</span></div><div class="cb">
+<div class="fr"><input class="inp" placeholder="输入商品名或ID、自定义编码"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button><button class="btn">修复库存均价</button><button class="btn">更多功能 ▾</button></div>
+<table><thead><tr><th>商品ID</th><th>商品类型</th><th>商品名</th><th>商品分类</th><th>库存</th><th>安全库存</th><th>待出库</th><th>可用库存</th><th>库存均价</th><th>库存参考货值</th><th>操作</th></tr></thead></table>
+<div class="em">商品总数: 2962，库存参考总货值: ¥0</div></div></div>`},
+sales_invoicing_inventory_stock_overview_index:{t:"商品库存总览",bc:["进销存","库存管理","库存总览"],h:`<div class="card"><div class="ch">库存总览 <span class="badge">18列表头</span></div><div class="cb">
+<div class="fr"><span class="tag gr">一级分类:全部</span><span class="tag gr">二级分类:全部</span><input class="inp" placeholder="输入商品名搜索"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">批量盘点</button><button class="btn">成本调整明细</button></div>
+<table><thead><tr><th>商品ID</th><th>商品名</th><th>分类</th><th>总库存</th><th>待出库</th><th>可用库存</th><th>呆滞预警</th><th>库存均价</th><th>原料库存</th><th>原料均价</th><th>成品库存</th><th>成品均价</th><th>操作</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_summary:{t:"出入库汇总",bc:["进销存","库存管理","出入库汇总"],h:`<div class="card"><div class="ch">6个Tab <span class="badge">108种商品 · ¥11,654</span></div><div class="cb">
+<div class="fr"><span class="tag gr active">采购入库汇总</span><span class="tag gr">销售出库汇总</span><span class="tag gr">调拨入库汇总</span><span class="tag gr">调拨出库汇总</span><span class="tag gr">其他入库汇总</span><span class="tag gr">其他出库汇总</span></div>
+<div class="fr" style="margin-top:8px"><span class="tag gr">2026-05-25~2026-05-25</span><input class="inp" placeholder="输入商品名称、商品ID搜索"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">按商品查看</button><button class="btn">按分类查看</button><button class="btn">按采购员查看</button></div>
+<table><thead><tr><th>供应商编号</th><th>供应商名称</th><th>商品ID</th><th>商品名</th><th>商品分类</th><th>入库数</th><th>入库均价</th><th>入库金额</th><th>入库金额(不含税)</th><th>进项税率</th><th>进项税额</th></tr></thead></table></div></div>`},
+sales_invoicing_processing_division_split_document_index:{t:"分割单据",bc:["进销存","加工管理","分割单据"],h:`<div class="card"><div class="ch">分割单列表 <span class="badge">12列表头</span></div><div class="cb">
+<div class="fr"><span class="tag gr">分割日期: 2026-05-25~2026-05-25</span><span class="tag gr">单据状态: 全部</span><input class="inp" placeholder="输入分割单号/待分割品搜索"></div>
+<div class="fr"><button class="btn pr">新建分割单据</button><button class="btn pr">搜索</button></div>
+<table><thead><tr><th>建单时间</th><th>分割时间</th><th>分割单号</th><th>分割方案</th><th>待分割品</th><th>单位</th><th>消耗量</th><th>获得品总量</th><th>损耗</th><th>状态</th><th>操作人</th><th>操作</th></tr></thead></table></div></div>`},
+sales_invoicing_transfer_outbound_index:{t:"调拨出库",bc:["进销存","加工管理","调拨出库"],h:`<div class="card"><div class="ch">调拨出库单</div><div class="cb">
+<div class="fr"><span class="tag gr">单号: -</span><span class="tag gr">出库单状态: -</span><span class="tag gr">出库时间: 2026-05-25</span><button class="btn">定位</button></div>
+<table><thead><tr><th>序号</th><th>调入站点</th><th>站点ID</th><th>商品名称</th><th>商品ID</th><th>单位</th><th>数量</th><th>成本单价</th><th>成本金额</th></tr></thead></table>
+</div></div>`},
+data_dashboard_sale_dashboard_index:{t:"销售驾驶舱",bc:["数据","驾驶舱","销售驾驶舱"],h:`<div class="card"><div class="ch">KPI仪表盘</div><div class="cb">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+<div style="background:#f8fafc;border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:#3b82f6">0</div><div style="font-size:11px;color:#94a3b8">今日订单数</div></div>
+<div style="background:#f8fafc;border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:#3b82f6">¥0</div><div style="font-size:11px;color:#94a3b8">今日销售额</div></div>
+<div style="background:#f8fafc;border-radius:8px;padding:16px;text-align:center"><div style="font-size:24px;font-weight:700;color:#3b82f6">0%</div><div style="font-size:11px;color:#94a3b8">售后率</div></div>
+</div><div class="fr" style="margin-top:8px"><button class="btn">投屏模式</button></div>
+</div></div>`},
+supply_chain_purchase_task:{t:"采购任务",bc:["供应链","采购","采购任务"],h:`<div class="card"><div class="ch">任务列表</div><div class="cb">
+<div class="fr"><span class="tag">采购日期 ▾</span><span class="tag gr">选择日期</span><span class="tag">供应商 ▾</span><span class="tag">状态 ▾</span><input class="inp" placeholder="搜索采购任务"></div>
+<div class="fr"><button class="btn pr">搜索</button><button class="btn">导出 ▾</button><button class="btn pr">+ 新建采购任务</button></div>
+<table><thead><tr><th>任务编号</th><th>采购日期</th><th>供应商</th><th>商品数</th><th>采购金额</th><th>状态</th><th>采购员</th><th>操作</th></tr></thead></table></div></div>`},
+marketing_manage_price_rule_index:{t:"限时锁价",bc:["营销","营销工具","限时锁价"],h:`<div class="card"><div class="ch">锁价规则</div><div class="cb">
+<div class="fr"><button class="btn pr">+ 新建锁价规则</button></div>
+<table><thead><tr><th>规则名称</th><th>适用商品</th><th>锁价周期</th><th>锁定价</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead></table></div></div>`},
+system_setting_service_time_index:{t:"运营时间",bc:["系统","运营设置","运营时间"],h:`<div class="card"><div class="ch">运营时间配置</div><div class="cb"><table><thead><tr><th>日期类型</th><th>下单开始</th><th>下单截止</th><th>配送时段</th><th>状态</th><th>操作</th></tr></thead><tr><td>工作日</td><td>00:00</td><td>23:59</td><td>次日 06:00-12:00</td><td>✅ 启用</td><td><button class="btn">编辑</button></td></tr><tr><td>周末</td><td>00:00</td><td>22:00</td><td>次日 07:00-11:00</td><td>✅ 启用</td><td><button class="btn">编辑</button></td></tr></table></div></div>`},
+// === 新抓取: 进销存深层 ===
+sales_invoicing_stock_in_adjust_sheet_detail:{t:"入库调整单",bc:["进销存","入库管理","入库调整单"],h:`<div class="card"><div class="ch">新建入库调整单</div><div class="cb"><table><thead><tr><th>商品名称</th><th>商品分类</th><th>入库批次号</th><th>关联入库单号</th><th>入库数</th><th>调整前单价</th><th>调整后单价</th><th>调整差异</th><th>操作人</th><th>操作</th></tr></thead></table><div class="fr" style="margin-top:8px"><button class="btn pr">保存</button><button class="btn pr">保存并提交</button></div></div></div>`},
+sales_invoicing_stock_out_adjust_record_detail:{t:"出库调整记录",bc:["进销存","出库管理","出库调整记录"],h:`<div class="card"><div class="ch">出库调整记录</div><div class="cb"><table><thead><tr><th>销售规格ID</th><th>商品名称</th><th>规格</th><th>商品分类</th><th>出库数</th><th>关联出库单号</th><th>调整前单价</th><th>调整后单价</th><th>调整差异</th><th>操作人</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_stock_record:{t:"入库明细",bc:["进销存","库存管理","入库明细"],h:`<div class="card"><div class="ch">入库明细 <span class="badge">17列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="输入商品名搜索"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div><table><thead><tr><th>商品ID</th><th>入库规格ID</th><th>入库规格名</th><th>商品分类</th><th>入库单号</th><th>供应商</th><th>入库数</th><th>入库单价</th><th>入库金额</th><th>入库金额(不含税)</th><th>进项税率</th><th>进项税额</th><th>提交时间</th><th>操作人</th><th>关联订单</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_stock_removal_record:{t:"出库明细",bc:["进销存","库存管理","出库明细"],h:`<div class="card"><div class="ch">出库明细 <span class="badge">20列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="输入商品ID搜索"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button><button class="btn">修复出库数据</button></div><table><thead><tr><th>商品ID</th><th>出库规格名</th><th>商品分类</th><th>出库单号</th><th>关联订单</th><th>商户名</th><th>出库数</th><th>出库成本价</th><th>成本金额</th><th>销售额(含税)</th><th>销售额(不含税)</th><th>销项税率</th><th>建单日期</th><th>操作人</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_account:{t:"商品台账",bc:["进销存","库存管理","商品台账"],h:`<div class="card"><div class="ch">商品台账 <span class="badge">18列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="输入商品信息搜索"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div><table><thead><tr><th>商品ID</th><th>商品名</th><th>商品分类</th><th>单据号</th><th>变动类型</th><th>变动对象</th><th>变动前库存</th><th>变动库存</th><th>变动后库存</th><th>变动前货值</th><th>变动货值</th><th>变动后货值</th><th>变动前均价</th><th>变动后均价</th><th>操作时间</th><th>操作人</th></tr></thead></table></div></div>`},
+sales_invoicing_inventory_report_value:{t:"货值成本表",bc:["进销存","库存管理","货值成本表"],h:`<div class="card"><div class="ch">货值成本表 <span class="badge">20列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="输入商品信息搜索"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div><table><thead><tr><th>一级分类</th><th>二级分类</th><th>商品名称</th><th>基本单位</th><th>期初库存</th><th>期初货值</th><th>期初均价</th><th>期末库存</th><th>期末货值</th><th>期末均价</th><th>本期采购入库</th><th>本期销售出库</th><th>本期报溢</th><th>本期报损</th><th>本期调拨入库均价</th></tr></thead></table></div></div>`},
+sales_invoicing_transfer_receipt_index:{t:"调拨入库",bc:["进销存","调拨管理","调拨入库"],h:`<div class="card"><div class="ch">调拨入库详情 <span class="badge">15列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="输入商品名称"><button class="btn">定位</button></div><table><thead><tr><th>序号</th><th>商品名称</th><th>商品ID</th><th>商品分类</th><th>基本单位</th><th>采购规格</th><th>规格ID</th><th>调拨数量</th><th>入库数量</th><th>调拨单价</th><th>调拨金额</th><th>入库单价</th><th>入库金额</th></tr></thead></table></div></div>`},
+sales_invoicing_finance_payment_review:{t:"供应商结算",bc:["进销存","财务管理","供应商结算"],h:`<div class="card"><div class="ch">供应商结算 <span class="badge">10列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="搜索供应商"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div><table><thead><tr><th>建单时间</th><th>单据编号</th><th>单据类型</th><th>供应商</th><th>单据总金额</th><th>入库/出库时间</th><th>处理状态</th><th>采购员</th><th>单据标记</th><th>单据打印</th></tr></thead></table></div></div>`},
+sales_invoicing_finance_payment_accounts_detail:{t:"应付明细账",bc:["进销存","财务管理","应付明细账"],h:`<div class="card"><div class="ch">应付明细账 <span class="badge">13列</span></div><div class="cb"><div class="fr"><button class="btn pr">搜索</button><button class="btn">导出</button></div><table><thead><tr><th>供应商信息</th><th>结算周期</th><th>日期</th><th>单据类型</th><th>单据编号</th><th>备注</th><th>对账状态</th><th>应付</th><th>已付</th><th>费用</th><th>折让</th><th>余额</th><th>操作</th></tr></thead></table></div></div>`},
+sales_invoicing_other_out_product:{t:"其他出库",bc:["进销存","其他出库","其他出库"],h:`<div class="card"><div class="ch">其他出库单</div><div class="cb"><div class="fr"><input class="inp" placeholder="输入单号、商户名"><button class="btn pr">搜索</button></div><table><thead><tr><th>出库时间</th><th>建单时间</th><th>出库单号</th><th>出库原因</th><th>成本金额</th><th>单据状态</th><th>建单人</th><th>单据备注</th><th>关联单据</th><th>操作</th></tr></thead></table></div></div>`},
+// === 新抓取: 供应链深层 ===
+supply_chain_purchase_bills_index:{t:"采购单据",bc:["供应链","采购","采购单据"],h:`<div class="card"><div class="ch">采购单据 <span class="badge">14列</span></div><div class="cb"><div class="fr"><span class="tag gr">按建单日期</span><span class="tag gr">全部来源</span><input class="inp" placeholder="输入采购单据号"><button class="btn pr">搜索</button><button class="btn">高级筛选</button><button class="btn pr">新建采购单据</button><button class="btn">批量导入</button></div><table><thead><tr><th>建单日期</th><th>采购单据号</th><th>单据来源</th><th>采购任务数</th><th>预采购金额</th><th>采购金额</th><th>供应商</th><th>采购员</th><th>创建人</th><th>要货申请状态</th><th>单据状态</th><th>操作</th></tr></thead></table></div></div>`},
+supply_chain_purchase_information_buyer:{t:"采购资料",bc:["供应链","采购","采购资料"],h:`<div class="card"><div class="ch">采购员管理 <span class="badge">9列</span></div><div class="cb"><div class="fr"><input class="inp" placeholder="采购员姓名或账号"><button class="btn pr">搜索</button><button class="btn pr">+ 新建采购员</button></div><table><thead><tr><th>编号</th><th>账号</th><th>负责供应商</th><th>姓名</th><th>手机</th><th>账号状态</th><th>登录采购APP</th><th>登录状态</th><th>操作</th></tr></thead></table></div></div>`},
+supply_chain_purchase_require_goods:{t:"要货申请",bc:["供应链","采购","要货申请"],h:`<div class="card"><div class="ch">要货申请单 <span class="badge">8列</span></div><div class="cb"><div class="fr"><span class="tag gr">按申请时间</span><span class="tag gr">单据状态:全部</span><input class="inp" placeholder="输入要货单据号"><button class="btn pr">搜索</button><button class="btn">导出供货价</button></div><table><thead><tr><th>申请时间</th><th>要货单据号</th><th>要货任务数</th><th>单据金额</th><th>申请站点</th><th>申请人</th><th>单据状态</th><th>操作</th></tr></thead></table></div></div>`},
+supply_chain_purchase_analysis:{t:"采购分析",bc:["供应链","采购","采购分析"],h:`<div class="card"><div class="ch">采购分析 <span class="badge">11列</span></div><div class="cb"><div class="fr"><span class="tag gr">日期范围</span><input class="inp" placeholder="输入商品名称搜索"><button class="btn pr">搜索</button><button class="btn">导出</button><button class="btn">高级筛选</button></div><table><thead><tr><th>商品</th><th>分类</th><th>参考采购金额</th><th>实际采购金额</th><th>实际入库金额</th><th>计划采购数</th><th>采购数量</th><th>入库数量</th><th>采购均价</th><th>入库均价</th><th>当前库存</th></tr></thead></table></div></div>`},
+supply_chain_sorting_task_sorting_list:{t:"分拣任务",bc:["供应链","分拣","分拣任务"],h:`<div class="card"><div class="ch">分拣任务</div><div class="cb"><div class="fr"><span class="tag gr">下单时间</span><span class="tag gr">配送时间</span><span class="tag gr">最晚出库时间</span></div><table><thead><tr><th>编号</th><th>一级分类</th><th>需分拣商品数</th><th>操作</th></tr></thead></table></div></div>`},
+supply_chain_sorting_schedule:{t:"分拣进度",bc:["供应链","分拣","分拣进度"],h:`<div class="card"><div class="ch">分拣进度</div><div class="cb"><div class="fr"><span class="tag gr">按运营周期: 05月25日00:00~05月26日00:00</span><button class="btn pr">搜索</button><button class="btn">投屏模式</button></div><div class="em">📊 分拣进度看板</div></div></div>`},
+supply_chain_sorting_performance:{t:"分拣绩效",bc:["供应链","分拣","分拣绩效"],h:`<div class="card"><div class="ch">分拣绩效 <span class="badge">8列</span></div><div class="cb"><div class="fr"><span class="tag gr">操作日期: 2026-05-25</span><input class="inp" placeholder="分拣员姓名或用户名"><button class="btn pr">搜索</button><button class="btn">导出</button></div><table><thead><tr><th>☐</th><th>用户名</th><th>姓名</th><th>绩效总额</th><th>基本工资</th><th>计件绩效</th><th>计重绩效</th><th>操作</th></tr></thead></table></div></div>`},
+};
+let aid='order_manage_order_list_index',exp={};
+ND.forEach(s=>exp[s.id]=true);
+function rn(f){
+  let h='';ND.forEach(s=>{
+    let sm=!f||s.name.includes(f),cm=false;
+    if(f&&s.children)s.children.forEach(c=>{if(c.name.includes(f))cm=true;if(c.children)c.children.forEach(sub=>{if(sub.name.includes(f))cm=true})});
+    if(f&&!sm&&!cm)return;
+    h+=`<div class="mi" onclick="tg('${s.id}')">${s.ico} ${s.name}<span class="ar${exp[s.id]?' op':''}">▶</span></div>`;
+    if(exp[s.id]&&s.children)s.children.forEach(c=>{
+      h+=`<div class="ms">📁 ${c.name}</div>`;
+      if(c.children)c.children.forEach(sub=>{
+        let a=aid===sub.id?' ac':'';let ok=PG[sub.id]?' ✅':'';
+        h+=`<div class="ml${a}" onclick="nav('${sub.id}')">${sub.name}${ok}</div>`;
+      });
+    });
+  });document.getElementById('nm').innerHTML=h;
+  let c=Object.keys(PG).length;document.getElementById('capCount').textContent=c;
+}
+function tg(id){exp[id]=!exp[id];rn()}
+function fn(){rn(document.getElementById('sr').value)}
+function nav(id){aid=id;rn();
+  let pg=PG[id];let t=id,bc=[id];
+  ND.forEach(s=>s.children&&s.children.forEach(c=>{if(c.children)c.children.forEach(sub=>{if(sub.id===id){t=sub.name;bc=[s.name,c.name,sub.name]}})}));
+  let h=pg?pg.h:`<div class="info warn"><b>📄 ${t}</b><br>路由: <span class="rt">#/${id.replace(/_/g,'/')}</span><br><br>此页面来自 webpack 路由表，路由已确认存在。<b>详细结构待实际访问抓取。</b></div>`;
+  document.getElementById('pc').innerHTML=`<h2>${t}</h2><div class="sub">T173960 杭州滨鲜食品 · 17305485571 ${pg?'· ✅ 结构已抓取':''}</div>${h}`;
+}
+rn();nav('order_manage_order_list_index');
+</script></body></html>

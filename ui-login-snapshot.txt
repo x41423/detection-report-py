@@ -1,0 +1,20 @@
+uid=2_0 RootWebArea "frontend"
+  uid=2_1 StaticText "滨"
+  uid=2_2 heading "欢迎回来" level="1"
+  uid=2_3 StaticText "请使用账号密码登录滨鲜检测工具集。"
+  uid=2_4 StaticText "*"
+  uid=2_5 StaticText "用户名"
+  uid=2_6 generic
+    uid=2_7 textbox "*用户名"
+  uid=2_4 StaticText "*"
+  uid=2_8 StaticText "密码"
+  uid=2_9 generic
+    uid=2_10 textbox "*密码"
+  uid=2_11 StaticText "设备名称"
+  uid=2_12 generic
+    uid=2_13 textbox "设备名称"
+  uid=2_14 StaticText "设备名将记录到登录设备列表，方便随时撤销。"
+  uid=2_15 button "登录"
+  uid=2_16 StaticText "还没有账号？"
+  uid=2_17 link "立即注册"
+    uid=2_18 StaticText "立即注册"

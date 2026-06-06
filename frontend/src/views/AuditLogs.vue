@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell audit-page">
+  <div class="page-shell audit-page page-shell--full">
     <PageHero
       eyebrow="审计追踪"
       title="查看关键账号与权限操作"

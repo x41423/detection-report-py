@@ -96,6 +96,18 @@ async def extract_varieties_from_uploads(
     return VarietiesResponse(varieties=varieties, count=len(varieties))
 
 
+@router.post("/varieties/from-paths", response_model=VarietiesResponse)
+async def extract_varieties_from_paths(table_paths: str = Form(...)):
+    paths = [p.strip() for p in table_paths.split("\n") if p.strip()]
+    if not paths:
+        raise HTTPException(status_code=400, detail="未提供大表文件路径")
+    for p in paths:
+        if not os.path.isfile(p):
+            raise HTTPException(status_code=400, detail=f"文件不存在: {p}")
+    varieties = await run_in_threadpool(doc_service.extract_all_varieties, paths)
+    return VarietiesResponse(varieties=varieties, count=len(varieties))
+
+
 @router.post("/dedup", response_model=DedupResponse)
 async def dedup_veg_names(req: DedupRequest):
     seen = set()
@@ -133,6 +145,21 @@ async def upload_template(
     return TransferTemplateStatusResponse(**status)
 
 
+@router.post("/templates/upload-from-path", response_model=TransferTemplateStatusResponse)
+async def upload_template_from_path(
+    small_type: str = Form(...),
+    file_path: str = Form(...),
+):
+    source = Path(file_path.strip())
+    if not source.is_file():
+        raise HTTPException(status_code=400, detail=f"模板文件不存在: {file_path}")
+    try:
+        status = save_transfer_template(small_type, source, source.name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return TransferTemplateStatusResponse(**status)
+
+
 @router.post("/monthly/preview", response_model=MonthlyTransferPreviewResponse)
 async def preview_monthly_transfer(
     month: str = Form(...),
@@ -141,6 +168,21 @@ async def preview_monthly_transfer(
     with tempfile.TemporaryDirectory(prefix="transfer-monthly-preview-") as tmpdir:
         saved_tables = await save_uploads(table_files, Path(tmpdir) / "tables", "table")
         result = doc_service.preview_monthly_groups([str(path) for path in saved_tables], month)
+    return MonthlyTransferPreviewResponse(success=bool(result["groups"]), **result)
+
+
+@router.post("/monthly/preview-from-paths", response_model=MonthlyTransferPreviewResponse)
+async def preview_monthly_from_paths(
+    month: str = Form(...),
+    table_paths: str = Form(...),
+):
+    paths = [p.strip() for p in table_paths.split("\n") if p.strip()]
+    if not paths:
+        raise HTTPException(status_code=400, detail="未提供大表文件路径")
+    for p in paths:
+        if not os.path.isfile(p):
+            raise HTTPException(status_code=400, detail=f"文件不存在: {p}")
+    result = doc_service.preview_monthly_groups(paths, month)
     return MonthlyTransferPreviewResponse(success=bool(result["groups"]), **result)
 
 
@@ -343,6 +385,140 @@ async def execute_monthly_transfer_upload(
         )
 
 
+@router.post("/monthly/execute-from-paths")
+async def execute_monthly_transfer_from_paths(
+    month: str = Form(...),
+    veg_names_json: str = Form(...),
+    small_type: str = Form(default="滨鲜"),
+    use_saved_template: str = Form(default="true"),
+    table_paths: str = Form(...),
+    small_template_path: str = Form(default=""),
+    output_dir: str = Form(default=""),
+):
+    """Monthly transfer using server-side file paths (DirBrowser mode)."""
+    veg_names = parse_json_form_value(
+        veg_names_json,
+        field_name="veg_names_json",
+        expected_type=list,
+    )
+    normalized_veg_names = [
+        str(item).strip()
+        for item in veg_names
+        if str(item).strip()
+    ]
+    if not normalized_veg_names:
+        raise HTTPException(status_code=400, detail="未提供菜名")
+
+    paths = [p.strip() for p in table_paths.split("\n") if p.strip()]
+    if not paths:
+        raise HTTPException(status_code=400, detail="未提供大表文件路径")
+    for p in paths:
+        if not os.path.isfile(p):
+            raise HTTPException(status_code=400, detail=f"文件不存在: {p}")
+
+    # Resolve template
+    if small_template_path.strip():
+        tpl = Path(small_template_path.strip())
+        if not tpl.is_file():
+            raise HTTPException(status_code=400, detail=f"小表模板不存在: {small_template_path}")
+        template_path = tpl
+    else:
+        try:
+            template_path = Path(get_transfer_template_path(small_type))
+        except FileNotFoundError as exc:
+            if use_saved_template.lower() == "false":
+                raise HTTPException(status_code=400, detail="请提供小表模板路径") from exc
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    preview = doc_service.preview_monthly_groups(paths, month)
+    if not preview["groups"]:
+        raise HTTPException(status_code=400, detail="未识别到所选月份的大表文件")
+
+    if output_dir.strip():
+        target_dir = Path(output_dir.strip())
+        if not target_dir.is_dir():
+            raise HTTPException(status_code=400, detail="输出目录不存在")
+        out = target_dir
+    else:
+        out = Path(tempfile.mkdtemp(prefix="transfer-monthly-"))
+
+    out.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        "month": month,
+        "success": [],
+        "skipped": [],
+        "unrecognized_files": preview["unrecognized_files"],
+        "generated_files": [],
+    }
+
+    for group in preview["groups"]:
+        date_text = group["date"]
+        output_name = f"{small_type}_数据迁移_{date_text.replace('-', '.')}.docx"
+        output_path = out / output_name
+        result = await run_in_threadpool(
+            doc_service.process_multiple_tables,
+            group["files"],
+            str(template_path),
+            normalized_veg_names,
+            str(output_path),
+        )
+        generated_path = Path(result.get("output_file") or output_path)
+        if generated_path.exists():
+            manifest["success"].append({
+                "date": date_text,
+                "input_files": [Path(path).name for path in group["files"]],
+                "matched_count": result.get("matched_count", 0),
+                "written_count": result.get("written_count", 0),
+                "output_file": generated_path.name,
+            })
+            manifest["generated_files"].append(generated_path.name)
+        else:
+            manifest["skipped"].append({
+                "date": date_text,
+                "input_files": [Path(path).name for path in group["files"]],
+                "reason": result.get("message", "未生成输出文件"),
+            })
+
+    manifest["success_count"] = len(manifest["success"])
+    manifest["skipped_count"] = len(manifest["skipped"]) + len(manifest["unrecognized_files"])
+    manifest["message"] = (
+        f"月度数据迁移完成，成功 {manifest['success_count']} 天，"
+        f"跳过 {manifest['skipped_count']} 项"
+    )
+    (out / "处理结果清单.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    generated_files = sorted(path for path in out.iterdir() if path.is_file())
+    generated_docx = [path for path in generated_files if path.suffix.lower() == ".docx"]
+    if not generated_docx:
+        detail = manifest["skipped"][0]["reason"] if manifest["skipped"] else "没有生成任何月度数据迁移文件"
+        raise HTTPException(status_code=400, detail=detail)
+
+    if output_dir.strip():
+        return {
+            "success": True,
+            "message": manifest["message"],
+            "success_count": manifest["success_count"],
+            "failure_count": manifest["skipped_count"],
+            "output_dir": str(out),
+            "generated_files": [str(p) for p in generated_docx],
+            "manifest": manifest,
+        }
+
+    archive_path = create_zip_archive(out / f"数据迁移月度结果-{month}.zip", generated_files, arc_root=out)
+    return build_download_response(
+        archive_path,
+        media_type="application/zip",
+        extra_headers={
+            "X-Operation-Message": manifest["message"],
+            "X-Generated-Count": str(len(generated_docx)),
+            "X-Skipped-Count": str(manifest["skipped_count"]),
+        },
+    )
+
+
 @router.post("/find-files", response_model=BrowseResponse)
 async def find_docx_files(req: BrowseRequest):
     """List .doc/.docx files in a server-side directory."""
@@ -490,3 +666,22 @@ async def browse_directory(req: BrowseRequest):
     subdirs = sorted([e for e in entries if os.path.isdir(os.path.join(path, e))])
     files = sorted([e for e in entries if os.path.isfile(os.path.join(path, e))])
     return BrowseResponse(path=path, subdirs=subdirs, files=files)
+
+
+@router.post("/open-local")
+async def open_local_file(req: dict):
+    """在操作系统中打开本地文件（Windows: os.startfile）"""
+    file_path = (req.get("path") or "").strip()
+    if not file_path:
+        raise HTTPException(status_code=400, detail="路径不能为空")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="文件不存在")
+    try:
+        if os.name == "nt":
+            os.startfile(file_path)
+        else:
+            import subprocess
+            subprocess.Popen(["xdg-open", file_path])
+        return {"success": True, "message": f"已打开: {os.path.basename(file_path)}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"打开失败: {e}")

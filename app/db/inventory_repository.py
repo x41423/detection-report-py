@@ -50,17 +50,33 @@ class InventoryRepository:
         *,
         search: str = "",
         source_type: str | None = None,
+        direction: str | None = None,
+        date_from: str = "",
+        date_to: str = "",
     ) -> int:
         normalized_search = f"%{str(search or '').strip()}%"
+        where_parts = [
+            "(? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)",
+        ]
+        params: list[Any] = [normalized_search, normalized_search, normalized_search]
+
+        if source_type:
+            where_parts.append("tx.source_type = ?")
+            params.append(source_type)
+        if direction:
+            where_parts.append("tx.direction = ?")
+            params.append(direction)
+        if date_from.strip():
+            where_parts.append("tx.business_date >= ?")
+            params.append(date_from.strip())
+        if date_to.strip():
+            where_parts.append("tx.business_date <= ?")
+            params.append(date_to.strip())
+
+        where = " AND ".join(where_parts)
         row = query_one(
-            """
-            SELECT COUNT(*) AS cnt
-            FROM InventoryTransaction tx
-            JOIN Unit unit ON unit.id = tx.unit_id
-            WHERE (? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)
-              AND (? IS NULL OR tx.source_type = ?)
-            """,
-            (normalized_search, normalized_search, normalized_search, source_type, source_type),
+            f"SELECT COUNT(*) AS cnt FROM InventoryTransaction tx JOIN Unit unit ON unit.id = tx.unit_id WHERE {where}",
+            params,
         )
         return row["cnt"] if row else 0
 
@@ -71,34 +87,43 @@ class InventoryRepository:
         limit: int = 100,
         offset: int = 0,
         source_type: str | None = None,
+        direction: str | None = None,
+        date_from: str = "",
+        date_to: str = "",
     ) -> list[dict[str, Any]]:
         normalized_search = f"%{str(search or '').strip()}%"
+        where_parts = [
+            "(? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)",
+        ]
+        params: list[Any] = [normalized_search, normalized_search, normalized_search]
+
+        if source_type:
+            where_parts.append("tx.source_type = ?")
+            params.append(source_type)
+        if direction:
+            where_parts.append("tx.direction = ?")
+            params.append(direction)
+        if date_from.strip():
+            where_parts.append("tx.business_date >= ?")
+            params.append(date_from.strip())
+        if date_to.strip():
+            where_parts.append("tx.business_date <= ?")
+            params.append(date_to.strip())
+
+        where = " AND ".join(where_parts)
+        params.extend([limit, offset])
         return query(
-            """
-            SELECT
-                tx.id,
-                tx.veg_id,
-                tx.display_name,
-                tx.normalized_name,
-                tx.unit_id,
-                unit.name AS unit_name,
-                tx.direction,
-                tx.quantity_delta,
-                ABS(tx.quantity_delta) AS quantity,
-                tx.business_date,
-                tx.source_type,
-                tx.source_ref_id,
-                tx.note,
-                tx.created_at,
-                tx.updated_at
-            FROM InventoryTransaction tx
-            JOIN Unit unit ON unit.id = tx.unit_id
-            WHERE (? = '%%' OR tx.normalized_name LIKE ? OR tx.display_name LIKE ?)
-              AND (? IS NULL OR tx.source_type = ?)
-            ORDER BY tx.business_date DESC, tx.id DESC
-            LIMIT ? OFFSET ?
-            """,
-            (normalized_search, normalized_search, normalized_search, source_type, source_type, limit, offset),
+            f"""SELECT tx.id, tx.veg_id, tx.display_name, tx.normalized_name,
+                       tx.unit_id, unit.name AS unit_name,
+                       tx.direction, tx.quantity_delta, ABS(tx.quantity_delta) AS quantity,
+                       tx.business_date, tx.source_type, tx.source_ref_id,
+                       tx.note, tx.created_at, tx.updated_at
+                FROM InventoryTransaction tx
+                JOIN Unit unit ON unit.id = tx.unit_id
+                WHERE {where}
+                ORDER BY tx.business_date DESC, tx.id DESC
+                LIMIT ? OFFSET ?""",
+            params,
         )
 
     @staticmethod
@@ -416,3 +441,94 @@ class InventoryRepository:
 
         cursor.execute("INSERT INTO Unit (name) VALUES (?)", (unit_name,))
         return int(cursor.lastrowid)
+
+    # ------------------------------------------------------------------
+    # Step 3 — 库存扩展: 跨表只读查询
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def get_stock_alerts(*, threshold: float = 10.0, limit: int = 50) -> list[dict[str, Any]]:
+        """Return items whose available_quantity is <= threshold, sorted by urgency."""
+        return query(
+            """SELECT
+                tx.display_name,
+                tx.normalized_name,
+                u.name AS unit_name,
+                COALESCE(SUM(CASE WHEN tx.direction = 'IN'  THEN tx.quantity_delta ELSE 0 END), 0)
+                - COALESCE(SUM(CASE WHEN tx.direction = 'OUT' THEN tx.quantity_delta ELSE 0 END), 0)
+                AS available_quantity
+            FROM InventoryTransaction tx
+            JOIN Unit u ON u.id = tx.unit_id
+            GROUP BY tx.normalized_name
+            HAVING available_quantity <= ?
+            ORDER BY available_quantity ASC
+            LIMIT ?""",
+            (threshold, limit),
+        )
+
+    @staticmethod
+    def get_transaction_summary(
+        *, start_date: str | None = None, end_date: str | None = None, limit: int = 200
+    ) -> list[dict[str, Any]]:
+        """Return transaction list with supplier name joined from purchase records."""
+        clauses = []
+        params: list[Any] = []
+        if start_date:
+            clauses.append("tx.business_date >= ?")
+            params.append(start_date)
+        if end_date:
+            clauses.append("tx.business_date <= ?")
+            params.append(end_date)
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        return query(
+            f"""SELECT
+                tx.id,
+                tx.display_name,
+                tx.normalized_name,
+                u.name AS unit_name,
+                tx.direction,
+                tx.quantity_delta,
+                tx.business_date,
+                tx.source_type,
+                tx.note,
+                COALESCE(pin.order_no, prt.order_no, ord.order_no, '') AS related_order_no,
+                COALESCE(s.name, ord.merchant_name, '') AS supplier_name
+            FROM InventoryTransaction tx
+            JOIN Unit u ON u.id = tx.unit_id
+            LEFT JOIN PurchaseInItem pii ON pii.id = tx.source_ref_id AND tx.source_type = 'purchase_in'
+            LEFT JOIN PurchaseInRecord pin ON pin.id = pii.record_id
+            LEFT JOIN PurchaseReturnItem pri ON pri.id = tx.source_ref_id AND tx.source_type = 'purchase_return'
+            LEFT JOIN PurchaseReturnRecord prt ON prt.id = pri.record_id
+            LEFT JOIN OrderItem oi ON oi.id = tx.source_ref_id AND tx.source_type = 'purchase_outbound'
+            LEFT JOIN OrderRecord ord ON ord.id = oi.order_id
+            LEFT JOIN Supplier s ON s.id = COALESCE(pin.supplier_id, prt.supplier_id)
+            {where}
+            ORDER BY tx.business_date DESC, tx.id DESC
+            LIMIT ?""",
+            (*params, limit),
+        )
+
+    @staticmethod
+    def count_transaction_summary(*, start_date: str | None = None, end_date: str | None = None) -> int:
+        clauses = []
+        params: list[Any] = []
+        if start_date:
+            clauses.append("tx.business_date >= ?")
+            params.append(start_date)
+        if end_date:
+            clauses.append("tx.business_date <= ?")
+            params.append(end_date)
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        row = query_one(
+            f"""SELECT COUNT(*) AS cnt
+            FROM InventoryTransaction tx
+            LEFT JOIN PurchaseInItem pii ON pii.id = tx.source_ref_id AND tx.source_type = 'purchase_in'
+            LEFT JOIN PurchaseInRecord pin ON pin.id = pii.record_id
+            LEFT JOIN PurchaseReturnItem pri ON pri.id = tx.source_ref_id AND tx.source_type = 'purchase_return'
+            LEFT JOIN PurchaseReturnRecord prt ON prt.id = pri.record_id
+            LEFT JOIN OrderItem oi ON oi.id = tx.source_ref_id AND tx.source_type = 'purchase_outbound'
+            LEFT JOIN OrderRecord ord ON ord.id = oi.order_id
+            {where}""",
+            tuple(params),
+        )
+        return row["cnt"] if row else 0

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell page-shell--full">
     <PageHeader eyebrow="每日点货" title="按业务日期维护点货单" tone="green">
       <template #aside>
         <div class="hero-metric-grid">

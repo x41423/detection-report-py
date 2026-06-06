@@ -8,7 +8,7 @@ DailyIntakeCategory = Literal['vegetable', 'frozen', 'meat']
 DailyIntakeSource = Literal['manual', 'voice']
 DailyIntakeParseStatus = Literal['parsed', 'invalid']
 InventoryDirection = Literal['IN', 'OUT', 'ADJUST']
-InventorySourceType = Literal['daily_intake', 'manual_outbound', 'manual_adjust']
+InventorySourceType = Literal['daily_intake', 'manual_outbound', 'manual_adjust', 'purchase_in', 'purchase_return', 'purchase_outbound']
 
 
 class ConfigResponse(BaseModel):
@@ -206,6 +206,11 @@ class WeeklyPriceAliasUpsertRequest(BaseModel):
 
 class WeeklyPriceAliasDeleteRequest(BaseModel):
     source_name: str
+
+
+class WeeklyPricePasteRequest(BaseModel):
+    names: list[str]
+    prices: list[str]
 
 
 class WeeklyPriceExecuteResponse(BaseModel):
@@ -536,7 +541,7 @@ class InventoryTransactionResponse(BaseModel):
     quantity: float
     quantity_delta: float
     business_date: str
-    source_type: Literal['daily_intake', 'manual_outbound', 'manual_adjust']
+    source_type: Literal['daily_intake', 'manual_outbound', 'manual_adjust', 'purchase_in', 'purchase_return', 'purchase_outbound']
     source_ref_id: int | None = None
     target_quantity: float | None = None
     note: str = ''

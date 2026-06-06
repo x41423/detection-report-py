@@ -11,7 +11,28 @@ WEEKLY_QUOTE_DEFAULT_SUPPLIERS = (
     ("酱菜", 7, "highest", 1, 40),
     ("豆制品", 7, "highest", 1, 50),
 )
-WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS = (("斤", 10),)
+WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS = (
+    ("斤", 10),
+    ("公斤", 20),
+    ("千克", 30),
+    ("克", 40),
+    ("吨", 50),
+    ("件", 60),
+    ("箱", 70),
+    ("袋", 80),
+    ("瓶", 90),
+    ("包", 100),
+    ("桶", 110),
+    ("盒", 120),
+    ("条", 130),
+    ("个", 140),
+    ("把", 150),
+    ("捆", 160),
+    ("扎", 170),
+    ("罐", 180),
+    ("袋/件", 190),
+    ("板", 200),
+)
 
 
 MYSQL_SCHEMA_STATEMENTS = [
@@ -382,6 +403,108 @@ MYSQL_SCHEMA_STATEMENTS = [
         KEY idx_auth_audit_module_action_created (module, action, created_at DESC),
         CONSTRAINT fk_auth_audit_actor FOREIGN KEY (actor_user_id) REFERENCES auth_users(id) ON DELETE SET NULL,
         CONSTRAINT fk_auth_audit_target FOREIGN KEY (target_user_id) REFERENCES auth_users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    # ── P1.1 检测报告归档 ──
+    """CREATE TABLE IF NOT EXISTS InspectionReport (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        report_no VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(100) NOT NULL DEFAULT '',
+        file_url VARCHAR(500) NOT NULL DEFAULT '',
+        test_date VARCHAR(20) NOT NULL DEFAULT '',
+        valid_from VARCHAR(20) NOT NULL DEFAULT '',
+        valid_until VARCHAR(20) NOT NULL DEFAULT '',
+        supplier_id BIGINT DEFAULT 0,
+        submit_org VARCHAR(200) NOT NULL DEFAULT '',
+        test_org VARCHAR(200) NOT NULL DEFAULT '',
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        source VARCHAR(20) NOT NULL DEFAULT 'manual',
+        pesticide_task_id BIGINT DEFAULT 0,
+        uploaded_by BIGINT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_ir_report_no (report_no),
+        KEY idx_ir_supplier (supplier_id),
+        KEY idx_ir_status (status),
+        KEY idx_ir_test_date (test_date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS InspectionReportProduct (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        report_id BIGINT NOT NULL,
+        sku_id BIGINT NOT NULL DEFAULT 0,
+        product_id BIGINT NOT NULL DEFAULT 0,
+        batch VARCHAR(100) NOT NULL DEFAULT '',
+        KEY idx_irp_report (report_id),
+        KEY idx_irp_sku (sku_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS PriceMarkup (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL DEFAULT '',
+        rate DOUBLE NOT NULL DEFAULT 0,
+        scope VARCHAR(16) NOT NULL DEFAULT 'global',
+        scope_id BIGINT DEFAULT 0,
+        is_active TINYINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS SupplierProductPrice (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_id BIGINT NOT NULL,
+        product_id BIGINT NOT NULL,
+        price DOUBLE NOT NULL DEFAULT 0,
+        unit_name VARCHAR(32) DEFAULT '',
+        effective_from VARCHAR(16) DEFAULT '',
+        effective_to VARCHAR(16) DEFAULT '',
+        is_active TINYINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_spp_supplier (supplier_id),
+        KEY idx_spp_product (product_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS LossReport (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        report_no VARCHAR(32) NOT NULL DEFAULT '',
+        report_date VARCHAR(16) NOT NULL DEFAULT '',
+        report_type VARCHAR(12) NOT NULL DEFAULT 'loss',
+        warehouse_id BIGINT DEFAULT 0,
+        notes TEXT,
+        total_amount DOUBLE DEFAULT 0,
+        status VARCHAR(12) DEFAULT 'draft',
+        created_by VARCHAR(64) DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS LossReportItem (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        report_id BIGINT NOT NULL,
+        product_id BIGINT NOT NULL,
+        quantity DOUBLE NOT NULL DEFAULT 0,
+        unit_name VARCHAR(32) DEFAULT '',
+        reason VARCHAR(255) DEFAULT '',
+        unit_price DOUBLE DEFAULT 0,
+        amount DOUBLE DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_lri_report (report_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """CREATE TABLE IF NOT EXISTS OrderModification (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        order_id BIGINT NOT NULL,
+        order_no VARCHAR(32) NOT NULL DEFAULT '',
+        modifier_name VARCHAR(64) DEFAULT '',
+        summary TEXT,
+        status VARCHAR(12) DEFAULT 'pending',
+        reviewer_name VARCHAR(64) DEFAULT '',
+        review_comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_om_order (order_id),
+        KEY idx_om_status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
 ]

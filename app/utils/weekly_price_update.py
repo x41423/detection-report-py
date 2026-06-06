@@ -126,6 +126,277 @@ def preview_weekly_prices(
     return analysis
 
 
+def preview_from_paste(
+    template_path: str,
+    names: list[str],
+    prices: list[str],
+    weekly_price_aliases: dict[str, str] | None = None,
+    update_name_col: int = 1,
+    update_price_col: int = 6,
+    update_start_row: int = 2,
+) -> dict[str, Any]:
+    """预检：从粘贴的菜名和价格列表匹配模板。
+
+    Args:
+        template_path: 模板 Excel 文件路径（待更新报价表）
+        names: 菜名列表（每行一个）
+        prices: 价格列表（每行一个，与 names 一一对应）
+        weekly_price_aliases: 别名映射
+        update_name_col: 模板中菜名所在列索引（默认 1，即 B 列）
+        update_price_col: 模板中价格所在列索引（默认 6，即 G 列）
+        update_start_row: 数据起始行索引（默认 2，即第 3 行）
+    """
+    if not template_path or not os.path.exists(template_path):
+        raise FileNotFoundError(f"待更新报价表不存在: {template_path}")
+
+    update_df = _read_excel(template_path)
+
+    # 从粘贴数据构建参考索引
+    reference_entries, reference_candidate_map = _build_reference_index_from_paste(names, prices)
+
+    alias_map = _normalize_alias_map(weekly_price_aliases)
+
+    matched_items: list[dict[str, Any]] = []
+    row_updates: list[tuple[int, int, float]] = []
+    not_matched_rows: list[str] = []
+    warnings: list[str] = []
+    alias_hit_count = 0
+
+    for row_index in range(update_start_row, len(update_df)):
+        raw_name = update_df.iloc[row_index, update_name_col]
+        source_name = display_name(raw_name)
+        source_candidates = build_name_candidates(raw_name)
+        if not source_name or not source_candidates:
+            continue
+
+        direct_entry = _match_reference_entry(source_candidates, reference_candidate_map)
+        if direct_entry is not None:
+            new_price = direct_entry.price
+            old_price = _coerce_price(update_df.iloc[row_index, update_price_col])
+            matched_items.append(
+                {
+                    "name": source_name,
+                    "old_price": old_price,
+                    "new_price": new_price,
+                    "changed": old_price != new_price,
+                    "match_type": "exact",
+                }
+            )
+            row_updates.append((row_index, update_price_col, new_price))
+            continue
+
+        alias_target = alias_map.get(normalize_name(source_name))
+        if alias_target:
+            alias_entry = _match_reference_entry(
+                build_name_candidates(alias_target),
+                reference_candidate_map,
+            )
+            if alias_entry is not None:
+                new_price = alias_entry.price
+                old_price = _coerce_price(update_df.iloc[row_index, update_price_col])
+                matched_items.append(
+                    {
+                        "name": source_name,
+                        "old_price": old_price,
+                        "new_price": new_price,
+                        "changed": old_price != new_price,
+                        "match_type": "alias",
+                    }
+                )
+                row_updates.append((row_index, update_price_col, new_price))
+                alias_hit_count += 1
+                continue
+
+            warning = "已保存别名" + source_name + " -> " + alias_target + "在当前参考数据中找不到目标菜名，本次未应用。"
+            if warning not in warnings:
+                warnings.append(warning)
+
+        not_matched_rows.append(source_name)
+
+    unique_not_matched = list(dict.fromkeys(not_matched_rows))
+    suggested_matches = [
+        _build_suggested_match(source_name, reference_entries)
+        for source_name in unique_not_matched
+    ]
+
+    return {
+        "matched_count": len(matched_items),
+        "updated_count": len(matched_items),
+        "matched_items": matched_items,
+        "not_matched": unique_not_matched,
+        "not_matched_count": len(not_matched_rows),
+        "not_matched_unique_count": len(unique_not_matched),
+        "suggested_matches": suggested_matches,
+        "alias_hit_count": alias_hit_count,
+        "warnings": warnings,
+        "update_start_row": update_start_row,
+        "reference_start_row": 0,
+    }
+
+
+def execute_from_paste(
+    template_path: str,
+    names: list[str],
+    prices: list[str],
+    output_path: str,
+    weekly_price_aliases: dict[str, str] | None = None,
+    update_name_col: int = 1,
+    update_price_col: int = 6,
+    update_start_row: int = 2,
+) -> dict[str, Any]:
+    """执行：从粘贴的菜名和价格列表匹配模板并写入结果。
+
+    Args:
+        template_path: 模板 Excel 文件路径（待更新报价表）
+        names: 菜名列表
+        prices: 价格列表
+        output_path: 输出 Excel 文件路径
+        weekly_price_aliases: 别名映射
+        update_name_col: 模板中菜名所在列索引（默认 1，即 B 列）
+        update_price_col: 模板中价格所在列索引（默认 6，即 G 列）
+        update_start_row: 数据起始行索引（默认 2，即第 3 行）
+    """
+    if not template_path or not os.path.exists(template_path):
+        raise FileNotFoundError(f"待更新报价表不存在: {template_path}")
+
+    update_df = _read_excel(template_path)
+
+    # 从粘贴数据构建参考索引
+    reference_entries, reference_candidate_map = _build_reference_index_from_paste(names, prices)
+
+    alias_map = _normalize_alias_map(weekly_price_aliases)
+
+    matched_items: list[dict[str, Any]] = []
+    row_updates: list[tuple[int, int, float]] = []
+    not_matched_rows: list[str] = []
+    warnings: list[str] = []
+    alias_hit_count = 0
+
+    for row_index in range(update_start_row, len(update_df)):
+        raw_name = update_df.iloc[row_index, update_name_col]
+        source_name = display_name(raw_name)
+        source_candidates = build_name_candidates(raw_name)
+        if not source_name or not source_candidates:
+            continue
+
+        direct_entry = _match_reference_entry(source_candidates, reference_candidate_map)
+        if direct_entry is not None:
+            new_price = direct_entry.price
+            old_price = _coerce_price(update_df.iloc[row_index, update_price_col])
+            matched_items.append(
+                {
+                    "name": source_name,
+                    "old_price": old_price,
+                    "new_price": new_price,
+                    "changed": old_price != new_price,
+                    "match_type": "exact",
+                }
+            )
+            row_updates.append((row_index, update_price_col, new_price))
+            continue
+
+        alias_target = alias_map.get(normalize_name(source_name))
+        if alias_target:
+            alias_entry = _match_reference_entry(
+                build_name_candidates(alias_target),
+                reference_candidate_map,
+            )
+            if alias_entry is not None:
+                new_price = alias_entry.price
+                old_price = _coerce_price(update_df.iloc[row_index, update_price_col])
+                matched_items.append(
+                    {
+                        "name": source_name,
+                        "old_price": old_price,
+                        "new_price": new_price,
+                        "changed": old_price != new_price,
+                        "match_type": "alias",
+                    }
+                )
+                row_updates.append((row_index, update_price_col, new_price))
+                alias_hit_count += 1
+                continue
+
+            warning = "已保存别名" + source_name + " -> " + alias_target + "在当前参考数据中找不到目标菜名，本次未应用。"
+            if warning not in warnings:
+                warnings.append(warning)
+
+        not_matched_rows.append(source_name)
+
+    # 写入价格
+    if row_updates:
+        price_col_idx = row_updates[0][1]
+        col_label = update_df.columns[price_col_idx]
+        update_df[col_label] = update_df[col_label].astype(object)
+    for row_index, price_col, new_price in row_updates:
+        update_df.iloc[row_index, price_col] = new_price
+
+    # 写入输出文件
+    target_path, warning = _write_excel_with_fallback(
+        update_df=update_df,
+        target_path=output_path,
+        warning="",
+    )
+    if warning:
+        warnings.append(warning)
+
+    unique_not_matched = list(dict.fromkeys(not_matched_rows))
+
+    return {
+        "success": True,
+        "message": f"执行完成，已更新 {len(matched_items)} 条价格",
+        "matched_count": len(matched_items),
+        "updated_count": len(matched_items),
+        "matched_items": matched_items,
+        "not_matched": unique_not_matched,
+        "not_matched_count": len(not_matched_rows),
+        "not_matched_unique_count": len(unique_not_matched),
+        "alias_hit_count": alias_hit_count,
+        "warnings": warnings,
+        "output_path": target_path,
+        "backup_path": None,
+    }
+
+
+def _build_reference_index_from_paste(
+    names: list[str],
+    prices: list[str],
+) -> tuple[list[ReferenceEntry], dict[str, ReferenceEntry]]:
+    """从粘贴的菜名和价格列表构建参考索引。
+
+    Args:
+        names: 菜名列表（已清洗）
+        prices: 价格列表（与 names 一一对应）
+    """
+    entries: list[ReferenceEntry] = []
+    candidate_map: dict[str, ReferenceEntry] = {}
+
+    for name, price_str in zip(names, prices):
+        source_name = display_name(name)
+        if not source_name:
+            continue
+
+        price = _coerce_price(price_str)
+        if price is None:
+            continue
+
+        candidates = tuple(build_name_candidates(source_name))
+        if not candidates:
+            continue
+
+        entry = ReferenceEntry(
+            display_name=source_name,
+            normalized_name=normalize_name(source_name),
+            price=price,
+            candidates=candidates,
+        )
+        entries.append(entry)
+        for candidate in entry.candidates:
+            candidate_map.setdefault(candidate, entry)
+
+    return entries, candidate_map
+
+
 def update_weekly_prices(
     update_path: str,
     reference_path: str,
@@ -279,7 +550,7 @@ def _analyze_weekly_prices(
                 alias_hit_count += 1
                 continue
 
-            warning = f"已保存别名“{source_name} -> {alias_target}”在当前参考表中找不到目标菜名，本次未应用。"
+            warning = "已保存别名" + source_name + " -> " + alias_target + "在当前参考表中找不到目标菜名，本次未应用。"
             if warning not in warning_set:
                 warnings.append(warning)
                 warning_set.add(warning)
@@ -394,7 +665,15 @@ def _read_excel(path: str) -> pd.DataFrame:
         except ImportError as exc:
             raise ValueError("当前环境缺少 .xls 读取支持，请改用 .xlsx 文件") from exc
 
-    return pd.read_excel(path, header=None, engine="openpyxl")
+    # .xlsx / .xlsm
+    try:
+        return pd.read_excel(path, header=None, engine="openpyxl")
+    except Exception:
+        # 可能是 .xls 文件被错误命名为 .xlsx，尝试 xlrd
+        try:
+            return pd.read_excel(path, header=None, engine="xlrd")
+        except ImportError:
+            raise ValueError("无法读取该 Excel 文件，请确认文件格式为 .xlsx 或 .xls")
 
 
 def _detect_data_start_row(df: pd.DataFrame, name_col: int, price_col: int) -> int:

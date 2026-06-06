@@ -12,6 +12,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_DIR))
@@ -118,12 +119,31 @@ for module_name, prefix, tags in [
     ("backend.api.routes.config", "/api/config", ["配置"]),
     ("backend.api.routes.daily_intake", "/api/daily-intake", ["每日点货"]),
     ("backend.api.routes.inventory", "/api/inventory", ["库存管理"]),
+    ("backend.api.routes.inventory_report", "/api/inventory", ["库存管理"]),
+    ("backend.api.routes.inspection_report", "/api/inspection-report", ["检测报告"]),
     ("backend.api.routes.transfer", "/api/transfer", ["数据迁移"]),
     ("backend.api.routes.pesticide", "/api/pesticide", ["农残检测"]),
     ("backend.api.routes.smart_detection", "/api/pesticide", ["农残检测-智能"]),
+    ("backend.api.routes.supplier", "/api/supplier", ["供应商管理"]),
+    ("backend.api.routes.purchase", "/api/purchase", ["采购管理"]),
+    ("backend.api.routes.order", "/api/order", ["订单管理"]),
+    ("backend.api.routes.product", "/api/product", ["商品库"]),
+    ("backend.api.routes.quotation", "/api/quotation", ["报价单管理"]),
+    ("backend.api.routes.settlement", "/api/settlement", ["供应商结算"]),
+    ("backend.api.routes.dashboard", "/api/dashboard", ["数据驾驶舱"]),
+    ("backend.api.routes.product_analysis", "/api/dashboard", ["数据驾驶舱"]),
+    ("backend.api.routes.price_lock", "/api/price-lock", ["营销工具"]),
+    ("backend.api.routes.price_markup", "/api/price-markup", ["营销工具"]),
+    ("backend.api.routes.agreement_price", "/api/agreement-price", ["营销工具"]),
+    ("backend.api.routes.loss_report", "/api/loss-report", ["质量报告"]),
+    ("backend.api.routes.order_modification", "/api/order-modification", ["订单"]),
+    ("backend.api.routes.future_reserved", "/api/coupon", ["优惠券"]),
+    ("backend.api.routes.future_reserved", "/api/delivery", ["配送管理"]),
+    ("backend.api.routes.future_reserved", "/api/sorting", ["分拣管理"]),
     ("backend.api.routes.weekly_price", "/api/weekly-price", ["每周报价"]),
     ("backend.funasr_lab.router", "", ["FunASR 实验"]),
     ("backend.api.routes.mimo", "/api", ["MiMo"]),
+    ("backend.api.routes.storage", "", ["文件存储"]),
 ]:
     router = _load_router(module_name)
     if router is None:
@@ -141,6 +161,11 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error"},
     )
+
+
+UPLOADS_DIR = ROOT_DIR / "data" / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
 @app.get("/")

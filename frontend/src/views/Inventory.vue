@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell page-shell--full">
     <PageHeader eyebrow="库存管理" title="入库 / 出库 / 盘点" tone="green">
       <template #actions>
         <div class="action-cluster">

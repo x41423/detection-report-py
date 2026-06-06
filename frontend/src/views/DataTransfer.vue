@@ -42,263 +42,135 @@
 
     <div v-if="workflowMode === 'single'" class="workbench-grid">
       <div class="panel-stack panel-stack--rail">
-        <el-card shadow="never" class="panel-card panel-card--emphasis">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">工作模式</div>
-              <h2 class="panel-heading__title">上传 / 路径锁定</h2>
+        <!-- 文件来源（统一面板） -->
+        <FileSourcePanel
+          heading="数据源配置"
+          :modes="dtModes"
+          :model-value="usePathMode ? 'path-lock' : 'upload'"
+          path-lock-value="path-lock"
+          :slots="dtBigSlots"
+          :paths="dtBigPaths"
+          :locked-files="dtBigLockedFiles"
+          :path-locked="foundBigFiles.length > 0"
+          :locking="findingFiles"
+          :lock-label="'发现大表文件'"
+          :can-lock="!!bigDir"
+          :show-output-dir="usePathMode"
+          :output-dir="outputDir"
+          @update:model-value="(v: string) => onSwitchMode(v === 'path-lock')"
+          @browse="onDtBrowse"
+          @lock="onFindTransferFiles"
+          @browse-output="onBrowseOutputDir"
+        >
+          <!-- 上传模式：已上传文件 + 分析 + 小表类型 + 模板 -->
+          <template v-if="!usePathMode" #extra>
+            <div class="action-cluster stretch" style="margin-top: 12px">
+              <el-button type="primary" :icon="Search" @click="onDetect">分析已上传大表</el-button>
+              <span class="soft-note">分析不会写文件，只提取品种用于后续预览。</span>
             </div>
-          </div>
-          <el-radio-group :model-value="usePathMode" @change="onSwitchMode">
-            <el-radio-button :value="false">文件上传</el-radio-button>
-            <el-radio-button :value="true">路径锁定</el-radio-button>
-          </el-radio-group>
-        </el-card>
 
-        <!-- ===== 上传模式 ===== -->
-        <template v-if="!usePathMode">
-        <el-card shadow="never" class="panel-card panel-card--emphasis">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">步骤 01</div>
-              <h2 class="panel-heading__title">上传大表并分析品种</h2>
-              <p class="panel-heading__description">
-                支持一次上传多份大表文档。分析完成后，右侧会刷新品种匹配预览，便于继续整理菜名。
-              </p>
+            <div class="pill-list">
+              <el-tag v-for="file in detectedFiles" :key="file" type="success" effect="plain" round>
+                {{ getFileName(file) }}
+              </el-tag>
+              <span v-if="detectedFiles.length === 0" class="soft-note">还没有上传大表文件。</span>
             </div>
-          </div>
 
-          <el-form label-position="top">
-            <el-form-item label="大表文件（可多选）">
-              <el-input v-model="bigTableSummary" placeholder="请选择大表文件" readonly>
+            <el-divider />
+
+            <div class="field-grid two-up">
+              <el-form label-position="top">
+                <el-form-item label="小表类型">
+                  <el-select v-model="smallType" placeholder="选择小表类型" @change="onSmallTypeChange">
+                    <el-option v-for="type in smallTypes" :key="type" :label="type" :value="type" />
+                  </el-select>
+                </el-form-item>
+              </el-form>
+              <el-form label-position="top">
+                <el-form-item label="模板文件">
+                  <el-input :model-value="templatePath || smallTemplateName" placeholder="请选择模板文件" readonly>
+                    <template #append>
+                      <el-button @click="onBrowseTemplateFileAction">浏览</el-button>
+                    </template>
+                  </el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+          </template>
+
+          <!-- 路径锁定模式：发现文件 + 勾选 + 分析 + 模板管理 -->
+          <template v-else #extra>
+            <div class="action-cluster stretch" style="margin-top: 8px">
+              <el-button :disabled="selectedBigFileList.length === 0" @click="onAnalyzePathVarieties">分析已选大表品种</el-button>
+            </div>
+
+            <div v-if="foundBigFiles.length > 0" class="pill-list" style="margin-top: 12px; max-height: 200px; overflow-y: auto">
+              <div style="margin-bottom: 6px">
+                <el-button size="small" @click="toggleSelectAll">{{ allSelected ? '取消全选' : '全选' }}</el-button>
+                <span class="soft-note" style="margin-left: 8px">({{ selectedBigFileList.length }} / {{ foundBigFiles.length }})</span>
+              </div>
+              <el-checkbox
+                v-for="file in foundBigFiles"
+                :key="file"
+                :model-value="selectedBigFilePaths.has(bigDir + '/' + file)"
+                :label="file"
+                size="small"
+                @change="toggleBigFileSelection(bigDir + '/' + file)"
+              />
+            </div>
+          </template>
+
+          <!-- 模板管理（路径锁定模式专用） -->
+          <template v-if="usePathMode" #template-actions>
+            <el-divider />
+
+            <div class="field-grid two-up">
+              <el-form label-position="top">
+                <el-form-item label="小表类型">
+                  <el-select v-model="smallType" placeholder="选择小表类型" @change="onSmallTypeChange">
+                    <el-option v-for="type in smallTypes" :key="type" :label="type" :value="type" />
+                  </el-select>
+                </el-form-item>
+              </el-form>
+              <div class="summary-card">
+                <span class="summary-card__label">已保存模板</span>
+                <span class="summary-card__value">{{ currentSavedTemplateReady ? '已配置' : '未保存' }}</span>
+                <span class="summary-card__note">{{ currentSavedTemplate?.filename || '请先保存' }}</span>
+              </div>
+            </div>
+
+            <el-radio-group :model-value="useSavedTemplate" @change="onUseSavedTemplate" style="margin: 12px 0">
+              <el-radio-button :value="true">使用已保存模板</el-radio-button>
+              <el-radio-button :value="false">浏览选择模板文件</el-radio-button>
+            </el-radio-group>
+
+            <div v-if="!useSavedTemplate" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px">
+              <el-input :model-value="templatePath" placeholder="点击右侧浏览" readonly style="flex: 1">
                 <template #append>
-                  <el-button @click="triggerBigTablePicker">选择文件</el-button>
+                  <el-button @click="onBrowseTemplatePath">浏览</el-button>
                 </template>
               </el-input>
-            </el-form-item>
-          </el-form>
+            </div>
 
-          <div class="action-cluster stretch">
-            <el-button type="primary" :icon="Search" @click="onDetect">
-              分析已上传大表
-            </el-button>
-            <span class="soft-note">分析不会写文件，只提取品种用于后续预览。</span>
-          </div>
+            <div class="action-cluster">
+              <el-button :loading="uploadingTemplate" @click="onBrowseSavedTemplateFileAction">保存当前类型模板</el-button>
+              <span v-if="templatePath" class="soft-note">已选：{{ getFileName(templatePath) }}</span>
+              <span v-else-if="useSavedTemplate && currentSavedTemplateReady" class="soft-note">将使用已保存模板</span>
+            </div>
+          </template>
+        </FileSourcePanel>
 
-          <div class="status-strip">
-            <span>已上传文件数：{{ detectedFiles.length }}</span>
-            <span>可预览品种：{{ varieties.length }}</span>
-          </div>
+        <div class="status-strip">
+          <span>已上传文件数：{{ detectedFiles.length }}</span>
+          <span>可预览品种：{{ varieties.length }}</span>
+        </div>
 
-          <div class="pill-list">
-            <el-tag
-              v-for="file in detectedFiles"
-              :key="file"
-              type="success"
-              effect="plain"
-              round
-            >
-              {{ getFileName(file) }}
-            </el-tag>
-            <span v-if="detectedFiles.length === 0" class="soft-note">
-              还没有上传大表文件。
-            </span>
-          </div>
-        </el-card>
-
+        <!-- 菜名输入 -->
         <el-card shadow="never" class="panel-card">
           <div class="panel-heading">
             <div>
-              <div class="panel-heading__eyebrow">步骤 02</div>
-              <h2 class="panel-heading__title">上传模板并确认类型</h2>
-              <p class="panel-heading__description">
-                模板类型会参与输出文件命名。模板文件改为直接上传，不再依赖服务端磁盘路径。
-              </p>
-            </div>
-          </div>
-
-          <div class="field-grid two-up">
-            <el-form label-position="top">
-              <el-form-item label="小表类型">
-                <el-select v-model="smallType" placeholder="选择小表类型" @change="onSmallTypeChange">
-                  <el-option v-for="type in smallTypes" :key="type" :label="type" :value="type" />
-                </el-select>
-              </el-form-item>
-            </el-form>
-
-            <el-form label-position="top">
-              <el-form-item label="模板文件">
-                <el-input v-model="smallTemplateName" placeholder="请选择模板文件" readonly>
-                  <template #append>
-                    <el-button @click="triggerTemplatePicker">选择文件</el-button>
-                  </template>
-                </el-input>
-              </el-form-item>
-            </el-form>
-          </div>
-        </el-card>
-        </template>
-
-        <!-- ===== 路径锁定模式 ===== -->
-        <template v-else>
-        <el-card shadow="never" class="panel-card panel-card--emphasis">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">步骤 01 · 路径锁定</div>
-              <h2 class="panel-heading__title">浏览目录，发现大表文件</h2>
-              <p class="panel-heading__description">
-                浏览服务端目录，自动发现其中的 .doc / .docx 大表文件，勾选需要处理的项目。
-              </p>
-            </div>
-          </div>
-
-          <div class="field-grid two-up">
-            <el-form label-position="top">
-              <el-form-item label="大表目录">
-                <el-input :model-value="bigDir" placeholder="点击右侧浏览" readonly>
-                  <template #append>
-                    <el-button @click="onBrowseBigDir">浏览</el-button>
-                  </template>
-                </el-input>
-              </el-form-item>
-            </el-form>
-            <div class="summary-card">
-              <span class="summary-card__label">已发现</span>
-              <span class="summary-card__value">{{ foundBigFiles.length }}</span>
-              <span class="summary-card__note">{{ foundBigFiles.length ? '已勾选 ' + selectedBigFileList.length + ' 个' : '等待发现' }}</span>
-            </div>
-          </div>
-
-          <div class="action-cluster stretch">
-            <el-button
-              type="primary"
-              :loading="findingFiles"
-              @click="onFindTransferFiles"
-            >
-              发现大表文件
-            </el-button>
-            <el-button
-              :disabled="selectedBigFileList.length === 0"
-              @click="onAnalyzePathVarieties"
-            >
-              分析已选大表品种
-            </el-button>
-          </div>
-
-          <div
-            v-if="foundBigFiles.length > 0"
-            class="pill-list"
-            style="margin-top: 12px; max-height: 200px; overflow-y: auto"
-          >
-            <div style="margin-bottom: 6px">
-              <el-button size="small" @click="toggleSelectAll">
-                {{ allSelected ? '取消全选' : '全选' }}
-              </el-button>
-              <span class="soft-note" style="margin-left: 8px">
-                ({{ selectedBigFileList.length }} / {{ foundBigFiles.length }})
-              </span>
-            </div>
-            <el-checkbox
-              v-for="file in foundBigFiles"
-              :key="file"
-              :model-value="selectedBigFilePaths.has(bigDir + '/' + file)"
-              :label="file"
-              size="small"
-              @change="toggleBigFileSelection(bigDir + '/' + file)"
-            />
-            <div v-if="foundBigFiles.length === 0" class="soft-note">
-              还没有发现大表文件。
-            </div>
-          </div>
-
-          <div class="status-strip">
-            <span>已发现：{{ foundBigFiles.length }} 个</span>
-            <span>已勾选：{{ selectedBigFileList.length }} 个</span>
-            <span>品种：{{ varieties.length }}</span>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="panel-card">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">步骤 02 · 路径锁定</div>
-              <h2 class="panel-heading__title">选择小表模板</h2>
-              <p class="panel-heading__description">
-                通过目录浏览器选择服务端小表模板文件，或使用已保存模板。
-              </p>
-            </div>
-          </div>
-
-          <div class="field-grid two-up">
-            <el-form label-position="top">
-              <el-form-item label="小表类型">
-                <el-select v-model="smallType" placeholder="选择小表类型" @change="onSmallTypeChange">
-                  <el-option v-for="type in smallTypes" :key="type" :label="type" :value="type" />
-                </el-select>
-              </el-form-item>
-            </el-form>
-            <div class="summary-card">
-              <span class="summary-card__label">已保存模板</span>
-              <span class="summary-card__value">{{ currentSavedTemplateReady ? '已配置' : '未保存' }}</span>
-              <span class="summary-card__note">{{ currentSavedTemplate?.filename || '请先保存' }}</span>
-            </div>
-          </div>
-
-          <el-radio-group :model-value="useSavedTemplate" @change="onUseSavedTemplate" style="margin-bottom: 12px">
-            <el-radio-button :value="true">使用已保存模板</el-radio-button>
-            <el-radio-button :value="false">浏览选择模板文件</el-radio-button>
-          </el-radio-group>
-
-          <div v-if="!useSavedTemplate" style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px">
-            <el-input :model-value="templatePath" placeholder="点击右侧浏览" readonly style="flex: 1">
-              <template #append>
-                <el-button @click="onBrowseTemplatePath">浏览</el-button>
-              </template>
-            </el-input>
-          </div>
-
-          <div class="action-cluster">
-            <el-button :loading="uploadingTemplate" @click="triggerSavedTemplatePicker">
-              保存当前类型模板
-            </el-button>
-            <span v-if="templatePath" class="soft-note">已选：{{ getFileName(templatePath) }}</span>
-            <span v-else-if="useSavedTemplate && currentSavedTemplateReady" class="soft-note">将使用已保存模板</span>
-          </div>
-        </el-card>
-        </template>
-
-        <el-card v-if="usePathMode" shadow="never" class="panel-card">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">步骤 03 · 路径锁定</div>
-              <h2 class="panel-heading__title">输出目录</h2>
-              <p class="panel-heading__description">
-                文件将直接保存到选定的服务端目录，不再弹下载。
-              </p>
-            </div>
-          </div>
-          <el-form label-position="top">
-            <el-form-item label="输出路径">
-              <el-input :model-value="outputDir" placeholder="点击右侧浏览选择输出目录" readonly>
-                <template #append>
-                  <el-button @click="onBrowseOutputDir">浏览</el-button>
-                </template>
-              </el-input>
-            </el-form-item>
-          </el-form>
-          <div v-if="outputDir" class="soft-note">
-            输出文件将保存到：{{ outputDir }}
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="panel-card">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">步骤 {{ usePathMode ? '04' : '03' }}</div>
+              <div class="panel-heading__eyebrow">菜名输入</div>
               <h2 class="panel-heading__title">整理待写入菜名</h2>
-              <p class="panel-heading__description">
-                支持逗号或换行分隔。去重后会同步更新匹配预览，方便确认覆盖范围。
-              </p>
             </div>
           </div>
 
@@ -306,7 +178,7 @@
             <el-input
               v-model="vegText"
               type="textarea"
-              :rows="6"
+              :rows="5"
               placeholder="输入菜名，支持逗号或换行分隔"
               @input="onVegInput"
             />
@@ -324,15 +196,13 @@
         </el-card>
       </div>
 
+      <!-- ===== 右栏：执行 + 预览 + 日志 ===== -->
       <div class="panel-stack">
         <el-card shadow="never" class="panel-card">
           <div class="panel-heading">
             <div>
-              <div class="panel-heading__eyebrow">输出</div>
+              <div class="panel-heading__eyebrow">执行</div>
               <h2 class="panel-heading__title">执行并下载</h2>
-              <p class="panel-heading__description">
-                执行后会直接下载生成的小表文档，不再先写到服务端指定目录。
-              </p>
             </div>
           </div>
 
@@ -343,27 +213,8 @@
             <el-button @click="resetActionArea">重置执行区</el-button>
           </div>
 
-          <div class="helper-list" style="margin-top: 16px">
-            <div class="helper-list__item">
-              <div class="helper-list__dot" />
-              <div class="helper-list__text">先确认模板和菜名，再执行写入，避免把内容写进错误模板。</div>
-            </div>
-            <div class="helper-list__item">
-              <div class="helper-list__dot" />
-              <div class="helper-list__text">如果大表刚更新，建议先重新分析一次，再看品种预览和下载结果。</div>
-            </div>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="panel-card">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">快照</div>
-              <h2 class="panel-heading__title">当前摘要</h2>
-            </div>
-          </div>
-
-          <div class="summary-grid">
+          <!-- 摘要快照（内联到执行卡片） -->
+          <div class="summary-grid" style="margin-top: 16px">
             <div class="summary-card">
               <span class="summary-card__label">大表文件</span>
               <span class="summary-card__value">{{ detectedFiles.length }}</span>
@@ -410,18 +261,17 @@
     </div>
 
     <div v-else class="workbench-grid">
+      <!-- 月度批量左栏：合并为1个卡片 -->
       <div class="panel-stack panel-stack--rail">
         <el-card shadow="never" class="panel-card panel-card--emphasis">
           <div class="panel-heading">
             <div>
-              <div class="panel-heading__eyebrow">模板库</div>
-              <h2 class="panel-heading__title">保存小表模板</h2>
-              <p class="panel-heading__description">
-                月度批量会按当前小表类型复用已保存模板，后续只需上传当月大表。
-              </p>
+              <div class="panel-heading__eyebrow">月度配置</div>
+              <h2 class="panel-heading__title">月度批量数据迁移</h2>
             </div>
           </div>
 
+          <!-- 模板管理 -->
           <div class="field-grid two-up">
             <el-form label-position="top">
               <el-form-item label="小表类型">
@@ -437,24 +287,13 @@
             </div>
           </div>
 
-          <div class="action-cluster" style="margin-top: 16px">
-            <el-button :loading="uploadingTemplate" @click="triggerSavedTemplatePicker">
-              保存当前类型模板
-            </el-button>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="panel-card">
-          <div class="panel-heading">
-            <div>
-              <div class="panel-heading__eyebrow">月度大表</div>
-              <h2 class="panel-heading__title">上传当月全部大表</h2>
-              <p class="panel-heading__description">
-                系统会按文件名日期自动分组，支持同一天多个分页大表。
-              </p>
-            </div>
+          <div class="action-cluster">
+            <el-button :loading="uploadingTemplate" @click="onBrowseSavedTemplateFileAction">保存当前类型模板</el-button>
           </div>
 
+          <el-divider />
+
+          <!-- 月度大表 + 菜名 -->
           <div class="field-grid two-up">
             <el-form label-position="top">
               <el-form-item label="处理月份">
@@ -469,9 +308,9 @@
             </el-form>
             <el-form label-position="top">
               <el-form-item label="当月大表文件">
-                <el-input v-model="monthlyTableSummary" placeholder="请选择当月大表文件" readonly>
+                <el-input :model-value="monthlyTablePaths.length ? monthlyTablePaths.join(' / ') : monthlyTableSummary" placeholder="请选择当月大表文件" readonly>
                   <template #append>
-                    <el-button @click="triggerMonthlyTablePicker">选择文件</el-button>
+                    <el-button @click="onBrowseMonthlyTableFile">浏览</el-button>
                   </template>
                 </el-input>
               </el-form-item>
@@ -482,7 +321,7 @@
             <el-input
               v-model="vegText"
               type="textarea"
-              :rows="6"
+              :rows="5"
               placeholder="输入本月需要写入小表的菜名，支持逗号或换行分隔"
               @input="onVegInput"
             />
@@ -561,64 +400,27 @@
       </div>
     </div>
 
-    <DirBrowser ref="dirBrowserRef" />
-
-    <input
-      ref="bigTableInputRef"
-      type="file"
-      accept=".doc,.docx"
-      multiple
-      style="display: none"
-      @change="handleBigTableChange"
-    />
-    <input
-      ref="templateInputRef"
-      type="file"
-      accept=".doc,.docx"
-      style="display: none"
-      @change="handleTemplateChange"
-    />
-    <input
-      ref="monthlyTableInputRef"
-      type="file"
-      accept=".doc,.docx"
-      multiple
-      style="display: none"
-      @change="handleMonthlyTableChange"
-    />
-    <input
-      ref="savedTemplateInputRef"
-      type="file"
-      accept=".doc,.docx"
-      style="display: none"
-      @change="handleSavedTemplateChange"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { CircleCheck, Search, VideoPlay } from '@element-plus/icons-vue'
 
 import PageHeader from '../components/PageHeader.vue'
 import StatusLog from '../components/StatusLog.vue'
 import VarietyPreview from '../components/VarietyPreview.vue'
-import DirBrowser from '../components/DirBrowser.vue'
 import { useDataTransferWorkflow } from '../features/data-transfer/composables/useDataTransferWorkflow'
-import type { DirBrowserHandle } from '../features/shared/workflow'
+import FileSourcePanel from '../components/FileSourcePanel.vue'
 
 const statusLogRef = ref<InstanceType<typeof StatusLog>>()
-const dirBrowserRef = ref<DirBrowserHandle>()
-const bigTableInputRef = ref<HTMLInputElement>()
-const templateInputRef = ref<HTMLInputElement>()
-const monthlyTableInputRef = ref<HTMLInputElement>()
-const savedTemplateInputRef = ref<HTMLInputElement>()
 
 const {
   aliasesMap,
   allSelected,
   bigDir,
   bigTableSummary,
+  bigTablePaths,
   clearVegInput,
   currentSavedTemplate,
   currentSavedTemplateReady,
@@ -634,11 +436,16 @@ const {
   monthlyMonth,
   monthlyPreviewing,
   monthlyTableFiles,
+  monthlyTablePaths,
   monthlyTableSummary,
   monthlyUnrecognizedFiles,
   onAnalyzePathVarieties,
   onBrowseBigDir,
+  onBrowseBigTableFiles,
+  onBrowseMonthlyTableFiles,
   onBrowseOutputDir,
+  onBrowseSavedTemplateFile,
+  onBrowseTemplateFile,
   onBrowseTemplatePath,
   onDedup,
   onDetect,
@@ -655,16 +462,12 @@ const {
   selectedBigFileList,
   selectedBigFilePaths,
   selectedVegNames,
-  setBigTableFiles,
-  setMonthlyTableFiles,
-  setSmallTemplateFile,
   smallTemplateName,
   smallType,
   smallTypes,
   templatePath,
   toggleBigFileSelection,
   toggleSelectAll,
-  uploadTransferTemplate,
   uploadingTemplate,
   usePathMode,
   useSavedTemplate,
@@ -672,46 +475,41 @@ const {
   vegStatus,
   vegText,
   workflowMode,
-} = useDataTransferWorkflow(statusLogRef, dirBrowserRef)
+} = useDataTransferWorkflow(statusLogRef)
 
-function triggerBigTablePicker() {
-  bigTableInputRef.value?.click()
+// FileSourcePanel integration
+const dtModes = [
+  { value: 'upload', label: '文件上传' },
+  { value: 'path-lock', label: '路径锁定' },
+]
+const dtBigSlots = [{ key: 'big', label: '大表文件' }]
+const dtBigPaths = computed(() => (usePathMode ? { big: bigDir.value || '' } : { big: bigTablePaths.value.join(' / ') }))
+const dtBigLockedFiles = computed(() => [
+  { key: 'big', label: '大表文件', path: selectedBigFileList.value.join(' / ') || `${foundBigFiles.value.length} 个文件` },
+])
+
+function onDtBrowse(_key: string) {
+  if (usePathMode.value) {
+    onBrowseBigDir()
+  } else {
+    onBrowseBigTableFiles()
+  }
 }
 
-function triggerTemplatePicker() {
-  templateInputRef.value?.click()
+async function onBrowseBigTableFile() {
+  await onBrowseBigTableFiles()
 }
 
-function triggerMonthlyTablePicker() {
-  monthlyTableInputRef.value?.click()
+async function onBrowseTemplateFileAction() {
+  await onBrowseTemplateFile()
 }
 
-function triggerSavedTemplatePicker() {
-  savedTemplateInputRef.value?.click()
+async function onBrowseMonthlyTableFile() {
+  await onBrowseMonthlyTableFiles()
 }
 
-function handleBigTableChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  setBigTableFiles(input.files)
-  input.value = ''
-}
-
-function handleTemplateChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  setSmallTemplateFile(input.files)
-  input.value = ''
-}
-
-function handleMonthlyTableChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  setMonthlyTableFiles(input.files)
-  input.value = ''
-}
-
-function handleSavedTemplateChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  void uploadTransferTemplate(input.files)
-  input.value = ''
+async function onBrowseSavedTemplateFileAction() {
+  await onBrowseSavedTemplateFile()
 }
 </script>
 

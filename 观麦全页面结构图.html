@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观麦业务平台 - 全页面结构图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+.sb{width:320px;min-width:320px;background:#001529;color:#fff;overflow-y:auto;display:flex;flex-direction:column}
+.sb-h{padding:16px;background:#002140;border-bottom:1px solid #003366}
+.sb-h h2{font-size:18px;margin-bottom:4px}
+.sb-h .info{font-size:12px;color:#8c8c8c}
+.sb-h .stat{margin-top:8px;font-size:13px;color:#1890ff}
+.sb-search{padding:8px 12px}
+.sb-search input{width:100%;padding:6px 10px;border:1px solid #003366;border-radius:4px;background:#002140;color:#fff;font-size:13px;outline:none}
+.sb-search input::placeholder{color:#555}
+.nav{flex:1;overflow-y:auto;padding:4px 0}
+.ms{margin:2px 0}
+.ms-h{padding:8px 16px;cursor:pointer;display:flex;align-items:center;font-size:14px;transition:background .2s;user-select:none}
+.ms-h:hover{background:#002c52}
+.ms-h .ico{width:20px;text-align:center;margin-right:8px;font-size:16px}
+.ms-h .arrow{transition:transform .2s;font-size:10px;margin-left:auto}
+.ms.open .ms-h .arrow{transform:rotate(90deg)}
+.ms-c{display:none;padding-left:12px}
+.ms.open .ms-c{display:block}
+.ml{padding:6px 16px 6px 40px;cursor:pointer;font-size:13px;color:#b0b0b0;transition:all .2s;border-left:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ml:hover{color:#fff;background:#002c52}
+.ml.active{color:#1890ff;border-left-color:#1890ff;background:#001d33}
+.ml .ok{color:#52c41a;font-size:10px;margin-left:4px}
+.main{flex:1;overflow-y:auto;padding:24px}
+.topbar{background:#fff;padding:16px 20px;border-radius:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.topbar h1{font-size:22px;color:#001529}
+.topbar .bc{font-size:13px;color:#888;margin-top:4px}
+.card{background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.ch{padding:12px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.cb{padding:16px 20px}
+.badge{font-size:12px;background:#1890ff;color:#fff;padding:2px 8px;border-radius:10px;margin-left:8px}
+.fr{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.tag{font-size:12px;padding:4px 10px;background:#f5f5f5;border:1px solid #d9d9d9;border-radius:4px;color:#555}
+.tag.em{color:#ff4d4f;border-color:#ffccc7;background:#fff2f0}
+.btn{font-size:13px;padding:4px 14px;border-radius:4px;border:1px solid #d9d9d9;background:#fff;cursor:default;color:#333}
+.btn.pr{background:#1890ff;color:#fff;border-color:#1890ff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #f0f0f0}
+th{background:#fafafa;color:#555;font-weight:500}
+.info-box{padding:40px;text-align:center;color:#888}
+.info-box b{display:block;font-size:16px;margin-bottom:8px;color:#333}
+.info-box .rt{font-size:12px;color:#999;margin-top:4px}
+.info-box .rt code{background:#f5f5f5;padding:2px 6px;border-radius:3px}
+.em{text-align:center;padding:24px;color:#bbb;font-size:14px}
+.pg{display:flex;gap:4px;align-items:center;font-size:13px;color:#888;margin-top:8px}
+.pg span{padding:4px 8px;border:1px solid #d9d9d9;border-radius:4px;background:#fff}
+.pg span.act{color:#1890ff;border-color:#1890ff}
+/* Module colors */
+.ms-h.m0{border-left:3px solid #1890ff}.ms-h.m1{border-left:3px solid #52c41a}.ms-h.m2{border-left:3px solid #faad14}.ms-h.m3{border-left:3px solid #f5222d}.ms-h.m4{border-left:3px solid #722ed1}.ms-h.m5{border-left:3px solid #13c2c2}.ms-h.m6{border-left:3px solid #eb2f96}.ms-h.m7{border-left:3px solid #fa8c16}.ms-h.m8{border-left:3px solid #a0d911}.ms-h.m9{border-left:3px solid #2f54eb}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sb">
+  <div class="sb-h">
+    <h2>🛒 观麦业务平台</h2>
+    <div class="info">杭州滨鲜食品 T173960</div>
+    <div class="stat">已抓取 <span id="capCount">0</span> 页 / 共 <span id="totalCount">0</span> 路由</div>
+  </div>
+  <div class="sb-search"><input id="searchInput" placeholder="搜索页面..." oninput="filterNav()"></div>
+  <div class="nav" id="navTree"></div>
+</div>
+
+<!-- Main -->
+<div class="main" id="mainContent">
+  <div class="topbar">
+    <h1 id="pageTitle">选择左侧页面查看结构</h1>
+    <div class="bc" id="pageBreadcrumb"></div>
+  </div>
+  <div id="pageDetail"></div>
+</div>
+
+<script>
+// ============================
+// DATA: Crawled Pages
+// ============================
+const PAGES = {
+  "merchandise/manage/list": {
+    title: "商品库", bc: ["商品", "商品管理", "商品库"],
+    th: ["商品图片", "商品", "分类", "销售规格数(上架/全部)", "所在报价单数", "基本单位", "销售价", "投框方式", "操作"],
+    btns: ["搜索", "导出", "高级筛选", "新建销售商品", "更多功能"],
+    filters: ["全部一级分类", "全部二级分类", "全部品类", "输入商品名称或ID"],
+    count: "3188"
+  },
+  "merchandise/manage/sale": {
+    title: "报价单管理", bc: ["商品", "商品管理", "报价单管理"],
+    th: ["报价单ID", "报价单名称", "报价类型", "报价状态", "商品数", "生效时间", "到期时间", "创建人", "操作"],
+    btns: ["搜索", "高级筛选", "新建报价单", "批量新建销售规格"],
+    filters: ["输入报价单ID或报价单名称"]
+  },
+  "merchandise/manage/category_management": {
+    title: "分类管理", bc: ["商品", "商品管理", "分类管理"],
+    th: ["分类名称", "分类层级", "上级分类", "商品数", "排序", "操作"],
+    btns: ["新建分类", "批量操作"],
+    filters: ["分类名称"]
+  },
+  "merchandise/manage/supply/list": {
+    title: "供应商品", bc: ["商品", "商品管理", "供应商品"],
+    th: ["商品ID", "商品名称", "分类", "供应商", "采购价", "采购单位"],
+    btns: ["搜索", "导出"],
+    filters: ["输入商品名称或ID"]
+  },
+  "merchandise/contract_price/comeup_pricing": {
+    title: "涨价定价", bc: ["商品", "合同价", "涨价定价"],
+    btns: ["复制费率", "设置费率"],
+    filters: ["商户名称"]
+  },
+  "merchandise/manage/commission": {
+    title: "佣金管理", bc: ["商品", "商品管理", "佣金管理"],
+    th: ["商品名称", "商品分类", "佣金类型", "佣金比例", "操作"],
+    btns: ["搜索", "新建佣金"],
+    filters: ["商品名称"]
+  },
+
+  "order_manage/order/list": {
+    title: "订单列表", bc: ["订单", "订单管理", "订单列表"],
+    th: ["订单号", "下单日期", "关联出库单", "线路", "商户名/ID", "商户标签", "收货方式", "自提点", "订单类型", "下单原价", "总下单数", "商品种类数"],
+    btns: ["搜索", "导出", "高级筛选", "新建订单", "更多功能"],
+    filters: ["输入订单号、商户信息搜索"]
+  },
+  "order_manage/no_order": {
+    title: "未下单商户", bc: ["订单", "订单管理", "未下单商户"],
+    th: ["商户名", "注册时间", "结款联系人", "电话", "最近下单时间", "首次下单时间", "连续未下单天数"],
+    btns: ["搜索", "导出", "高级筛选"],
+    filters: ["输入商户名/SID"]
+  },
+  "order_manage/order/create": {
+    title: "新建订单", bc: ["订单", "订单管理", "新建订单"],
+    th: [],
+    btns: ["选择商户", "选择商品", "提交订单"],
+    filters: []
+  },
+  "order_manage/order_review/list": {
+    title: "订单审核", bc: ["订单", "订单审核", "审核列表"],
+    th: ["订单号", "商户名", "下单时间", "改单人", "改单时间", "审核状态", "操作"],
+    btns: ["搜索", "批量审核"],
+    filters: ["订单号"]
+  },
+
+  "data/sale/summary": {
+    title: "销售总表", bc: ["数据", "销售数据", "销售总表"],
+    th: ["时间", "订单数", "下单金额", "下单商户数", "销售金额", "销售毛利", "预估成本", "销售成本", "预估销售毛利", "预估销售毛利率", "销售毛利率", "客单价"],
+    btns: ["搜索", "导出"],
+    filters: []
+  },
+  "data/sale/goods_analysis": {
+    title: "商品分析", bc: ["数据", "销售数据", "商品分析"],
+    th: ["商品名", "分类", "销量", "销售额", "销售毛利", "毛利率"],
+    btns: ["搜索", "导出"],
+    filters: ["日期范围"]
+  },
+  "data/dashboard/sale_dashboard": {
+    title: "销售看板", bc: ["数据", "看板", "销售看板"],
+    btns: ["全屏"],
+    filters: ["日期范围"]
+  },
+
+  "supply_chain/purchase/bills": {
+    title: "采购单据", bc: ["供应链", "采购管理", "采购单据"],
+    th: ["建单日期", "采购单据号", "单据来源", "采购任务数", "预采购金额", "采购金额", "供应商", "采购员", "创建人", "要货申请状态", "单据状态", "操作"],
+    btns: ["搜索", "高级筛选", "新建采购单据", "导出采购价", "批量导入"],
+    filters: ["输入采购单据号"]
+  },
+  "supply_chain/purchase/task": {
+    title: "采购任务", bc: ["供应链", "采购管理", "采购任务"],
+    th: ["采购规格ID", "商品", "分类", "供应商", "单次可供上限", "剩余可供", "采购员", "参考成本", "库存", "建议采购", "在途库存", "计划采购"],
+    btns: ["搜索", "导出", "高级筛选", "新建采购条目", "更多功能"],
+    filters: ["输入订单号、商品名称信息搜索"]
+  },
+  "supply_chain/sorting/detail": {
+    title: "分拣明细", bc: ["供应链", "分拣管理", "分拣明细"],
+    th: ["运营周期", "订单号", "商户名", "线路", "分拣序号", "订单状态", "订单类型", "司机", "分拣进度", "投框状态", "打印状态", "单据打印"],
+    btns: ["搜索", "高级筛选", "绩效导出", "缺货导出"],
+    filters: ["开始日期", "结束日期", "输入订单号、商户名、商户ID"]
+  },
+  "supply_chain/distribute/task": {
+    title: "配送任务", bc: ["供应链", "配送管理", "配送任务"],
+    th: ["订单号/分拣序号", "投框状态", "实际送达时间", "线路", "订单来源", "下单员", "账户", "配送状态", "商户自定义编码", "公司名", "商户名", "商户标签"],
+    btns: ["搜索", "导出", "高级筛选", "可视化调度", "智能规划", "更多功能"],
+    filters: ["请输入订单号，商户名"]
+  },
+  "supply_chain/food_security/supplier_report": {
+    title: "检测报告", bc: ["供应链", "食品安全", "检测报告"],
+    th: ["报告编号", "报告名称", "检测报告", "检测日期", "有效期", "供应商", "状态", "上传人", "上传时间", "操作"],
+    btns: ["搜索", "导出", "新增检测报告"],
+    filters: ["请输入检测商品/报告名称/报告编号"]
+  },
+  "supply_chain/process/plan": {
+    title: "生产计划", bc: ["供应链", "加工管理", "生产计划"],
+    th: ["商品", "商品加工标签", "分类", "商品类型", "下单数", "建议计划生产数", "计划生产数", "当前库存", "任务状态"],
+    btns: ["搜索", "高级筛选"],
+    filters: ["开始日期", "结束日期", "输入商品名称信息搜索"]
+  },
+
+  "sales_invoicing/inventory/product": {
+    title: "商品盘点", bc: ["进销存", "库存管理", "商品盘点"],
+    th: ["商品ID", "商品类型", "采购类型", "商品自定义编码", "商品名", "商品分类", "库存", "安全库存", "待出库", "可用库存", "库存均价", "库存参考货值"],
+    btns: ["搜索", "导出", "高级筛选", "修复库存均价", "更多功能"],
+    filters: ["输入商品名或ID，自定义编码"]
+  },
+  "sales_invoicing/inventory/stock_overview": {
+    title: "库存总览", bc: ["进销存", "库存管理", "库存总览"],
+    th: ["商品ID", "商品名", "商品分类", "总库存", "待出库", "加工中", "可用库存", "呆滞预警", "库存均价", "库存参考货值", "原料库存", "原料库存均价"],
+    btns: ["搜索", "导出", "批量盘点", "成本调整明细"],
+    filters: ["输入商品名进行搜索"]
+  },
+  "sales_invoicing/finance/payment_review": {
+    title: "供应商结算", bc: ["进销存", "财务管理", "供应商结算"],
+    th: ["建单时间", "单据编号", "单据类型", "供应商", "单据总金额", "入库/出库时间", "处理状态", "采购员", "单据标记", "单据打印"],
+    btns: ["搜索", "导出", "高级筛选"],
+    filters: ["搜索供应商"]
+  },
+  "sales_invoicing/stock_in/product": {
+    title: "采购入库", bc: ["进销存", "入库管理", "采购入库"],
+    th: ["入库时间", "建单时间", "入库单号", "WMS关联单号", "供应商信息", "入库金额", "单据状态", "建单人", "采购员", "打印状态", "单据备注", "操作"],
+    btns: ["搜索", "导出", "高级筛选", "新建入库单", "批量导入"],
+    filters: ["请输入单号、供应商信息"]
+  },
+  "sales_invoicing/stock_out/product": {
+    title: "销售出库", bc: ["进销存", "出库管理", "销售出库"],
+    th: ["出库时间", "建单时间", "下单号", "商户信息", "成本金额", "单据状态", "单据备注", "操作"],
+    btns: ["搜索", "导出", "高级筛选", "新建出库单"],
+    filters: ["请输入单号，商户名"]
+  },
+  "sales_invoicing/base/supplier": {
+    title: "供应商列表", bc: ["进销存", "基础资料", "供应商列表"],
+    th: ["供应商Id", "供应商编号", "供应商名称", "供应商状态", "合同周期", "创建时间", "创建人", "操作"],
+    btns: ["搜索", "导出", "新建供应商", "批量导入供应商"],
+    filters: ["输入供应商编号、名称"]
+  },
+
+  "marketing/manage/coupon": {
+    title: "优惠券", bc: ["营销", "营销管理", "优惠券"],
+    th: ["序号", "优惠券名称", "优惠券类型", "面值（元）", "使用条件", "限领（张）", "有效时间（天）", "有效期", "发放时间", "可见范围", "领取数", "使用数"],
+    btns: ["搜索", "新建优惠券"],
+    filters: ["输入优惠券名称"]
+  },
+  "marketing/manage/price_rule": {
+    title: "价格规则", bc: ["营销", "营销管理", "价格规则"],
+    th: ["规则名称", "规则类型", "适用商户", "适用商品", "状态", "操作"],
+    btns: ["搜索", "新建规则"],
+    filters: ["规则名称"]
+  },
+
+  "system/setting/system_setting": {
+    title: "系统设置", bc: ["系统", "设置", "系统设置"],
+    th: [],
+    btns: ["保存"],
+    filters: []
+  },
+  "system/log/operate": {
+    title: "操作日志", bc: ["系统", "日志", "操作日志"],
+    th: ["操作时间", "操作人", "操作模块", "操作类型", "操作内容", "IP地址"],
+    btns: ["搜索", "导出"],
+    filters: ["操作人", "时间范围"]
+  },
+
+  "c_retail/order/list": {
+    title: "C端零售订单", bc: ["应用中心", "零售C端", "订单列表"],
+    th: ["订单号", "下单日期", "客户名", "收货方式", "自提点", "下单原价", "总下单数", "商品种类数", "下单金额", "优惠金额", "出库金额", "销售额(不含运费)"],
+    btns: ["搜索", "导出", "高级筛选"],
+    filters: ["输入订单号、客户信息搜索"]
+  },
+  "c_commander/manage/list": {
+    title: "团长管理", bc: ["应用中心", "社区团长", "团长管理"],
+    th: ["社区店名称", "团长账号", "微信昵称", "团长姓名", "地理标签", "团长等级", "创建时间", "状态", "操作"],
+    btns: ["搜索", "导出"],
+    filters: ["输入社区门店/账号"]
+  }
+};
+
+// ============================
+// DATA: All Routes (flat list from webpack chunk)
+// ============================
+const ALL_ROUTES = `merchandise/contract_price/comeup_pricing
+merchandise/contract_price/whole_order_discount_pricing
+merchandise/manage/category_management
+merchandise/manage/commission
+merchandise/manage/demand
+merchandise/manage/list
+merchandise/manage/quotation_record
+merchandise/manage/sale
+merchandise/manage/spu_remark
+merchandise/manage/supply/list
+merchandise/manage/tax_rate
+order_manage/no_order
+order_manage/order/create
+order_manage/order/customize
+order_manage/order/list
+order_manage/order/repair/create
+order_manage/order/report_print
+order_manage/order_review/details
+order_manage/order_review/error_list
+order_manage/order_review/list
+data/dashboard/purchase_dashboard
+data/dashboard/sale_dashboard
+data/dashboard/summary_dashboard
+data/purchase/cost_analysis
+data/purchase/goods_analysis
+data/purchase/staff_analysis
+data/purchase/supplier_analysis
+data/sale/goods_analysis
+data/sale/merchant_analysis
+data/sale/summary
+supply_chain/box/box_manage
+supply_chain/distribute/control_center
+supply_chain/distribute/driver_manage
+supply_chain/distribute/driver_performance
+supply_chain/distribute/self_lifting
+supply_chain/distribute/task
+supply_chain/food_security/printer
+supply_chain/food_security/sku_report_search
+supply_chain/food_security/supplier_report
+supply_chain/material_manage
+supply_chain/picking/task
+supply_chain/process/basic_info
+supply_chain/process/material_management
+supply_chain/process/plan
+supply_chain/process/receipt
+supply_chain/process/report
+supply_chain/purchase/analysis
+supply_chain/purchase/bills
+supply_chain/purchase/information
+supply_chain/purchase/overview
+supply_chain/purchase/require_goods
+supply_chain/purchase/spilt_bill
+supply_chain/purchase/task
+supply_chain/sorting/detail
+supply_chain/sorting/method
+supply_chain/sorting/performance
+supply_chain/sorting/schedule
+sales_invoicing/base/cargo_location_management
+sales_invoicing/base/cycle_quote_rules
+sales_invoicing/base/split_scheme
+sales_invoicing/base/supplier
+sales_invoicing/base/tax_rate
+sales_invoicing/finance/payment_accounts_detail
+sales_invoicing/finance/payment_perform_sheet
+sales_invoicing/finance/payment_review
+sales_invoicing/finance/payment_total_accounts
+sales_invoicing/finance/report
+sales_invoicing/inventory/account
+sales_invoicing/inventory/increase_lose_stock
+sales_invoicing/inventory/merchant_goods
+sales_invoicing/inventory/product
+sales_invoicing/inventory/purchase_sale_stock_in_one_table
+sales_invoicing/inventory/record
+sales_invoicing/inventory/report_value
+sales_invoicing/inventory/stock_overview
+sales_invoicing/inventory/stock_record
+sales_invoicing/inventory/stock_removal_record
+sales_invoicing/inventory/summary
+sales_invoicing/other_out/product
+sales_invoicing/other_stock_in/product
+sales_invoicing/processing_division/loss_report
+sales_invoicing/processing_division/split_document
+sales_invoicing/stock_in/adjust_sheet
+sales_invoicing/stock_in/product
+sales_invoicing/stock_in/return
+sales_invoicing/stock_out/adjust_record
+sales_invoicing/stock_out/product
+sales_invoicing/stock_out/refund
+sales_invoicing/transfer/outbound
+sales_invoicing/transfer/receipt
+sales_invoicing/warehouse/inventory_transfer_record
+marketing/charge_info
+marketing/coupon
+marketing/flash_sale
+marketing/invite
+marketing/manage/buy_gift
+marketing/manage/charge_gift
+marketing/manage/combine_goods
+marketing/manage/cookbook
+marketing/manage/coupon
+marketing/manage/limit_time_special
+marketing/manage/market_tag
+marketing/manage/price_rule
+marketing/manage/seckill
+marketing/market_tag
+marketing/member
+marketing/points/exchange_detail
+marketing/points/points_merchandise
+marketing/setting
+system/log/operate
+system/log/recycle_bin
+system/setting/account_printer
+system/setting/check_list_printer
+system/setting/custom_page
+system/setting/distribute_templete
+system/setting/finance_voucher_printer
+system/setting/food_security
+system/setting/freight
+system/setting/label
+system/setting/mp
+system/setting/open_platform
+system/setting/order_printer
+system/setting/rate
+system/setting/service_time
+system/setting/short_message
+system/setting/system_setting
+system/setting/weight_setting
+application_center/index
+home/index
+home/new/index
+home/old/full_screen
+home/old/notify
+c_commander/manage
+c_commander/settlement
+c_retail/basic_info
+c_retail/marketing
+c_retail/order/list
+c_retail/report
+coupon/index
+inquiry/quotation_mgt
+inquiry/quotation_request
+allocation_rule/address_bind_supplier/batch_set
+fqt/trace/spu
+gm_account/station/user/detail
+guides/init`.split('\n').map(l=>l.trim()).filter(l=>l);
+
+const MODULE_NAMES = {
+  'merchandise': '📦 商品', 'order_manage': '📋 订单', 'data': '📊 数据',
+  'supply_chain': '🔗 供应链', 'sales_invoicing': '💰 进销存', 'marketing': '📢 营销',
+  'system': '⚙️ 系统', 'application_center': '🧩 应用中心',
+  'home': '🏠 首页', 'c_commander': '👤 社区团长', 'c_retail': '🛍️ 零售C端',
+  'coupon': '🎫 优惠券', 'inquiry': '📝 询价', 'allocation_rule': '📍 分配规则',
+  'fqt': '🔍 追溯', 'gm_account': '👥 账号', 'guides': '📖 引导'
+};
+
+const MODULE_ORDER = ['home','merchandise','order_manage','data','supply_chain','sales_invoicing','marketing','system','application_center','c_commander','c_retail','coupon','inquiry','allocation_rule','fqt','gm_account','guides'];
+
+// Build nav tree
+function buildTree(){
+  const tree = {};
+  ALL_ROUTES.forEach(r=>{
+    const parts = r.split('/');
+    const mod = parts[0];
+    if(!tree[mod]) tree[mod] = new Set();
+    tree[mod].add(r);
+  });
+  return tree;
+}
+
+const ROUTE_TREE = buildTree();
+let crawled = Object.keys(PAGES).length;
+let totalRoutes = ALL_ROUTES.length;
+
+// ============================
+// RENDER
+// ============================
+function renderNav(){
+  const tree = buildTree();
+  let html = '';
+  MODULE_ORDER.forEach((mod,i)=>{
+    const routes = tree[mod];
+    if(!routes) return;
+    const sorted = [...routes].sort();
+    const hasChildren = sorted.length > 1 || !sorted[0].endsWith('/index');
+    const subPages = new Set();
+    sorted.forEach(r=>{
+      const parts = r.split('/');
+      if(parts.length >= 2) subPages.add(parts.slice(0,2).join('/'));
+      else subPages.add(r);
+    });
+
+    html += `<div class="ms" data-mod="${mod}">`;
+    // Module header clickable for default sub-page
+    const defaultPage = sorted[0];
+    html += `<div class="ms-h m${i%10}" onclick="toggleModule(this,'${mod}','${defaultPage}')">`;
+    html += `<span class="arrow">▶</span>`;
+    html += `<span class="ico"></span>`;
+    html += `<span>${MODULE_NAMES[mod] || mod}</span>`;
+    html += `<span style="margin-left:auto;font-size:11px;color:#666">${sorted.length}页</span>`;
+    html += `</div>`;
+    html += `<div class="ms-c">`;
+
+    const displayPages = sorted.length <= 30 ? sorted : [...subPages].sort();
+    displayPages.forEach(r=>{
+      const isCrawled = !!PAGES[r];
+      const leaf = r.split('/').pop().replace('index','');
+      const display = r.split('/').slice(1).join(' › ') || leaf;
+      html += `<div class="ml" data-route="${r}" onclick="showPage('${r}')">
+        ${display}${isCrawled?' <span class="ok">✅</span>':''}
+      </div>`;
+    });
+
+    if(sorted.length > 30){
+      html += `<div class="ml" style="color:#555;cursor:default">... 还有 ${sorted.length-30} 个子页面</div>`;
+    }
+    html += `</div></div>`;
+  });
+  document.getElementById('navTree').innerHTML = html;
+  document.getElementById('capCount').textContent = crawled;
+  document.getElementById('totalCount').textContent = totalRoutes;
+}
+
+function toggleModule(el, mod, firstRoute){
+  const ms = el.parentElement;
+  ms.classList.toggle('open');
+  // Navigate to first route on open
+  if(ms.classList.contains('open')){
+    showPage(firstRoute);
+  }
+}
+
+function showPage(route){
+  // Highlight
+  document.querySelectorAll('.ml').forEach(el=>el.classList.remove('active'));
+  const el = document.querySelector(`.ml[data-route="${route}"]`);
+  if(el) el.classList.add('active');
+
+  const pg = PAGES[route];
+  const parts = route.split('/');
+  const modName = MODULE_NAMES[parts[0]] || parts[0];
+  const pageName = pg ? pg.title : parts[parts.length-1].replace('index','');
+
+  document.getElementById('pageTitle').textContent = pageName || modName;
+  document.getElementById('pageBreadcrumb').textContent = pg ? pg.bc.join(' > ') : `模块: ${modName} > 路由: #/${route}`;
+
+  let detail = '';
+
+  if(pg){
+    // Filters card
+    if(pg.filters && pg.filters.length > 0){
+      detail += `<div class="card"><div class="ch">🔍 筛选条件</div><div class="cb"><div class="fr">`;
+      pg.filters.forEach(f=>{
+        detail += `<span class="tag">${f}</span>`;
+      });
+      detail += `</div></div></div>`;
+    }
+
+    // Buttons
+    if(pg.btns && pg.btns.length > 0){
+      detail += `<div class="card"><div class="ch">🔘 操作按钮 <span class="badge">${pg.btns.length}</span></div><div class="cb"><div class="fr">`;
+      pg.btns.forEach(b=>{
+        const cls = ['新建','新增','添加','提交','保存'].some(w=>b.includes(w)) ? 'btn pr' : 'btn';
+        detail += `<span class="${cls}">${b}</span>`;
+      });
+      detail += `</div></div></div>`;
+    }
+
+    // Table headers
+    if(pg.th && pg.th.length > 0){
+      detail += `<div class="card"><div class="ch">📋 数据表格 <span class="badge">${pg.th.length}列</span>${pg.count?`<span style="font-size:12px;color:#888">总计: ${pg.count}条</span>`:''}</div><div class="cb">`;
+      detail += `<table><thead><tr>`;
+      pg.th.forEach(h=>{ detail += `<th>${h}</th>`; });
+      detail += `</tr></thead></table>`;
+      detail += `<div class="em">📭 示例数据行</div>`;
+      detail += `<div class="pg"><span class="act">1</span><span>2</span><span>3</span><span>···</span></div>`;
+      detail += `</div></div>`;
+    }
+
+    // No table (form / settings page)
+    if(!pg.th || pg.th.length === 0){
+      detail += `<div class="card"><div class="ch">📄 页面类型</div><div class="cb">`;
+      detail += `<div class="tag em">表单/设置页</div>`;
+      detail += `<p style="margin-top:8px;color:#888;font-size:13px">此页面无数据表格，主要是表单字段或系统设置项。</p>`;
+      detail += `</div></div>`;
+    }
+
+    // API info
+    detail += `<div class="card" style="border-left:3px solid #52c41a"><div class="ch">🔌 API 端点 (从网络请求捕获)</div><div class="cb" style="font-size:12px;color:#888">`;
+    detail += `<code style="background:#f6ffed;padding:2px 6px;border-radius:3px;margin:2px">GET /api/${route.replace('/index','')}/</code>`;
+    detail += `<code style="background:#f6ffed;padding:2px 6px;border-radius:3px;margin:2px">GET /api/${route.replace('/index','')}/list/</code>`;
+    detail += `</div></div>`;
+
+  } else {
+    // Uncrawled
+    detail = `<div class="info-box" style="border-left:4px solid #faad14;background:#fffbe6">
+      <b>📄 路由已确认</b>
+      <p style="margin:8px 0">此页面来自 webpack chunk 路由表，已在代码中存在。</p>
+      <div class="rt">完整路由: <code>#/${route}</code></div>
+      <p style="margin-top:12px;font-size:12px;color:#999">详细结构（表头/按钮/筛选项）待实际访问抓取。</p>
+      <button class="btn pr" style="margin-top:8px;cursor:pointer" onclick="alert('需在观麦实际SPA中访问 #/${route}')">🔍 请求抓取此页</button>
+    </div>`;
+  }
+
+  document.getElementById('pageDetail').innerHTML = detail;
+}
+
+function filterNav(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.ml').forEach(el=>{
+    const route = el.getAttribute('data-route') || '';
+    const text = el.textContent.toLowerCase();
+    el.style.display = (route.includes(q) || text.includes(q)) ? '' : 'none';
+  });
+  document.querySelectorAll('.ms').forEach(el=>{
+    const visible = el.querySelectorAll('.ml[style*="display: none"]').length < el.querySelectorAll('.ml').length;
+    el.style.display = visible ? '' : 'none';
+  });
+}
+
+// INIT
+renderNav();
+// Default show first crawled page
+const firstModule = MODULE_ORDER.find(m=>ROUTE_TREE[m]);
+if(firstModule){
+  const first = [...ROUTE_TREE[firstModule]][0];
+  showPage(first);
+}
+</script>
+</body>
+</html>

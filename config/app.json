@@ -1,6 +1,6 @@
 {
   "output_dir": "C:/Users/34585/Desktop/滨鲜/检测报告py文件夹/数据迁移",
-  "inspector_name": "朱林初",
+  "inspector_name": "蒋燕飞",
   "date_format": "{y}年{m}月{d}日",
   "high_risk": [
     "韭菜",
@@ -92,7 +92,7 @@
       "纸排"
     ]
   },
-  "pesticide_last_date": "2026-04-03",
+  "pesticide_last_date": "2026-05-01",
   "weekly_price_update_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\顾家科百特报价4.20-4.26.xls",
   "weekly_price_output_dir": "C:\\Users\\34585\\Desktop\\滨鲜",
   "weekly_price_reference_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\每周江东执行价.xlsx",
@@ -2639,7 +2639,9 @@
     }
   },
   "transfer_templates": {},
-  "transfer_big_dir": "G:\\检测报告（测试）\\26年4月检测报告",
+  "transfer_big_dir": "C:\\Users\\34585\\Desktop\\滨鲜\\检测报告\\检测报告2026\\检测报告2026\\2026年6月份",
   "transfer_template_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\滨鲜单表.docx",
-  "transfer_output_dir": "G:\\检测报告（测试）\\26年4月单位检测报告"
+  "transfer_output_dir": "G:\\检测报告（测试）\\26年4月单位检测报告",
+  "pesticide_output_dir": "G:\\检测报告（测试）",
+  "month_list_path": "C:\\Users\\34585\\Desktop\\滨鲜\\模板\\农残清单文件.xlsx"
 }

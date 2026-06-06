@@ -1,108 +1,90 @@
 import api from './client'
-import type { InventoryBalance, InventoryTransaction } from '../features/inventory/types'
+import type { ListResponse, MutationResponse } from './types'
 
-export interface InventoryBalanceListResponse {
-  success: boolean
-  message: string
-  items: InventoryBalance[]
-  total: number
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface InventoryTransaction {
+  id: number
+  veg_id: number | null
+  display_name: string
+  normalized_name: string
+  unit_id: number
+  unit_name: string
+  direction: string
+  quantity_delta: number
+  quantity: number
+  business_date: string
+  source_type: string
+  source_ref_id: number | null
+  note: string
+  created_at: string
 }
 
-export interface InventoryTransactionListResponse {
-  success: boolean
-  message: string
-  items: InventoryTransaction[]
-  total: number
+export interface InventoryBalance {
+  id: number
+  veg_id: number | null
+  display_name: string
+  unit_name: string
+  quantity: number
+  last_updated: string
 }
 
-export interface InventoryTransactionMutationResponse {
-  success: boolean
-  message: string
-  transaction: InventoryTransaction
-}
-
-export interface InventoryDeleteResponse {
-  success: boolean
-  message: string
-}
-
-export function getInventoryBalances(params?: {
+export interface InventoryTransactionParams {
   search?: string
-  limit?: number
-  include_zero?: boolean
-}) {
-  return api.get<InventoryBalanceListResponse>('/api/inventory/balances', { params })
-}
-
-export function getInventoryTransactions(params?: {
-  search?: string
+  source_type?: string
+  direction?: string
+  date_from?: string
+  date_to?: string
   limit?: number
   offset?: number
-  source_type?: string
+}
+
+// ---------------------------------------------------------------------------
+// API functions
+// ---------------------------------------------------------------------------
+
+export function getInventoryTransactions(params?: InventoryTransactionParams) {
+  return api.get<ListResponse<InventoryTransaction>>('/api/inventory/transactions', { params })
+}
+
+export function getInventoryBalances(params?: { search?: string; limit?: number; include_zero?: boolean }) {
+  return api.get<ListResponse<InventoryBalance>>('/api/inventory/balances', { params })
+}
+
+export function exportInventoryBalances(params?: { search?: string; include_zero?: boolean }) {
+  return api.get('/api/inventory/export/balances', { params, responseType: 'blob' })
+}
+
+export function createInventoryOutbound(data: {
+  business_date: string; name: string; unit: string; quantity: number; note?: string
 }) {
-  return api.get<InventoryTransactionListResponse>('/api/inventory/transactions', { params })
+  return api.post<MutationResponse>('/api/inventory/outbound', data)
 }
 
-export function exportInventoryBalances(params?: {
-  search?: string
-  include_zero?: boolean
+export function updateInventoryOutbound(id: number, data: {
+  business_date: string; name: string; unit: string; quantity: number; note?: string
 }) {
-  return api.get<Blob>('/api/inventory/export/balances', {
-    params,
-    responseType: 'blob',
-  })
+  return api.put<MutationResponse>(`/api/inventory/outbound/${id}`, data)
 }
 
-export function createInventoryOutbound(params: {
-  business_date: string
-  name: string
-  unit: string
-  quantity: number
-  note?: string
+export function deleteInventoryOutbound(id: number) {
+  return api.delete<MutationResponse>(`/api/inventory/outbound/${id}`)
+}
+
+export function createInventoryAdjustment(data: {
+  business_date: string; name: string; unit: string; target_quantity: number; note?: string
 }) {
-  return api.post<InventoryTransactionMutationResponse>('/api/inventory/outbound', params)
+  return api.post<MutationResponse>('/api/inventory/adjustments', data)
 }
 
-export function updateInventoryOutbound(
-  transactionId: number,
-  params: {
-    business_date: string
-    name: string
-    unit: string
-    quantity: number
-    note?: string
-  },
-) {
-  return api.put<InventoryTransactionMutationResponse>(`/api/inventory/outbound/${transactionId}`, params)
-}
-
-export function deleteInventoryOutbound(transactionId: number) {
-  return api.delete<InventoryDeleteResponse>(`/api/inventory/outbound/${transactionId}`)
-}
-
-export function createInventoryAdjustment(params: {
-  business_date: string
-  name: string
-  unit: string
-  target_quantity: number
-  note?: string
+export function updateInventoryAdjustment(id: number, data: {
+  business_date: string; name: string; unit: string; target_quantity: number; note?: string
 }) {
-  return api.post<InventoryTransactionMutationResponse>('/api/inventory/adjustments', params)
+  return api.put<MutationResponse>(`/api/inventory/adjustments/${id}`, data)
 }
 
-export function updateInventoryAdjustment(
-  transactionId: number,
-  params: {
-    business_date: string
-    name: string
-    unit: string
-    target_quantity: number
-    note?: string
-  },
-) {
-  return api.put<InventoryTransactionMutationResponse>(`/api/inventory/adjustments/${transactionId}`, params)
-}
-
-export function deleteInventoryAdjustment(transactionId: number) {
-  return api.delete<InventoryDeleteResponse>(`/api/inventory/adjustments/${transactionId}`)
+export function deleteInventoryAdjustment(id: number) {
+  return api.delete<MutationResponse>(`/api/inventory/adjustments/${id}`)
 }

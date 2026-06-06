@@ -1,4 +1,4 @@
-import { computed, reactive, ref, type Ref } from 'vue'
+import { computed, nextTick, reactive, ref, type Ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 
 import { getApiErrorMessage } from '../../../api/errors'
@@ -9,6 +9,7 @@ import {
   exportWeeklyQuoteSummaryWeekUpload,
   getWeeklyQuoteSummaryOptions,
   getWeeklyQuoteWeekOverview,
+  importWeeklyQuoteBatchFromPath,
   importWeeklyQuoteBatchUpload,
   saveQuoteBatch,
   type WeeklyQuoteEntryInput,
@@ -39,6 +40,7 @@ import {
 } from './weeklyQuoteSummaryUtils'
 
 const DRAFT_STORAGE_KEY = 'weekly-quote-summary-drafts-v1'
+const UNIT_MEMORY_KEY = 'weekly-quote-unit-memory-v1'
 
 interface WeeklyQuoteEntry extends WeeklyQuoteEntryDraft {
   id: string
@@ -115,7 +117,7 @@ function emptySupplierOverview(
 function toEntryInputs(rows: WeeklyQuoteRawRow[]): WeeklyQuoteEntryInput[] {
   return rows.map((row) => ({
     name: row.entry.name.trim(),
-    unit: (row.entry.unit || '斤').trim() || '斤',
+    unit: (row.entry.unit || '').trim(),
     price: Number(row.entry.price),
   }))
 }
@@ -180,6 +182,31 @@ function loadDraftStore(): DraftStore {
 function persistDraftStore(drafts: DraftStore) {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts))
+}
+
+function loadUnitMemory(): Record<string, string> {
+  if (typeof localStorage === 'undefined') return {}
+  try {
+    const parsed = JSON.parse(localStorage.getItem(UNIT_MEMORY_KEY) || '{}')
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function persistUnitMemory(memory: Record<string, string>) {
+  if (typeof localStorage === 'undefined') return
+  // Keep only the last 200 entries to avoid localStorage bloat
+  const entries = Object.entries(memory)
+  if (entries.length > 200) {
+    const trimmed: Record<string, string> = {}
+    for (const [key, value] of entries.slice(-200)) {
+      trimmed[key] = value
+    }
+    localStorage.setItem(UNIT_MEMORY_KEY, JSON.stringify(trimmed))
+    return
+  }
+  localStorage.setItem(UNIT_MEMORY_KEY, JSON.stringify(memory))
 }
 
 function isAuthFailure(error: any): boolean {
@@ -253,6 +280,7 @@ export function useWeeklyQuoteSummaryWorkflow(
   const rawRows = ref<WeeklyQuoteRawRow[]>([])
   const currentRecord = ref<WeeklyQuoteSavedRecord | null>(null)
   const drafts = ref<DraftStore>(loadDraftStore())
+  const unitMemory = ref<Record<string, string>>(loadUnitMemory())
   const statusIssues = ref<string[]>([])
   let nextEntryCounter = 0
 
@@ -413,6 +441,7 @@ export function useWeeklyQuoteSummaryWorkflow(
     }
     drafts.value = nextDrafts
     persistDraftStore(nextDrafts)
+    _updateUnitMemory(entries)
     editorState.source = entries.length ? 'draft' : 'empty'
     editorState.sourceLabel = entries.length ? '本地草稿' : ''
     editorState.baselineSnapshot = normalizeEntrySnapshot(entries)
@@ -620,8 +649,32 @@ export function useWeeklyQuoteSummaryWorkflow(
     return record?.source_label || '手动录入'
   }
 
-  function applyRememberedUnit(_entry?: WeeklyQuoteEntry) {
-    // Reserved for future per-dish unit memory. No persistence side effects here.
+  async function applyRememberedUnit(entry?: WeeklyQuoteEntry) {
+    if (!entry) return
+    const name = (entry.name || '').trim()
+    if (!name) return
+    const remembered = unitMemory.value[name]
+    if (!remembered) return
+    const current = (entry.unit || '').trim()
+    if (current && current !== '斤') return
+    entry.unit = remembered
+    await nextTick()
+  }
+
+  function _updateUnitMemory(entries: WeeklyQuoteEntryInput[]) {
+    const next = { ...unitMemory.value }
+    let changed = false
+    for (const entry of entries) {
+      const name = (entry.name || '').trim()
+      const unit = (entry.unit || '').trim()
+      if (!name || !unit) continue
+      if (next[name] === unit) continue
+      next[name] = unit
+      changed = true
+    }
+    if (!changed) return
+    unitMemory.value = next
+    persistUnitMemory(next)
   }
 
   function setImportSourceFile(files: FileList | null | undefined) {
@@ -637,6 +690,65 @@ export function useWeeklyQuoteSummaryWorkflow(
     if (file) {
       importExportState.workbookTemplateFile = file
       importExportState.workbookPath = file.name
+    }
+  }
+
+  function setWorkbookTemplateFromPath(path: string) {
+    importExportState.workbookPath = path
+    // Store path for later use - the actual file will be read by backend
+    importExportState.workbookTemplateFile = null
+  }
+
+  async function confirmImportFromPath(sourcePath: string) {
+    if (!sourcePath) {
+      appendStatus('请先选择要导入的 Excel 文件', 'error')
+      return
+    }
+    if (!importForm.quote_date) {
+      appendStatus('请选择报价日期', 'error')
+      return
+    }
+    if (!(await confirmLeaveEditor())) return
+
+    importExportState.importing = true
+    try {
+      const { data } = await importWeeklyQuoteBatchFromPath({
+        supplier: editorState.activeSupplier,
+        quoteDate: importForm.quote_date,
+        sourcePath: sourcePath,
+      })
+      const targetDate = data.batch.quote_date
+      const targetMonday = formatDate(mondayOf(parseDate(targetDate) || new Date()))
+      weekState.selectedRecordDate = targetDate
+      weekState.selectedWeekMonday = targetMonday
+      weekState.selectedMonth = targetDate.slice(0, 7)
+      weekState.committedMonth = weekState.selectedMonth
+      await loadWeekOverview(targetMonday)
+      currentRecord.value = findSavedBatch(editorState.activeSupplier, targetDate)
+        ? savedBatchToRecord(findSavedBatch(editorState.activeSupplier, targetDate)!)
+        : null
+      rawRows.value = toRows(data.batch.entries, 'import')
+      
+      // Auto-fill units from memory for imported entries
+      for (const row of rawRows.value) {
+        const name = (row.entry.name || '').trim()
+        if (!name) continue
+        const remembered = unitMemory.value[name]
+        if (!remembered) continue
+        const current = (row.entry.unit || '').trim()
+        if (!current || current === '斤') {
+          row.entry.unit = remembered
+        }
+      }
+      
+      importExportState.importDialogVisible = false
+      appendStatus(`导入完成：${data.batch.entries.length} 条记录`, 'success')
+      ElMessage.success('导入完成')
+    } catch (error: any) {
+      appendStatus('导入失败: ' + getApiErrorMessage(error), 'error')
+      ElMessage.error('导入失败')
+    } finally {
+      importExportState.importing = false
     }
   }
 
@@ -730,6 +842,19 @@ export function useWeeklyQuoteSummaryWorkflow(
         ? savedBatchToRecord(findSavedBatch(editorState.activeSupplier, targetDate)!)
         : null
       rawRows.value = toRows(data.batch.entries, 'import')
+      
+      // Auto-fill units from memory for imported entries
+      for (const row of rawRows.value) {
+        const name = (row.entry.name || '').trim()
+        if (!name) continue
+        const remembered = unitMemory.value[name]
+        if (!remembered) continue
+        const current = (row.entry.unit || '').trim()
+        if (!current || current === '斤') {
+          row.entry.unit = remembered
+        }
+      }
+
       editorState.source = 'import'
       editorState.sourceLabel = `Excel 导入：${importExportState.importSourceFile.name}`
       editorState.baselineSnapshot = normalizeEntrySnapshot(currentRecord.value?.entries || [])
@@ -766,6 +891,18 @@ export function useWeeklyQuoteSummaryWorkflow(
             ...entry,
           },
         })
+      }
+
+      // Auto-fill units from memory for paste entries
+      for (const row of rawRows.value) {
+        const name = (row.entry.name || '').trim()
+        if (!name) continue
+        const remembered = unitMemory.value[name]
+        if (!remembered) continue
+        const current = (row.entry.unit || '').trim()
+        if (!current || current === '斤') {
+          row.entry.unit = remembered
+        }
       }
 
       const addedCount = result.entries.length
@@ -837,6 +974,7 @@ export function useWeeklyQuoteSummaryWorkflow(
         source_label: editorState.source === 'import' ? 'Excel 导入' : '手动录入',
       })
       removeCurrentDraft()
+      _updateUnitMemory(entries)
       await loadOptions()
       await loadWeekOverview(weekState.selectedRecordDate)
       openRecordFromState()
@@ -928,6 +1066,7 @@ export function useWeeklyQuoteSummaryWorkflow(
     addEntryToCurrentRecord,
     applyRememberedUnit,
     confirmImport,
+    confirmImportFromPath,
     confirmCreateSupplier,
     confirmPaste,
     countEntries,
@@ -985,6 +1124,7 @@ export function useWeeklyQuoteSummaryWorkflow(
     selectWeek,
     setImportSourceFile,
     setWorkbookTemplateFile,
+    setWorkbookTemplateFromPath,
     supplierDialog,
     supplierSaving: computed(() => optionsState.addingSupplier),
     toggleWeekExpanded,

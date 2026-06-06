@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>观麦 - 订单列表</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: "Microsoft YaHei","PingFang SC",sans-serif; background:#f0f2f5; color:#333; }
+.layout { display:flex; height:100vh; }
+/* 左侧导航 */
+.sidebar { width:60px; background:#1e293b; color:#94a3b8; display:flex; flex-direction:column; align-items:center; padding-top:12px; flex-shrink:0; }
+.sidebar .logo { width:36px; height:36px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:14px; margin-bottom:20px; }
+.nav-item { width:48px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; border-radius:8px; margin-bottom:4px; cursor:pointer; color:#94a3b8; }
+.nav-item:hover { background:#334155; }
+.nav-item.active { background:#3b82f6; color:#fff; }
+.nav-item .icon { font-size:18px; margin-bottom:2px; }
+.nav-spacer { flex:1; }
+/* 右侧主体 */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+/* 顶部栏 */
+.topbar { height:48px; background:#fff; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; }
+.topbar .breadcrumb { font-size:13px; color:#6b7280; }
+.topbar .breadcrumb a { color:#3b82f6; text-decoration:none; }
+.topbar .breadcrumb span { margin:0 4px; }
+.topbar .search { margin-left:auto; position:relative; }
+.topbar .search input { width:200px; height:30px; border:1px solid #d1d5db; border-radius:14px; padding:0 32px 0 12px; font-size:12px; outline:none; }
+.topbar .search input:focus { border-color:#3b82f6; }
+.topbar .guide-btn { height:24px; line-height:22px; padding:0 12px; background:#3b82f6; color:#fff; border:none; border-radius:12px; font-size:11px; cursor:pointer; }
+.topbar .new-feature { font-size:11px; color:#f59e0b; cursor:pointer; }
+.topbar .company { display:flex; align-items:center; gap:6px; background:#eff2f6; border-radius:15px; padding:0 12px 0 4px; height:30px; font-size:11px; cursor:pointer; }
+.topbar .company .avatar { width:26px; height:26px; border-radius:50%; background:#56a3f2; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; border:2px solid #fff; }
+.topbar .company .name { font-weight:500; }
+.topbar .company .phone { color:#9ca3af; }
+/* 内容区 */
+.content { flex:1; overflow:auto; padding:16px; }
+/* Tabs */
+.tabs { display:flex; gap:0; margin-bottom:16px; }
+.tab { padding:8px 20px; cursor:pointer; font-size:13px; border-bottom:2px solid transparent; color:#6b7280; }
+.tab.active { color:#3b82f6; border-bottom-color:#3b82f6; font-weight:500; }
+/* 卡片 */
+.card { background:#fff; border-radius:8px; padding:16px; margin-bottom:16px; }
+/* 筛选区 */
+.filter-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
+.filter-select { height:32px; border:1px solid #d1d5db; border-radius:4px; padding:0 24px 0 8px; font-size:12px; background:#fff; cursor:pointer; appearance:none; }
+.filter-date { height:32px; border:1px solid #d1d5db; border-radius:4px; padding:0 8px; font-size:12px; background:#fff; min-width:260px; }
+.filter-input { height:32px; border:1px solid #d1d5db; border-radius:4px; padding:0 8px; font-size:12px; width:240px; }
+.btn { height:32px; padding:0 16px; border-radius:4px; font-size:12px; cursor:pointer; border:none; }
+.btn-primary { background:#3b82f6; color:#fff; }
+.btn-default { background:#fff; color:#333; border:1px solid #d1d5db; }
+.btn-link { background:none; color:#3b82f6; border:none; padding:0 4px; }
+/* 统计栏 */
+.stats { display:flex; gap:20px; font-size:13px; color:#6b7280; align-items:center; }
+.stats .num { color:#3b82f6; font-weight:bold; font-size:14px; }
+.stats .sep { color:#d1d5db; }
+/* 操作栏 */
+.actions { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+.actions .left { display:flex; gap:10px; }
+/* 表格 */
+.table-wrap { overflow-x:auto; margin-top:12px; }
+table { width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap; }
+th { background:#f8fafc; padding:10px 8px; text-align:left; font-weight:500; color:#64748b; border-bottom:1px solid #e5e7eb; position:sticky; top:0; }
+th.sortable { cursor:pointer; }
+th.sortable::after { content:' ⇅'; color:#cbd5e1; font-size:10px; }
+td { padding:8px; border-bottom:1px solid #f1f5f9; }
+.empty { text-align:center; padding:60px 0; color:#9ca3af; }
+.empty .icon { font-size:48px; margin-bottom:12px; }
+/* 分页 */
+.pagination { display:flex; justify-content:flex-end; align-items:center; gap:8px; padding:12px 0; font-size:12px; color:#6b7280; }
+.pagination select { height:28px; border:1px solid #d1d5db; border-radius:4px; padding:0 4px; }
+.pagination .page-btn { width:28px; height:28px; border:1px solid #d1d5db; border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff; }
+.pagination .page-btn.active { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+.pagination .page-btn:disabled { opacity:0.4; cursor:default; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- 左侧导航 -->
+<div class="sidebar">
+  <div class="logo">观</div>
+  <div class="nav-item">📦<br>商品</div>
+  <div class="nav-item active">📋<br>订单</div>
+  <div class="nav-item">📊<br>数据</div>
+  <div class="nav-item">🔗<br>供应链</div>
+  <div class="nav-item">📐<br>进销存</div>
+  <div class="nav-item">📢<br>营销</div>
+  <div class="nav-item">⚙<br>系统</div>
+  <div class="nav-item">🧩<br>应用</div>
+  <div class="nav-item">ℹ<br>信息</div>
+</div>
+
+<!-- 右侧主体 -->
+<div class="main">
+
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="#">订单</a><span>/</span><a href="#">订单</a><span>/</span><a href="#">订单列表</a>
+    </div>
+    <div class="search">
+      <input type="text" placeholder="搜功能、搜问题、搜单据">
+    </div>
+    <button class="guide-btn">新手引导</button>
+    <span class="new-feature">✨ 新功能上线，点击查看</span>
+    <div class="company">
+      <div class="avatar">滨</div>
+      <div>
+        <div class="name">T173960 杭州滨鲜食品有限公司</div>
+        <div class="phone">17305485571</div>
+      </div>
+    </div>
+    <span style="font-size:18px;color:#6b7280;cursor:pointer">💬</span>
+    <span style="font-size:18px;color:#6b7280;cursor:pointer">❓</span>
+    <span style="font-size:18px;color:#6b7280;cursor:pointer">⋯</span>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content">
+
+    <!-- 标签切换 -->
+    <div class="tabs">
+      <div class="tab active">按订单查看</div>
+      <div class="tab">按商品查看</div>
+    </div>
+
+    <!-- 筛选卡片 -->
+    <div class="card">
+      <div class="filter-row">
+        <select class="filter-select"><option>按下单日期</option></select>
+        <input class="filter-date" type="text" value="2026-05-25 00:00 ~ 2026-05-25 24:00" readonly>
+      </div>
+      <div class="filter-row">
+        <select class="filter-select"><option>按订单/商户</option></select>
+        <input class="filter-input" type="text" placeholder="输入订单号、商户信息搜索">
+        <button class="btn btn-primary">搜索</button>
+        <button class="btn btn-default">导出 ▾</button>
+        <button class="btn btn-link">高级筛选 ▾</button>
+      </div>
+      <div class="stats">
+        <span>订单总数：<span class="num">0</span></span>
+        <span class="sep">|</span>
+        <span>下单金额：<span class="num">—</span></span>
+        <span class="sep">|</span>
+        <span>出库金额：<span class="num">—</span></span>
+        <span class="sep">|</span>
+        <span>销售额(含运、税)：<span class="num">—</span></span>
+        <a href="#" style="margin-left:auto;font-size:12px;color:#3b82f6;">历史数据</a>
+      </div>
+      <div class="actions">
+        <div class="left"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary">新建订单</button>
+          <button class="btn btn-default">更多功能 ▾</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 表格卡片 -->
+    <div class="card" style="padding:0;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px"><input type="checkbox"></th>
+              <th style="width:40px">☰</th>
+              <th class="sortable">订单号</th>
+              <th class="sortable">下单日期</th>
+              <th>关联出库单</th>
+              <th>线路</th>
+              <th class="sortable">商户名/ID</th>
+              <th>商户标签</th>
+              <th>收货方式</th>
+              <th>自提点</th>
+              <th>订单类型</th>
+              <th>下单原价</th>
+              <th>总下单数</th>
+              <th>商品种类数</th>
+              <th>商户自定义编码</th>
+              <th class="sortable">下单金额</th>
+              <th>订单售后</th>
+              <th>实退金额</th>
+              <th>应退金额</th>
+              <th>异常金额</th>
+              <th>优惠金额</th>
+              <th>出库金额</th>
+              <th>销售额(不含运费)</th>
+              <th class="sortable">运费</th>
+              <th>销售额(含运费)</th>
+              <th class="sortable">订单状态</th>
+              <th>装车状态</th>
+              <th>支付状态</th>
+              <th>司机</th>
+              <th>订单来源</th>
+              <th>打印状态</th>
+              <th>出库状态</th>
+              <th>订单备注</th>
+              <th>下单员</th>
+              <th>打印时间</th>
+              <th>最后操作时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="38">
+                <div class="empty">
+                  <div class="icon">📭</div>
+                  <div>没有数据了</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span>共 <b>0</b> 条记录，每页</span>
+        <select><option>10</option><option>20</option><option>50</option></select>
+        <span>条</span>
+        <button class="page-btn" disabled>◀</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn" disabled>▶</button>
+        <span>跳至</span>
+        <input type="text" value="1" style="width:36px;height:28px;border:1px solid #d1d5db;border-radius:4px;text-align:center;font-size:12px;">
+        <span>/ 0 页</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+</body>
+</html>

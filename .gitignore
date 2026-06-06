@@ -25,6 +25,30 @@ backups/**/.env.local
 frontend/node_modules/
 frontend/dist/
 
+# AI agent working directories
+.hermes/
+.superpowers/
+
+# Uploads and generated data
+data/uploads/
+graphify-out/
+
+# Screenshots and temp media
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Backup and temp files
+*.bak
+_tok.txt
+mcp_commands.txt
+=7.0.0
+
+# MinIO credentials
+config/minio.env
+deploy/minio/
+
 # Generated data / accidental files
 backups/
 recorder/

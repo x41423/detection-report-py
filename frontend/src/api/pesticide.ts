@@ -91,6 +91,12 @@ export function uploadPesticideTemplate(kind: 'big' | 'small', file: File) {
   return api.post<PesticideTemplateStatusResponse>(`/api/pesticide/templates/${kind}`, formData)
 }
 
+export function savePesticideTemplateFromPath(kind: 'big' | 'small', filePath: string) {
+  const formData = new FormData()
+  formData.append('file_path', filePath)
+  return api.post<PesticideTemplateStatusResponse>(`/api/pesticide/templates/${kind}/from-path`, formData)
+}
+
 export function parsePesticideMonthlyList(params: {
   month: string
   listText: string
@@ -98,11 +104,25 @@ export function parsePesticideMonthlyList(params: {
 }) {
   const formData = new FormData()
   formData.append('month', params.month)
-  formData.append('list_text', params.listText || '')
+  formData.append('list_text', params.listText)
   if (params.listFile) {
     formData.append('list_file', params.listFile)
   }
   return api.post<MonthlyListParseResponse>('/api/pesticide/monthly-list/parse', formData)
+}
+
+export function parsePesticideMonthlyListFromPath(params: {
+  month: string
+  listText: string
+  filePath?: string
+}) {
+  const formData = new FormData()
+  formData.append('month', params.month)
+  formData.append('list_text', params.listText)
+  if (params.filePath) {
+    formData.append('file_path', params.filePath)
+  }
+  return api.post<MonthlyListParseResponse>('/api/pesticide/monthly-list/parse-from-path', formData)
 }
 
 export async function executePesticideMonthly(params: {
@@ -111,6 +131,7 @@ export async function executePesticideMonthly(params: {
   inspectorName: string
   bigTemplateFile?: File | null
   smallTemplateFile?: File | null
+  outputDir?: string
 }): Promise<DownloadResponsePayload> {
   const formData = new FormData()
   formData.append('month', params.month)
@@ -122,6 +143,18 @@ export async function executePesticideMonthly(params: {
   }
   if (params.smallTemplateFile) {
     formData.append('small_template_file', params.smallTemplateFile)
+  }
+  if (params.outputDir) {
+    formData.append('output_dir', params.outputDir)
+    const response = await api.post<{
+      success: boolean
+      message: string
+      output_dir: string
+      generated_files: string[]
+      success_count: number
+      failure_count: number
+    }>('/api/pesticide/monthly/execute', formData)
+    return toDownloadPayload(response, `农残检测月度报告-${params.month}.zip`)
   }
 
   const response = await api.post('/api/pesticide/monthly/execute', formData, {

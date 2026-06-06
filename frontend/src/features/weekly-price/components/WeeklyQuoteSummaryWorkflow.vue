@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell page-shell--wide-rail">
+  <div class="page-shell page-shell--wide-rail page-shell--full">
     <PageHeader
       eyebrow="新报价汇总"
       title="维护供应商日记录，并按模板导出周汇总"
@@ -164,7 +164,7 @@
                     v-model="row.entry.name"
                     placeholder="菜名"
                     clearable
-                    @change="applyRememberedUnit(row.entry)"
+                    @blur="applyRememberedUnit(row.entry)"
                   />
                 </template>
               </el-table-column>
@@ -331,7 +331,7 @@
             <el-form-item label="汇总模板工作簿">
               <el-input v-model="workbookPath" placeholder="请选择模板工作簿" readonly>
                 <template #append>
-                  <el-button @click="triggerWorkbookPicker">选择文件</el-button>
+                  <el-button @click="onBrowseWorkbookFile">选择文件</el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -438,7 +438,7 @@
           <el-form-item label="导入文件">
             <el-input v-model="importForm.source_path" placeholder="请选择统一模板 Excel 文件" readonly>
               <template #append>
-                <el-button @click="triggerImportPicker">选择文件</el-button>
+                <el-button @click="onBrowseImportFile">选择文件</el-button>
               </template>
             </el-input>
           </el-form-item>
@@ -524,20 +524,6 @@
       </template>
     </el-dialog>
 
-    <input
-      ref="importFileInputRef"
-      type="file"
-      accept=".xlsx,.xls,.xlsm"
-      style="display: none"
-      @change="handleImportFileChange"
-    />
-    <input
-      ref="workbookInputRef"
-      type="file"
-      accept=".xlsx,.xlsm"
-      style="display: none"
-      @change="handleWorkbookFileChange"
-    />
   </div>
 </template>
 
@@ -549,7 +535,9 @@ import PageHeader from '../../../components/PageHeader.vue'
 import StatusLog from '../../../components/StatusLog.vue'
 import { useWeeklyQuoteSummaryWorkflow } from '../composables/useWeeklyQuoteSummaryWorkflow'
 import type { StatusLogHandle } from '../../shared/workflow'
+import { useDirBrowserApi } from '../../shared/dirBrowser'
 
+const { openFile } = useDirBrowserApi()
 const statusLogRef = ref<StatusLogHandle>()
 const importFileInputRef = ref<HTMLInputElement>()
 const workbookInputRef = ref<HTMLInputElement>()
@@ -563,6 +551,7 @@ const {
   applyRememberedUnit,
   confirmCreateSupplier,
   confirmImport,
+  confirmImportFromPath,
   confirmPaste,
   countEntries,
   currentLimit,
@@ -609,6 +598,7 @@ const {
   toggleWeekExpanded,
   setImportSourceFile,
   setWorkbookTemplateFile,
+  setWorkbookTemplateFromPath,
   supplierDialog,
   supplierSaving,
   weeksForSelectedMonth,
@@ -622,6 +612,30 @@ function triggerImportPicker() {
 
 function triggerWorkbookPicker() {
   workbookInputRef.value?.click()
+}
+
+async function onBrowseImportFile() {
+  const selected = await openFile('wqs:import', '', {
+    title: '选择导入文件',
+    extensions: ['.xlsx', '.xls', '.xlsm'],
+  })
+  if (selected) {
+    try {
+      await confirmImportFromPath(selected)
+    } catch { /* handled in composable */ }
+  }
+}
+
+async function onBrowseWorkbookFile() {
+  const selected = await openFile('wqs:workbook', '', {
+    title: '选择工作簿模板',
+    extensions: ['.xlsx', '.xlsm'],
+  })
+  if (selected) {
+    try {
+      await setWorkbookTemplateFromPath(selected)
+    } catch { /* handled in composable */ }
+  }
 }
 
 function handleImportFileChange(event: Event) {

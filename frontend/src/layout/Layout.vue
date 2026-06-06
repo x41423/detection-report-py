@@ -101,6 +101,8 @@ const isCollapsed = ref(false)
 
 const isAuthLayout = computed(() => route.meta?.layout === 'auth')
 
+const isHome = computed(() => route.path === '/')
+
 const visibleSections = computed(() =>
   filterNavigationSectionsByPermissions(
     sidebarNavigationSections,
@@ -146,10 +148,6 @@ async function onUserCommand(command: string) {
 <style scoped>
 .auth-layout {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
 }
 
 .app-layout {
@@ -169,6 +167,7 @@ async function onUserCommand(command: string) {
   top: 0;
   height: 100vh;
   overflow: hidden;
+  z-index: 50;
   transition: width 0.22s ease;
 }
 
@@ -334,7 +333,7 @@ async function onUserCommand(command: string) {
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 3000;
+  z-index: 100;
 }
 
 .app-layout__topbar-left {

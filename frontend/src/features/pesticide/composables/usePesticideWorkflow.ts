@@ -13,7 +13,10 @@ import {
   getApiErrorMessage,
   getConfig,
   getPesticideTemplates,
+  openLocalFile,
   parsePesticideMonthlyList,
+  parsePesticideMonthlyListFromPath,
+  savePesticideTemplateFromPath,
   uploadPesticideTemplate,
   type MonthlyListEntry,
   type MonthlyListParseError,
@@ -24,16 +27,15 @@ import { getFileName, parseVegNames } from '../../../utils/veg'
 import {
   appendStatus,
   clearStatus,
-  openPath,
   persistConfig,
-  type DirBrowserHandle,
   type StatusLogHandle,
 } from '../../shared/workflow'
+import { useDirBrowserApi } from '../../shared/dirBrowser'
 
 export function usePesticideWorkflow(
   statusLogRef: Ref<StatusLogHandle | undefined>,
-  dirBrowserRef: Ref<DirBrowserHandle | undefined>,
 ) {
+  const { openDirectory, openFile } = useDirBrowserApi()
   const bigFile = ref<File | null>(null)
   const smallFile = ref<File | null>(null)
   const detectDate = ref('')
@@ -60,11 +62,15 @@ export function usePesticideWorkflow(
 
   const templateStatus = ref<PesticideTemplateStatusResponse | null>(null)
   const templateLoading = ref(false)
+  const pendingTemplatePath = ref<{ big: string; small: string }>({ big: '', small: '' })
+  const savingTemplate = ref('')
 
   const month = ref('')
   const monthListText = ref('')
   const monthListFile = ref<File | null>(null)
+  const monthListPath = ref('')
   const monthEntries = ref<MonthlyListEntry[]>([])
+  const monthSelectedDates = ref<Set<string>>(new Set())
   const monthParsing = ref(false)
   const monthListErrors = ref<MonthlyListParseError[]>([])
   const monthExecuting = ref(false)
@@ -73,7 +79,8 @@ export function usePesticideWorkflow(
   const monthBigTemplateFile = ref<File | null>(null)
   const monthSmallTemplateFile = ref<File | null>(null)
 
-  const activeTab = ref<'single' | 'monthly-upload' | 'monthly-path'>('single')
+  const activeTab = ref<'single' | 'monthly-upload'>('single')
+  const monthlyTemplateMode = ref<'upload' | 'path'>('upload')
   const monthlyBigPath = ref('')
   const monthlySmallPath = ref('')
   const monthlyPathLocked = ref(false)
@@ -137,6 +144,7 @@ export function usePesticideWorkflow(
       smallPath.value = cfg.small_path || ''
       outputDir.value = cfg.pesticide_output_dir || ''
       monthlyOutputDir.value = cfg.pesticide_output_dir || ''
+      monthListPath.value = cfg.month_list_path || ''
     } catch (error: any) {
       appendStatus(statusLogRef, '加载配置失败: ' + getApiErrorMessage(error), 'error')
     }
@@ -225,9 +233,8 @@ export function usePesticideWorkflow(
 
   async function onBrowsePath(kind: 'big' | 'small') {
     const initialPath = kind === 'big' ? bigPath.value : smallPath.value
-    const selected = await openPath(dirBrowserRef, initialPath, {
+    const selected = await openDirectory(`pest:single:${kind}-dir`, initialPath, {
       title: `选择${kind === 'big' ? '大表' : '小表'}目录`,
-      mode: 'directory',
     })
     if (selected) {
       if (kind === 'big') {
@@ -244,10 +251,8 @@ export function usePesticideWorkflow(
   }
 
   async function onBrowseOutputDir() {
-    if (!dirBrowserRef) return
-    const selected = await openPath(dirBrowserRef, outputDir.value, {
+    const selected = await openDirectory('pest:output', outputDir.value, {
       title: '选择输出目录',
-      mode: 'directory',
     })
     if (selected) {
       outputDir.value = selected
@@ -258,9 +263,8 @@ export function usePesticideWorkflow(
 
   async function onMonthlyBrowsePath(kind: 'big' | 'small') {
     const initialPath = kind === 'big' ? monthlyBigPath.value : monthlySmallPath.value
-    const selected = await openPath(dirBrowserRef, initialPath, {
+    const selected = await openFile(`pest:monthly:${kind}-template`, initialPath, {
       title: `选择月度${kind === 'big' ? '大表模板' : '小表模板'}文件`,
-      mode: 'file',
       extensions: ['.docx'],
     })
     if (selected) {
@@ -377,6 +381,68 @@ export function usePesticideWorkflow(
     }
   }
 
+  async function onBrowseTemplate(kind: 'big' | 'small') {
+    const selected = await openFile(`pest:monthly:${kind}-upload`, pendingTemplatePath.value[kind], {
+      title: `选择${kind === 'big' ? '大表' : '小表'}模板文件`,
+      extensions: ['.docx'],
+    })
+    if (selected) {
+      pendingTemplatePath.value[kind] = selected
+    }
+  }
+
+  async function onSaveTemplatePath(kind: 'big' | 'small') {
+    savingTemplate.value = kind
+    try {
+      const { data } = await savePesticideTemplateFromPath(kind, pendingTemplatePath.value[kind])
+      templateStatus.value = data
+      const label = kind === 'big' ? '大表' : '小表'
+      appendStatus(statusLogRef, `${label}模板已更新: ${pendingTemplatePath.value[kind]}`, 'success')
+      ElMessage.success(`${label}模板已保存`)
+      pendingTemplatePath.value[kind] = ''
+    } catch (error: any) {
+      ElMessage.error('模板保存失败: ' + getApiErrorMessage(error))
+    } finally {
+      savingTemplate.value = ''
+    }
+  }
+
+  async function onBrowseMonthListFile() {
+    const selected = await openFile('pest:monthly:list', monthListPath.value, {
+      title: '选择月度清单文件',
+      extensions: ['.xlsx', '.xls', '.txt'],
+    })
+    if (selected) {
+      monthListPath.value = selected
+    }
+  }
+
+  async function onConfirmMonthListPath() {
+    if (!monthListPath.value) {
+      ElMessage.warning('请先浏览选择清单文件')
+      return
+    }
+    try {
+      await persistConfig({ month_list_path: monthListPath.value })
+      ElMessage.success('清单路径已保存')
+    } catch {
+      ElMessage.error('保存失败')
+    }
+  }
+
+  async function onOpenMonthListFile() {
+    if (!monthListPath.value) {
+      ElMessage.warning('请先浏览选择清单文件')
+      return
+    }
+    try {
+      await openLocalFile(monthListPath.value)
+      ElMessage.success('已打开清单文件')
+    } catch (error: any) {
+      ElMessage.error('打开失败: ' + getApiErrorMessage(error))
+    }
+  }
+
   function onClearVeg() {
     vegText.value = ''
     vegStatus.value = ''
@@ -395,7 +461,7 @@ export function usePesticideWorkflow(
     clearStatus(statusLogRef)
   }
 
-  function onSetTab(tab: 'single' | 'monthly-upload' | 'monthly-path') {
+  function onSetTab(tab: 'single' | 'monthly-upload') {
     activeTab.value = tab
     monthEntries.value = []
     monthExecuting.value = false
@@ -468,20 +534,22 @@ export function usePesticideWorkflow(
   }
 
   async function onParseMonthlyList() {
-    if (!monthListText.value.trim() && !monthListFile.value) {
-      ElMessage.warning('请输入清单文本或上传清单文件')
+    if (!monthListText.value.trim() && !monthListPath.value) {
+      ElMessage.warning('请输入清单文本或浏览选择清单文件')
       return
     }
 
     monthParsing.value = true
     try {
-      const { data } = await parsePesticideMonthlyList({
+      const { data } = await parsePesticideMonthlyListFromPath({
         month: month.value,
         listText: monthListText.value,
-        listFile: monthListFile.value,
+        filePath: monthListPath.value,
       })
       monthEntries.value = data.entries
       monthListErrors.value = data.errors
+      // 默认全选所有日期
+      monthSelectedDates.value = new Set(data.entries.map(e => e.date))
 
       if (data.detected_month) {
         month.value = data.detected_month
@@ -505,12 +573,14 @@ export function usePesticideWorkflow(
   }
 
   async function onExecuteMonthly() {
-    if (monthEntries.value.length === 0) {
-      ElMessage.warning('请先解析月度清单')
+    // 筛选已选日期的条目
+    const selectedEntries = monthEntries.value.filter(e => monthSelectedDates.value.has(e.date))
+    if (selectedEntries.length === 0) {
+      ElMessage.warning('请先解析清单并勾选要生成的日期')
       return
     }
 
-    if (activeTab.value === 'monthly-path') {
+    if (monthlyTemplateMode.value === 'path') {
       if (!monthlyPathLocked.value) {
         ElMessage.warning('请先锁定大表和小表模板路径')
         return
@@ -522,11 +592,11 @@ export function usePesticideWorkflow(
     appendStatus(statusLogRef, `开始批量生成 ${month.value} 月度检测报告...`, 'info')
 
     try {
-      if (activeTab.value === 'monthly-path') {
+      if (monthlyTemplateMode.value === 'path') {
         const hasOutputDir = Boolean(monthlyOutputDir.value)
         const payload = await executePesticideMonthlyWithPaths({
           month: month.value,
-          entries: monthEntries.value,
+          entries: selectedEntries,
           inspectorName: inspectorName.value,
           bigTemplatePath: monthlyFoundBig.value,
           smallTemplatePath: monthlyFoundSmall.value,
@@ -544,17 +614,26 @@ export function usePesticideWorkflow(
           ElMessage.success('月度批量报告已生成')
         }
       } else {
+        const hasOutputDir = Boolean(monthlyOutputDir.value)
         const payload = await executePesticideMonthly({
           month: month.value,
-          entries: monthEntries.value,
+          entries: selectedEntries,
           inspectorName: inspectorName.value,
           bigTemplateFile: monthUseSavedTemplates.value ? null : monthBigTemplateFile.value,
           smallTemplateFile: monthUseSavedTemplates.value ? null : monthSmallTemplateFile.value,
+          outputDir: hasOutputDir ? monthlyOutputDir.value : undefined,
         })
-        triggerDownload(payload)
-        monthResult.value = payload.message
-        appendStatus(statusLogRef, payload.message, 'success')
-        ElMessage.success('月度批量报告已生成')
+        if (hasOutputDir) {
+          monthResult.value = payload.message
+          appendStatus(statusLogRef, payload.message, 'success')
+          appendStatus(statusLogRef, `输出目录: ${monthlyOutputDir.value}`, 'info')
+          ElMessage.success('月度批量报告已生成，已保存到输出目录')
+        } else {
+          triggerDownload(payload)
+          monthResult.value = payload.message
+          appendStatus(statusLogRef, payload.message, 'success')
+          ElMessage.success('月度批量报告已生成')
+        }
       }
     } catch (error: any) {
       const detail = getApiErrorMessage(error)
@@ -564,6 +643,30 @@ export function usePesticideWorkflow(
       monthExecuting.value = false
     }
   }
+
+  // 日期选择辅助
+  function toggleDate(date: string) {
+    const next = new Set(monthSelectedDates.value)
+    if (next.has(date)) next.delete(date)
+    else next.add(date)
+    monthSelectedDates.value = next
+  }
+
+  function toggleAllDates() {
+    if (monthSelectedDates.value.size === monthEntries.value.length) {
+      monthSelectedDates.value = new Set()
+    } else {
+      monthSelectedDates.value = new Set(monthEntries.value.map(e => e.date))
+    }
+  }
+
+  const allDatesSelected = computed(() =>
+    monthEntries.value.length > 0 && monthSelectedDates.value.size === monthEntries.value.length,
+  )
+
+  const monthSelectedCount = computed(() =>
+    monthEntries.value.filter(e => monthSelectedDates.value.has(e.date)).reduce((s, e) => s + e.names.length, 0),
+  )
 
   watch(detectDate, async (value) => {
     if (value) {
@@ -578,6 +681,7 @@ export function usePesticideWorkflow(
 
   return {
     activeTab,
+    allDatesSelected,
     bigFile,
     bigPath,
     dataCount,
@@ -601,9 +705,12 @@ export function usePesticideWorkflow(
     monthExecuting,
     monthListErrors,
     monthListFile,
+    monthListPath,
     monthListText,
     monthParsing,
     monthResult,
+    monthSelectedCount,
+    monthSelectedDates,
     monthSmallTemplateFile,
     monthUseSavedTemplates,
     monthlyBigPath,
@@ -614,6 +721,7 @@ export function usePesticideWorkflow(
     monthlyOutputDir,
     monthlyPathLocked,
     monthlySmallPath,
+    monthlyTemplateMode,
     onBrowseOutputDir,
     onBrowsePath,
     onClearJson,
@@ -626,6 +734,11 @@ export function usePesticideWorkflow(
     onGenerateRates,
     onJsonInput,
     onLoadTemplates,
+    onBrowseMonthListFile,
+    onConfirmMonthListPath,
+    onOpenMonthListFile,
+    onBrowseTemplate,
+    onSaveTemplatePath,
     onMonthlyBrowsePath,
     onMonthlyFindFiles,
     onParseMonthlyList,
@@ -637,11 +750,15 @@ export function usePesticideWorkflow(
     outputDir,
     parseVegNames,
     pathLocked,
+    pendingTemplatePath,
+    savingTemplate,
     setFile,
     smallFile,
     smallPath,
     templateLoading,
     templateStatus,
+    toggleAllDates,
+    toggleDate,
     usePathMode,
     vegStatus,
     vegText,

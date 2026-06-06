@@ -204,6 +204,18 @@ export function importWeeklyQuoteBatchUpload(params: {
   return api.post<WeeklyQuoteImportResponse>('/api/weekly-price/summary/import/upload', formData)
 }
 
+export function importWeeklyQuoteBatchFromPath(params: {
+  supplier: string
+  quoteDate: string
+  sourcePath: string
+}) {
+  return api.post<WeeklyQuoteImportResponse>('/api/weekly-price/summary/import', {
+    supplier: params.supplier,
+    quote_date: params.quoteDate,
+    source_path: params.sourcePath,
+  })
+}
+
 export function getWeeklyQuoteSummaryOptions() {
   return api.get<WeeklyQuoteSummaryOptionsResponse>('/api/weekly-price/summary/options')
 }
@@ -260,4 +272,78 @@ export async function getWeeklyQuoteWeekOverview(date: string) {
   return api.get<WeeklyQuoteWeekOverviewResponse>(
     '/api/weekly-price/summary/week', { params: { date } }
   )
+}
+
+// ==================================================================
+// Template storage (MinIO)
+// ==================================================================
+
+export interface TemplateInfo {
+  name: string
+  size: number
+  updated: string
+}
+
+export interface TemplateListResponse {
+  success: boolean
+  templates: Record<string, TemplateInfo | null>
+}
+
+export interface TemplateReadResponse {
+  success: boolean
+  grid: string[][]
+  rows: number
+  cols: number
+}
+
+export function uploadTemplate(tmplType: string, file: File) {
+  const fd = new FormData()
+  fd.append('file', file)
+  return api.post<{ success: boolean; message: string }>(`/api/weekly-price/template/${tmplType}`, fd)
+}
+
+export function uploadTemplateFromPath(tmplType: string, filePath: string) {
+  const fd = new FormData()
+  fd.append('file_path', filePath)
+  return api.post<{ success: boolean; message: string }>(`/api/weekly-price/template/${tmplType}/from-path`, fd)
+}
+
+export function listTemplates() {
+  return api.get<TemplateListResponse>('/api/weekly-price/templates')
+}
+
+export function readTemplate(tmplType: string) {
+  return api.get<TemplateReadResponse>(`/api/weekly-price/template/${tmplType}/read`)
+}
+
+export function saveTemplate(tmplType: string, grid: string[][]) {
+  return api.put<{ success: boolean; message: string }>(`/api/weekly-price/template/${tmplType}`, grid)
+}
+
+export function previewFromTemplates() {
+  return api.post<WeeklyPricePreviewResponse>('/api/weekly-price/preview/templates')
+}
+
+// ==================================================================
+// Paste mode (粘贴模式)
+// ==================================================================
+
+export function previewWeeklyPricePaste(params: {
+  names: string[]
+  prices: string[]
+}) {
+  return api.post<WeeklyPricePreviewResponse>(
+    '/api/weekly-price/preview/paste', params
+  )
+}
+
+export async function executeWeeklyPricePaste(params: {
+  names: string[]
+  prices: string[]
+}): Promise<DownloadResponsePayload> {
+  const response = await api.post(
+    '/api/weekly-price/execute/paste', params,
+    { responseType: 'blob' }
+  )
+  return toDownloadPayload(response, 'weekly_price_updated.xlsx')
 }

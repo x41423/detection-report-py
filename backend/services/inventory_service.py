@@ -46,6 +46,9 @@ class InventoryService:
         limit: int = 100,
         offset: int = 0,
         source_type: str | None = None,
+        direction: str | None = None,
+        date_from: str = "",
+        date_to: str = "",
     ) -> dict[str, Any]:
         self._ensure_backfill()
         normalized_source_type = self._normalize_source_type_filter(source_type)
@@ -56,11 +59,17 @@ class InventoryService:
                 limit=limit,
                 offset=offset,
                 source_type=normalized_source_type,
+                direction=direction,
+                date_from=date_from,
+                date_to=date_to,
             )
         ]
         total = InventoryRepository.count_transactions(
             search=search,
             source_type=normalized_source_type,
+            direction=direction,
+            date_from=date_from,
+            date_to=date_to,
         )
         return {
             "success": True,

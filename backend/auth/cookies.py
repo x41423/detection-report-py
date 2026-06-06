@@ -27,10 +27,16 @@ def refresh_cookie_samesite() -> str:
     return DEFAULT_COOKIE_SAMESITE
 
 
+def _refresh_token_ttl_seconds() -> int:
+    days = int(os.getenv("AUTH_REFRESH_TOKEN_DAYS", "14"))
+    return max(days, 1) * 24 * 60 * 60
+
+
 def set_refresh_cookie(response: Response, refresh_token: str) -> None:
     response.set_cookie(
         key=refresh_cookie_name(),
         value=refresh_token,
+        max_age=_refresh_token_ttl_seconds(),
         httponly=True,
         secure=refresh_cookie_secure(),
         samesite=refresh_cookie_samesite(),

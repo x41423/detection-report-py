@@ -14,17 +14,13 @@
           <span class="template-label">大表</span>
           <el-tag v-if="bigTemplateInfo.configured" type="success" size="small">{{ bigTemplateInfo.filename }}</el-tag>
           <el-tag v-else type="danger" size="small">未上传</el-tag>
-          <el-upload :show-file-list="false" :auto-upload="false" :accept="'.docx,.doc'" @change="(f:any) => uploadTemplate('big', f.raw)">
-            <el-button size="small" text type="primary">更换</el-button>
-          </el-upload>
+          <el-button size="small" text type="primary" @click="onBrowseTemplate('big')">更换</el-button>
         </div>
         <div class="template-item">
           <span class="template-label">小表</span>
           <el-tag v-if="smallTemplateInfo.configured" type="success" size="small">{{ smallTemplateInfo.filename }}</el-tag>
           <el-tag v-else type="danger" size="small">未上传</el-tag>
-          <el-upload :show-file-list="false" :auto-upload="false" :accept="'.docx,.doc'" @change="(f:any) => uploadTemplate('small', f.raw)">
-            <el-button size="small" text type="primary">更换</el-button>
-          </el-upload>
+          <el-button size="small" text type="primary" @click="onBrowseTemplate('small')">更换</el-button>
         </div>
       </div>
       <div class="output-bar">
@@ -190,8 +186,6 @@
 
     <el-alert v-if="smartError" :title="smartError" type="error" show-icon style="margin-top:12px" />
 
-    <DirBrowser ref="dirBrowserRef" />
-
     <el-dialog v-model="backfillDialogVisible" title="批量补做遗漏检测" width="550px" append-to-body>
       <el-form label-width="100px">
         <el-form-item label="日期范围">
@@ -231,17 +225,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { DirBrowserHandle } from '../features/shared/workflow'
-import { openPath } from '../features/shared/workflow'
+import { useDirBrowserApi } from '../features/shared/dirBrowser'
 
 defineOptions({ name: 'SmartDetection' })
 import { ElMessage } from 'element-plus'
 import { useSmartDetection } from '../features/smart-detection/composables/useSmartDetection'
 import { useGapDetection } from '../features/smart-detection/composables/useGapDetection'
 import { getSmartPrepare, putSmartPrepare } from '../api/smart-detection'
-import { getPesticideTemplates, uploadPesticideTemplate } from '../api/pesticide'
+import { getPesticideTemplates, savePesticideTemplateFromPath, uploadPesticideTemplate } from '../api/pesticide'
 
-const dirBrowserRef = ref<DirBrowserHandle>()
+const { openFile, openDirectory } = useDirBrowserApi()
 const inspectorName = ref('检测员')
 const bigTemplate = ref('')
 const smallTemplate = ref('')
@@ -276,9 +269,8 @@ function addManualVeg() {
 }
 
 async function onBrowseOutputDir() {
-  const selected = await openPath(dirBrowserRef, outputDir.value || '', {
+  const selected = await openDirectory('smart:output', outputDir.value || '', {
     title: '选择报告输出目录',
-    mode: 'directory',
   })
   if (selected) {
     outputDir.value = selected
@@ -365,6 +357,23 @@ async function uploadTemplate(kind: 'big' | 'small', file: File | null) {
     await refreshPrepare()
   } catch {
     ElMessage.error('模板上传失败')
+  }
+}
+
+async function onBrowseTemplate(kind: 'big' | 'small') {
+  const selected = await openFile(`smart:template:${kind}`, '', {
+    title: `选择${kind === 'big' ? '大表' : '小表'}模板文件`,
+    extensions: ['.docx'],
+  })
+  if (selected) {
+    try {
+      await savePesticideTemplateFromPath(kind, selected)
+      ElMessage.success(`${kind === 'big' ? '大表' : '小表'}模板已更新`)
+      await loadTemplateInfo()
+      await refreshPrepare()
+    } catch {
+      ElMessage.error('模板保存失败')
+    }
   }
 }
 

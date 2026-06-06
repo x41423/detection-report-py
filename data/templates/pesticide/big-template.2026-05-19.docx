@@ -1,0 +1,873 @@
+\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\khroma\tasks
+2026-05-02 07:49:33.188   Successfully installed the file.
+2026-05-02 07:49:33.188   -- File entry --
+2026-05-02 07:49:33.189   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\LICENSE
+2026-05-02 07:49:33.189   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.189   Installing the file.
+2026-05-02 07:49:33.189   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist
+2026-05-02 07:49:33.189   Successfully installed the file.
+2026-05-02 07:49:33.189   -- File entry --
+2026-05-02 07:49:33.189   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\package.json
+2026-05-02 07:49:33.189   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.189   Installing the file.
+2026-05-02 07:49:33.189   Successfully installed the file.
+2026-05-02 07:49:33.189   -- File entry --
+2026-05-02 07:49:33.189   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\cjs\index.js
+2026-05-02 07:49:33.189   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.189   Installing the file.
+2026-05-02 07:49:33.190   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist
+2026-05-02 07:49:33.190   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\cjs
+2026-05-02 07:49:33.190   Successfully installed the file.
+2026-05-02 07:49:33.190   -- File entry --
+2026-05-02 07:49:33.191   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\esm\index.js
+2026-05-02 07:49:33.191   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.191   Installing the file.
+2026-05-02 07:49:33.191   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\esm
+2026-05-02 07:49:33.191   Successfully installed the file.
+2026-05-02 07:49:33.191   -- File entry --
+2026-05-02 07:49:33.191   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\esm\index.mjs
+2026-05-02 07:49:33.191   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.191   Installing the file.
+2026-05-02 07:49:33.191   Successfully installed the file.
+2026-05-02 07:49:33.191   -- File entry --
+2026-05-02 07:49:33.191   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\module\index.js
+2026-05-02 07:49:33.191   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.191   Installing the file.
+2026-05-02 07:49:33.191   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\kolorist\dist\module
+2026-05-02 07:49:33.192   Successfully installed the file.
+2026-05-02 07:49:33.192   -- File entry --
+2026-05-02 07:49:33.192   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\LICENSE
+2026-05-02 07:49:33.192   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.192   Installing the file.
+2026-05-02 07:49:33.192   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium
+2026-05-02 07:49:33.192   Successfully installed the file.
+2026-05-02 07:49:33.193   -- File entry --
+2026-05-02 07:49:33.193   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\package.json
+2026-05-02 07:49:33.193   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.193   Installing the file.
+2026-05-02 07:49:33.193   Successfully installed the file.
+2026-05-02 07:49:33.193   -- File entry --
+2026-05-02 07:49:33.193   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\default-module.d.ts.map
+2026-05-02 07:49:33.193   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.193   Installing the file.
+2026-05-02 07:49:33.193   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib
+2026-05-02 07:49:33.194   Successfully installed the file.
+2026-05-02 07:49:33.194   -- File entry --
+2026-05-02 07:49:33.194   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\default-module.js
+2026-05-02 07:49:33.194   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.194   Installing the file.
+2026-05-02 07:49:33.194   Successfully installed the file.
+2026-05-02 07:49:33.194   -- File entry --
+2026-05-02 07:49:33.195   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\dependency-injection.d.ts.map
+2026-05-02 07:49:33.195   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.195   Installing the file.
+2026-05-02 07:49:33.195   Successfully installed the file.
+2026-05-02 07:49:33.195   -- File entry --
+2026-05-02 07:49:33.195   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\dependency-injection.js
+2026-05-02 07:49:33.195   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.195   Installing the file.
+2026-05-02 07:49:33.196   Successfully installed the file.
+2026-05-02 07:49:33.196   -- File entry --
+2026-05-02 07:49:33.196   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\index.d.ts.map
+2026-05-02 07:49:33.196   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.196   Installing the file.
+2026-05-02 07:49:33.196   Successfully installed the file.
+2026-05-02 07:49:33.196   -- File entry --
+2026-05-02 07:49:33.196   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\index.js
+2026-05-02 07:49:33.196   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.196   Installing the file.
+2026-05-02 07:49:33.197   Successfully installed the file.
+2026-05-02 07:49:33.197   -- File entry --
+2026-05-02 07:49:33.197   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\service-registry.d.ts.map
+2026-05-02 07:49:33.197   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.197   Installing the file.
+2026-05-02 07:49:33.197   Successfully installed the file.
+2026-05-02 07:49:33.197   -- File entry --
+2026-05-02 07:49:33.197   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\service-registry.js
+2026-05-02 07:49:33.197   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.197   Installing the file.
+2026-05-02 07:49:33.198   Successfully installed the file.
+2026-05-02 07:49:33.198   -- File entry --
+2026-05-02 07:49:33.198   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\services.d.ts.map
+2026-05-02 07:49:33.198   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.198   Installing the file.
+2026-05-02 07:49:33.198   Successfully installed the file.
+2026-05-02 07:49:33.198   -- File entry --
+2026-05-02 07:49:33.198   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\services.js
+2026-05-02 07:49:33.199   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.199   Installing the file.
+2026-05-02 07:49:33.199   Successfully installed the file.
+2026-05-02 07:49:33.199   -- File entry --
+2026-05-02 07:49:33.199   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\syntax-tree.d.ts.map
+2026-05-02 07:49:33.199   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.199   Installing the file.
+2026-05-02 07:49:33.200   Successfully installed the file.
+2026-05-02 07:49:33.200   -- File entry --
+2026-05-02 07:49:33.200   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\syntax-tree.js
+2026-05-02 07:49:33.200   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.200   Installing the file.
+2026-05-02 07:49:33.200   Successfully installed the file.
+2026-05-02 07:49:33.200   -- File entry --
+2026-05-02 07:49:33.200   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\comment-provider.d.ts.map
+2026-05-02 07:49:33.200   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.200   Installing the file.
+2026-05-02 07:49:33.201   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation
+2026-05-02 07:49:33.201   Successfully installed the file.
+2026-05-02 07:49:33.201   -- File entry --
+2026-05-02 07:49:33.201   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\comment-provider.js
+2026-05-02 07:49:33.201   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.201   Installing the file.
+2026-05-02 07:49:33.201   Successfully installed the file.
+2026-05-02 07:49:33.201   -- File entry --
+2026-05-02 07:49:33.201   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\documentation-provider.d.ts.map
+2026-05-02 07:49:33.201   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.201   Installing the file.
+2026-05-02 07:49:33.202   Successfully installed the file.
+2026-05-02 07:49:33.202   -- File entry --
+2026-05-02 07:49:33.202   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\documentation-provider.js
+2026-05-02 07:49:33.202   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.202   Installing the file.
+2026-05-02 07:49:33.202   Successfully installed the file.
+2026-05-02 07:49:33.202   -- File entry --
+2026-05-02 07:49:33.202   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\index.d.ts.map
+2026-05-02 07:49:33.202   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.202   Installing the file.
+2026-05-02 07:49:33.203   Successfully installed the file.
+2026-05-02 07:49:33.203   -- File entry --
+2026-05-02 07:49:33.203   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\index.js
+2026-05-02 07:49:33.203   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.203   Installing the file.
+2026-05-02 07:49:33.203   Successfully installed the file.
+2026-05-02 07:49:33.203   -- File entry --
+2026-05-02 07:49:33.203   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\jsdoc.d.ts.map
+2026-05-02 07:49:33.204   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.204   Installing the file.
+2026-05-02 07:49:33.204   Successfully installed the file.
+2026-05-02 07:49:33.204   -- File entry --
+2026-05-02 07:49:33.204   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\documentation\jsdoc.js
+2026-05-02 07:49:33.204   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.204   Installing the file.
+2026-05-02 07:49:33.205   Successfully installed the file.
+2026-05-02 07:49:33.205   -- File entry --
+2026-05-02 07:49:33.205   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\generator-node.d.ts.map
+2026-05-02 07:49:33.205   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.205   Installing the file.
+2026-05-02 07:49:33.205   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate
+2026-05-02 07:49:33.205   Successfully installed the file.
+2026-05-02 07:49:33.205   -- File entry --
+2026-05-02 07:49:33.205   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\generator-node.js
+2026-05-02 07:49:33.206   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.206   Installing the file.
+2026-05-02 07:49:33.206   Successfully installed the file.
+2026-05-02 07:49:33.206   -- File entry --
+2026-05-02 07:49:33.206   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\generator-tracing.d.ts.map
+2026-05-02 07:49:33.206   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.206   Installing the file.
+2026-05-02 07:49:33.207   Successfully installed the file.
+2026-05-02 07:49:33.207   -- File entry --
+2026-05-02 07:49:33.207   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\generator-tracing.js
+2026-05-02 07:49:33.207   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.207   Installing the file.
+2026-05-02 07:49:33.207   Successfully installed the file.
+2026-05-02 07:49:33.207   -- File entry --
+2026-05-02 07:49:33.207   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\index.d.ts.map
+2026-05-02 07:49:33.207   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.207   Installing the file.
+2026-05-02 07:49:33.207   Successfully installed the file.
+2026-05-02 07:49:33.207   -- File entry --
+2026-05-02 07:49:33.207   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\index.js
+2026-05-02 07:49:33.207   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.207   Installing the file.
+2026-05-02 07:49:33.208   Successfully installed the file.
+2026-05-02 07:49:33.208   -- File entry --
+2026-05-02 07:49:33.208   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\node-joiner.d.ts.map
+2026-05-02 07:49:33.208   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.208   Installing the file.
+2026-05-02 07:49:33.208   Successfully installed the file.
+2026-05-02 07:49:33.208   -- File entry --
+2026-05-02 07:49:33.208   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\node-joiner.js
+2026-05-02 07:49:33.208   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.208   Installing the file.
+2026-05-02 07:49:33.209   Successfully installed the file.
+2026-05-02 07:49:33.209   -- File entry --
+2026-05-02 07:49:33.209   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\node-processor.d.ts.map
+2026-05-02 07:49:33.209   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.209   Installing the file.
+2026-05-02 07:49:33.209   Successfully installed the file.
+2026-05-02 07:49:33.209   -- File entry --
+2026-05-02 07:49:33.209   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\node-processor.js
+2026-05-02 07:49:33.209   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.209   Installing the file.
+2026-05-02 07:49:33.210   Successfully installed the file.
+2026-05-02 07:49:33.210   -- File entry --
+2026-05-02 07:49:33.210   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\template-node.d.ts.map
+2026-05-02 07:49:33.210   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.210   Installing the file.
+2026-05-02 07:49:33.210   Successfully installed the file.
+2026-05-02 07:49:33.210   -- File entry --
+2026-05-02 07:49:33.211   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\template-node.js
+2026-05-02 07:49:33.211   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.211   Installing the file.
+2026-05-02 07:49:33.211   Successfully installed the file.
+2026-05-02 07:49:33.211   -- File entry --
+2026-05-02 07:49:33.211   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\template-string.d.ts.map
+2026-05-02 07:49:33.211   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.211   Installing the file.
+2026-05-02 07:49:33.212   Successfully installed the file.
+2026-05-02 07:49:33.212   -- File entry --
+2026-05-02 07:49:33.212   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\generate\template-string.js
+2026-05-02 07:49:33.212   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.212   Installing the file.
+2026-05-02 07:49:33.212   Successfully installed the file.
+2026-05-02 07:49:33.212   -- File entry --
+2026-05-02 07:49:33.212   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\ast-reflection-interpreter.d.ts.map
+2026-05-02 07:49:33.213   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.213   Installing the file.
+2026-05-02 07:49:33.213   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar
+2026-05-02 07:49:33.213   Successfully installed the file.
+2026-05-02 07:49:33.213   -- File entry --
+2026-05-02 07:49:33.213   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\ast-reflection-interpreter.js
+2026-05-02 07:49:33.213   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.213   Installing the file.
+2026-05-02 07:49:33.214   Successfully installed the file.
+2026-05-02 07:49:33.214   -- File entry --
+2026-05-02 07:49:33.214   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\index.d.ts.map
+2026-05-02 07:49:33.214   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.214   Installing the file.
+2026-05-02 07:49:33.214   Successfully installed the file.
+2026-05-02 07:49:33.214   -- File entry --
+2026-05-02 07:49:33.214   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\index.js
+2026-05-02 07:49:33.215   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.215   Installing the file.
+2026-05-02 07:49:33.215   Successfully installed the file.
+2026-05-02 07:49:33.215   -- File entry --
+2026-05-02 07:49:33.215   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\internal-grammar-util.d.ts.map
+2026-05-02 07:49:33.215   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.215   Installing the file.
+2026-05-02 07:49:33.216   Successfully installed the file.
+2026-05-02 07:49:33.216   -- File entry --
+2026-05-02 07:49:33.216   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\internal-grammar-util.js
+2026-05-02 07:49:33.216   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.216   Installing the file.
+2026-05-02 07:49:33.216   Successfully installed the file.
+2026-05-02 07:49:33.216   -- File entry --
+2026-05-02 07:49:33.217   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\langium-grammar-module.d.ts.map
+2026-05-02 07:49:33.217   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.217   Installing the file.
+2026-05-02 07:49:33.217   Successfully installed the file.
+2026-05-02 07:49:33.217   -- File entry --
+2026-05-02 07:49:33.217   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\langium-grammar-module.js
+2026-05-02 07:49:33.217   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.217   Installing the file.
+2026-05-02 07:49:33.217   Successfully installed the file.
+2026-05-02 07:49:33.217   -- File entry --
+2026-05-02 07:49:33.218   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\generated\grammar.d.ts.map
+2026-05-02 07:49:33.218   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.218   Installing the file.
+2026-05-02 07:49:33.218   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\generated
+2026-05-02 07:49:33.218   Successfully installed the file.
+2026-05-02 07:49:33.218   -- File entry --
+2026-05-02 07:49:33.218   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\generated\grammar.js
+2026-05-02 07:49:33.218   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.218   Installing the file.
+2026-05-02 07:49:33.219   Successfully installed the file.
+2026-05-02 07:49:33.219   -- File entry --
+2026-05-02 07:49:33.219   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\generated\module.d.ts.map
+2026-05-02 07:49:33.219   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.219   Installing the file.
+2026-05-02 07:49:33.220   Successfully installed the file.
+2026-05-02 07:49:33.220   -- File entry --
+2026-05-02 07:49:33.220   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\generated\module.js
+2026-05-02 07:49:33.220   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.220   Installing the file.
+2026-05-02 07:49:33.220   Successfully installed the file.
+2026-05-02 07:49:33.220   -- File entry --
+2026-05-02 07:49:33.220   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-call-hierarchy.d.ts.map
+2026-05-02 07:49:33.220   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.220   Installing the file.
+2026-05-02 07:49:33.220   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp
+2026-05-02 07:49:33.221   Successfully installed the file.
+2026-05-02 07:49:33.221   -- File entry --
+2026-05-02 07:49:33.221   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-call-hierarchy.js
+2026-05-02 07:49:33.221   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.221   Installing the file.
+2026-05-02 07:49:33.221   Successfully installed the file.
+2026-05-02 07:49:33.221   -- File entry --
+2026-05-02 07:49:33.222   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-code-actions.d.ts.map
+2026-05-02 07:49:33.222   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.222   Installing the file.
+2026-05-02 07:49:33.222   Successfully installed the file.
+2026-05-02 07:49:33.222   -- File entry --
+2026-05-02 07:49:33.222   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-code-actions.js
+2026-05-02 07:49:33.223   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.223   Installing the file.
+2026-05-02 07:49:33.223   Successfully installed the file.
+2026-05-02 07:49:33.223   -- File entry --
+2026-05-02 07:49:33.223   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-completion-provider.d.ts.map
+2026-05-02 07:49:33.223   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.223   Installing the file.
+2026-05-02 07:49:33.224   Successfully installed the file.
+2026-05-02 07:49:33.224   -- File entry --
+2026-05-02 07:49:33.224   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-completion-provider.js
+2026-05-02 07:49:33.224   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.224   Installing the file.
+2026-05-02 07:49:33.224   Successfully installed the file.
+2026-05-02 07:49:33.224   -- File entry --
+2026-05-02 07:49:33.224   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-definition.d.ts.map
+2026-05-02 07:49:33.224   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.224   Installing the file.
+2026-05-02 07:49:33.225   Successfully installed the file.
+2026-05-02 07:49:33.225   -- File entry --
+2026-05-02 07:49:33.225   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-definition.js
+2026-05-02 07:49:33.225   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.225   Installing the file.
+2026-05-02 07:49:33.225   Successfully installed the file.
+2026-05-02 07:49:33.225   -- File entry --
+2026-05-02 07:49:33.225   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-folding-ranges.d.ts.map
+2026-05-02 07:49:33.225   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.225   Installing the file.
+2026-05-02 07:49:33.226   Successfully installed the file.
+2026-05-02 07:49:33.226   -- File entry --
+2026-05-02 07:49:33.226   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-folding-ranges.js
+2026-05-02 07:49:33.226   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.226   Installing the file.
+2026-05-02 07:49:33.226   Successfully installed the file.
+2026-05-02 07:49:33.226   -- File entry --
+2026-05-02 07:49:33.226   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-formatter.d.ts.map
+2026-05-02 07:49:33.226   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.226   Installing the file.
+2026-05-02 07:49:33.227   Successfully installed the file.
+2026-05-02 07:49:33.227   -- File entry --
+2026-05-02 07:49:33.227   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-formatter.js
+2026-05-02 07:49:33.227   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.227   Installing the file.
+2026-05-02 07:49:33.227   Successfully installed the file.
+2026-05-02 07:49:33.227   -- File entry --
+2026-05-02 07:49:33.227   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-semantic-tokens.d.ts.map
+2026-05-02 07:49:33.227   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.227   Installing the file.
+2026-05-02 07:49:33.228   Successfully installed the file.
+2026-05-02 07:49:33.228   -- File entry --
+2026-05-02 07:49:33.228   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-semantic-tokens.js
+2026-05-02 07:49:33.228   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.228   Installing the file.
+2026-05-02 07:49:33.228   Successfully installed the file.
+2026-05-02 07:49:33.228   -- File entry --
+2026-05-02 07:49:33.228   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-type-hierarchy.d.ts.map
+2026-05-02 07:49:33.229   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.229   Installing the file.
+2026-05-02 07:49:33.229   Successfully installed the file.
+2026-05-02 07:49:33.229   -- File entry --
+2026-05-02 07:49:33.229   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\lsp\grammar-type-hierarchy.js
+2026-05-02 07:49:33.229   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.229   Installing the file.
+2026-05-02 07:49:33.229   Successfully installed the file.
+2026-05-02 07:49:33.229   -- File entry --
+2026-05-02 07:49:33.230   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-naming.d.ts.map
+2026-05-02 07:49:33.230   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.230   Installing the file.
+2026-05-02 07:49:33.230   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references
+2026-05-02 07:49:33.230   Successfully installed the file.
+2026-05-02 07:49:33.230   -- File entry --
+2026-05-02 07:49:33.230   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-naming.js
+2026-05-02 07:49:33.230   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.230   Installing the file.
+2026-05-02 07:49:33.231   Successfully installed the file.
+2026-05-02 07:49:33.231   -- File entry --
+2026-05-02 07:49:33.231   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-references.d.ts.map
+2026-05-02 07:49:33.231   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.231   Installing the file.
+2026-05-02 07:49:33.231   Successfully installed the file.
+2026-05-02 07:49:33.231   -- File entry --
+2026-05-02 07:49:33.231   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-references.js
+2026-05-02 07:49:33.231   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.231   Installing the file.
+2026-05-02 07:49:33.232   Successfully installed the file.
+2026-05-02 07:49:33.232   -- File entry --
+2026-05-02 07:49:33.232   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-scope.d.ts.map
+2026-05-02 07:49:33.232   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.232   Installing the file.
+2026-05-02 07:49:33.232   Successfully installed the file.
+2026-05-02 07:49:33.232   -- File entry --
+2026-05-02 07:49:33.232   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\references\grammar-scope.js
+2026-05-02 07:49:33.232   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.232   Installing the file.
+2026-05-02 07:49:33.233   Successfully installed the file.
+2026-05-02 07:49:33.233   -- File entry --
+2026-05-02 07:49:33.233   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\ast-collector.d.ts.map
+2026-05-02 07:49:33.233   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.233   Installing the file.
+2026-05-02 07:49:33.233   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system
+2026-05-02 07:49:33.233   Successfully installed the file.
+2026-05-02 07:49:33.233   -- File entry --
+2026-05-02 07:49:33.234   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\ast-collector.js
+2026-05-02 07:49:33.234   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.234   Installing the file.
+2026-05-02 07:49:33.234   Successfully installed the file.
+2026-05-02 07:49:33.234   -- File entry --
+2026-05-02 07:49:33.234   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\index.d.ts.map
+2026-05-02 07:49:33.234   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.234   Installing the file.
+2026-05-02 07:49:33.235   Successfully installed the file.
+2026-05-02 07:49:33.235   -- File entry --
+2026-05-02 07:49:33.235   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\index.js
+2026-05-02 07:49:33.235   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.235   Installing the file.
+2026-05-02 07:49:33.235   Successfully installed the file.
+2026-05-02 07:49:33.235   -- File entry --
+2026-05-02 07:49:33.235   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\types-util.d.ts.map
+2026-05-02 07:49:33.235   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.235   Installing the file.
+2026-05-02 07:49:33.236   Successfully installed the file.
+2026-05-02 07:49:33.236   -- File entry --
+2026-05-02 07:49:33.236   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\types-util.js
+2026-05-02 07:49:33.236   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.236   Installing the file.
+2026-05-02 07:49:33.236   Successfully installed the file.
+2026-05-02 07:49:33.236   -- File entry --
+2026-05-02 07:49:33.237   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\all-types.d.ts.map
+2026-05-02 07:49:33.237   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.237   Installing the file.
+2026-05-02 07:49:33.237   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector
+2026-05-02 07:49:33.237   Successfully installed the file.
+2026-05-02 07:49:33.237   -- File entry --
+2026-05-02 07:49:33.237   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\all-types.js
+2026-05-02 07:49:33.237   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.237   Installing the file.
+2026-05-02 07:49:33.237   Successfully installed the file.
+2026-05-02 07:49:33.237   -- File entry --
+2026-05-02 07:49:33.237   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\declared-types.d.ts.map
+2026-05-02 07:49:33.238   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.238   Installing the file.
+2026-05-02 07:49:33.238   Successfully installed the file.
+2026-05-02 07:49:33.238   -- File entry --
+2026-05-02 07:49:33.238   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\declared-types.js
+2026-05-02 07:49:33.238   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.238   Installing the file.
+2026-05-02 07:49:33.239   Successfully installed the file.
+2026-05-02 07:49:33.239   -- File entry --
+2026-05-02 07:49:33.239   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\inferred-types.d.ts.map
+2026-05-02 07:49:33.239   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.239   Installing the file.
+2026-05-02 07:49:33.239   Successfully installed the file.
+2026-05-02 07:49:33.239   -- File entry --
+2026-05-02 07:49:33.239   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\inferred-types.js
+2026-05-02 07:49:33.240   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.240   Installing the file.
+2026-05-02 07:49:33.240   Successfully installed the file.
+2026-05-02 07:49:33.240   -- File entry --
+2026-05-02 07:49:33.240   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\plain-types.d.ts.map
+2026-05-02 07:49:33.240   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.240   Installing the file.
+2026-05-02 07:49:33.241   Successfully installed the file.
+2026-05-02 07:49:33.241   -- File entry --
+2026-05-02 07:49:33.241   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\plain-types.js
+2026-05-02 07:49:33.241   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.241   Installing the file.
+2026-05-02 07:49:33.241   Successfully installed the file.
+2026-05-02 07:49:33.241   -- File entry --
+2026-05-02 07:49:33.242   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\types.d.ts.map
+2026-05-02 07:49:33.242   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.242   Installing the file.
+2026-05-02 07:49:33.242   Successfully installed the file.
+2026-05-02 07:49:33.242   -- File entry --
+2026-05-02 07:49:33.242   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\type-system\type-collector\types.js
+2026-05-02 07:49:33.242   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.242   Installing the file.
+2026-05-02 07:49:33.243   Successfully installed the file.
+2026-05-02 07:49:33.243   -- File entry --
+2026-05-02 07:49:33.243   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\types-validator.d.ts.map
+2026-05-02 07:49:33.243   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.243   Installing the file.
+2026-05-02 07:49:33.243   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation
+2026-05-02 07:49:33.243   Successfully installed the file.
+2026-05-02 07:49:33.243   -- File entry --
+2026-05-02 07:49:33.243   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\types-validator.js
+2026-05-02 07:49:33.243   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.243   Installing the file.
+2026-05-02 07:49:33.244   Successfully installed the file.
+2026-05-02 07:49:33.244   -- File entry --
+2026-05-02 07:49:33.244   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\validation-resources-collector.d.ts.map
+2026-05-02 07:49:33.244   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.244   Installing the file.
+2026-05-02 07:49:33.245   Successfully installed the file.
+2026-05-02 07:49:33.245   -- File entry --
+2026-05-02 07:49:33.245   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\validation-resources-collector.js
+2026-05-02 07:49:33.245   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.245   Installing the file.
+2026-05-02 07:49:33.245   Successfully installed the file.
+2026-05-02 07:49:33.245   -- File entry --
+2026-05-02 07:49:33.245   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\validator.d.ts.map
+2026-05-02 07:49:33.246   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.246   Installing the file.
+2026-05-02 07:49:33.254   Successfully installed the file.
+2026-05-02 07:49:33.254   -- File entry --
+2026-05-02 07:49:33.254   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\validation\validator.js
+2026-05-02 07:49:33.254   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.254   Installing the file.
+2026-05-02 07:49:33.255   Successfully installed the file.
+2026-05-02 07:49:33.255   -- File entry --
+2026-05-02 07:49:33.255   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\workspace\documents.d.ts.map
+2026-05-02 07:49:33.255   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.255   Installing the file.
+2026-05-02 07:49:33.255   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\workspace
+2026-05-02 07:49:33.256   Successfully installed the file.
+2026-05-02 07:49:33.256   -- File entry --
+2026-05-02 07:49:33.256   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\grammar\workspace\documents.js
+2026-05-02 07:49:33.256   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.256   Installing the file.
+2026-05-02 07:49:33.257   Successfully installed the file.
+2026-05-02 07:49:33.257   -- File entry --
+2026-05-02 07:49:33.257   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\grammar-config.d.ts.map
+2026-05-02 07:49:33.257   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.257   Installing the file.
+2026-05-02 07:49:33.257   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages
+2026-05-02 07:49:33.257   Successfully installed the file.
+2026-05-02 07:49:33.257   -- File entry --
+2026-05-02 07:49:33.257   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\grammar-config.js
+2026-05-02 07:49:33.257   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.257   Installing the file.
+2026-05-02 07:49:33.258   Successfully installed the file.
+2026-05-02 07:49:33.258   -- File entry --
+2026-05-02 07:49:33.258   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\index.d.ts.map
+2026-05-02 07:49:33.258   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.258   Installing the file.
+2026-05-02 07:49:33.260   Successfully installed the file.
+2026-05-02 07:49:33.260   -- File entry --
+2026-05-02 07:49:33.260   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\index.js
+2026-05-02 07:49:33.261   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.261   Installing the file.
+2026-05-02 07:49:33.261   Successfully installed the file.
+2026-05-02 07:49:33.261   -- File entry --
+2026-05-02 07:49:33.261   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\language-meta-data.d.ts.map
+2026-05-02 07:49:33.261   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.261   Installing the file.
+2026-05-02 07:49:33.261   Successfully installed the file.
+2026-05-02 07:49:33.261   -- File entry --
+2026-05-02 07:49:33.261   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\language-meta-data.js
+2026-05-02 07:49:33.262   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.262   Installing the file.
+2026-05-02 07:49:33.262   Successfully installed the file.
+2026-05-02 07:49:33.262   -- File entry --
+2026-05-02 07:49:33.262   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\generated\ast.d.ts.map
+2026-05-02 07:49:33.262   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.262   Installing the file.
+2026-05-02 07:49:33.262   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\generated
+2026-05-02 07:49:33.264   Successfully installed the file.
+2026-05-02 07:49:33.264   -- File entry --
+2026-05-02 07:49:33.264   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\languages\generated\ast.js
+2026-05-02 07:49:33.264   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.264   Installing the file.
+2026-05-02 07:49:33.264   Successfully installed the file.
+2026-05-02 07:49:33.264   -- File entry --
+2026-05-02 07:49:33.264   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\call-hierarchy-provider.d.ts.map
+2026-05-02 07:49:33.264   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.264   Installing the file.
+2026-05-02 07:49:33.264   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp
+2026-05-02 07:49:33.265   Successfully installed the file.
+2026-05-02 07:49:33.266   -- File entry --
+2026-05-02 07:49:33.266   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\call-hierarchy-provider.js
+2026-05-02 07:49:33.266   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.266   Installing the file.
+2026-05-02 07:49:33.266   Successfully installed the file.
+2026-05-02 07:49:33.266   -- File entry --
+2026-05-02 07:49:33.266   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\code-action.d.ts.map
+2026-05-02 07:49:33.266   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.266   Installing the file.
+2026-05-02 07:49:33.268   Successfully installed the file.
+2026-05-02 07:49:33.268   -- File entry --
+2026-05-02 07:49:33.268   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\code-action.js
+2026-05-02 07:49:33.268   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.268   Installing the file.
+2026-05-02 07:49:33.268   Successfully installed the file.
+2026-05-02 07:49:33.268   -- File entry --
+2026-05-02 07:49:33.268   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\code-lens-provider.d.ts.map
+2026-05-02 07:49:33.268   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.268   Installing the file.
+2026-05-02 07:49:33.271   Successfully installed the file.
+2026-05-02 07:49:33.271   -- File entry --
+2026-05-02 07:49:33.271   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\code-lens-provider.js
+2026-05-02 07:49:33.271   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.271   Installing the file.
+2026-05-02 07:49:33.271   Successfully installed the file.
+2026-05-02 07:49:33.271   -- File entry --
+2026-05-02 07:49:33.271   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\declaration-provider.d.ts.map
+2026-05-02 07:49:33.272   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.272   Installing the file.
+2026-05-02 07:49:33.272   Successfully installed the file.
+2026-05-02 07:49:33.272   -- File entry --
+2026-05-02 07:49:33.272   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\declaration-provider.js
+2026-05-02 07:49:33.272   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.272   Installing the file.
+2026-05-02 07:49:33.272   Successfully installed the file.
+2026-05-02 07:49:33.272   -- File entry --
+2026-05-02 07:49:33.273   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\default-lsp-module.d.ts.map
+2026-05-02 07:49:33.273   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.273   Installing the file.
+2026-05-02 07:49:33.275   Successfully installed the file.
+2026-05-02 07:49:33.275   -- File entry --
+2026-05-02 07:49:33.275   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\default-lsp-module.js
+2026-05-02 07:49:33.275   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.275   Installing the file.
+2026-05-02 07:49:33.275   Successfully installed the file.
+2026-05-02 07:49:33.275   -- File entry --
+2026-05-02 07:49:33.276   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\definition-provider.d.ts.map
+2026-05-02 07:49:33.276   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.276   Installing the file.
+2026-05-02 07:49:33.276   Successfully installed the file.
+2026-05-02 07:49:33.276   -- File entry --
+2026-05-02 07:49:33.276   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\definition-provider.js
+2026-05-02 07:49:33.276   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.276   Installing the file.
+2026-05-02 07:49:33.276   Successfully installed the file.
+2026-05-02 07:49:33.276   -- File entry --
+2026-05-02 07:49:33.276   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-highlight-provider.d.ts.map
+2026-05-02 07:49:33.277   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.277   Installing the file.
+2026-05-02 07:49:33.278   Successfully installed the file.
+2026-05-02 07:49:33.278   -- File entry --
+2026-05-02 07:49:33.278   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-highlight-provider.js
+2026-05-02 07:49:33.278   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.278   Installing the file.
+2026-05-02 07:49:33.278   Successfully installed the file.
+2026-05-02 07:49:33.278   -- File entry --
+2026-05-02 07:49:33.278   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-link-provider.d.ts.map
+2026-05-02 07:49:33.278   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.278   Installing the file.
+2026-05-02 07:49:33.279   Successfully installed the file.
+2026-05-02 07:49:33.279   -- File entry --
+2026-05-02 07:49:33.279   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-link-provider.js
+2026-05-02 07:49:33.279   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.279   Installing the file.
+2026-05-02 07:49:33.279   Successfully installed the file.
+2026-05-02 07:49:33.279   -- File entry --
+2026-05-02 07:49:33.279   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-symbol-provider.d.ts.map
+2026-05-02 07:49:33.279   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.279   Installing the file.
+2026-05-02 07:49:33.282   Successfully installed the file.
+2026-05-02 07:49:33.282   -- File entry --
+2026-05-02 07:49:33.282   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-symbol-provider.js
+2026-05-02 07:49:33.283   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.283   Installing the file.
+2026-05-02 07:49:33.283   Successfully installed the file.
+2026-05-02 07:49:33.283   -- File entry --
+2026-05-02 07:49:33.283   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-update-handler.d.ts.map
+2026-05-02 07:49:33.283   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.283   Installing the file.
+2026-05-02 07:49:33.283   Successfully installed the file.
+2026-05-02 07:49:33.283   -- File entry --
+2026-05-02 07:49:33.283   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\document-update-handler.js
+2026-05-02 07:49:33.284   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.284   Installing the file.
+2026-05-02 07:49:33.284   Successfully installed the file.
+2026-05-02 07:49:33.284   -- File entry --
+2026-05-02 07:49:33.284   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\execute-command-handler.d.ts.map
+2026-05-02 07:49:33.284   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.284   Installing the file.
+2026-05-02 07:49:33.287   Successfully installed the file.
+2026-05-02 07:49:33.287   -- File entry --
+2026-05-02 07:49:33.287   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\execute-command-handler.js
+2026-05-02 07:49:33.287   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.287   Installing the file.
+2026-05-02 07:49:33.288   Successfully installed the file.
+2026-05-02 07:49:33.288   -- File entry --
+2026-05-02 07:49:33.288   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\file-operation-handler.d.ts.map
+2026-05-02 07:49:33.288   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.288   Installing the file.
+2026-05-02 07:49:33.288   Successfully installed the file.
+2026-05-02 07:49:33.288   -- File entry --
+2026-05-02 07:49:33.288   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\file-operation-handler.js
+2026-05-02 07:49:33.288   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.288   Installing the file.
+2026-05-02 07:49:33.289   Successfully installed the file.
+2026-05-02 07:49:33.289   -- File entry --
+2026-05-02 07:49:33.289   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\folding-range-provider.d.ts.map
+2026-05-02 07:49:33.289   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.289   Installing the file.
+2026-05-02 07:49:33.292   Successfully installed the file.
+2026-05-02 07:49:33.293   -- File entry --
+2026-05-02 07:49:33.293   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\folding-range-provider.js
+2026-05-02 07:49:33.293   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.293   Installing the file.
+2026-05-02 07:49:33.293   Successfully installed the file.
+2026-05-02 07:49:33.293   -- File entry --
+2026-05-02 07:49:33.293   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\formatter.d.ts.map
+2026-05-02 07:49:33.293   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.293   Installing the file.
+2026-05-02 07:49:33.294   Successfully installed the file.
+2026-05-02 07:49:33.294   -- File entry --
+2026-05-02 07:49:33.294   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\formatter.js
+2026-05-02 07:49:33.294   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.294   Installing the file.
+2026-05-02 07:49:33.294   Successfully installed the file.
+2026-05-02 07:49:33.294   -- File entry --
+2026-05-02 07:49:33.295   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\fuzzy-matcher.d.ts.map
+2026-05-02 07:49:33.295   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.295   Installing the file.
+2026-05-02 07:49:33.295   Successfully installed the file.
+2026-05-02 07:49:33.295   -- File entry --
+2026-05-02 07:49:33.295   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\fuzzy-matcher.js
+2026-05-02 07:49:33.295   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.295   Installing the file.
+2026-05-02 07:49:33.296   Successfully installed the file.
+2026-05-02 07:49:33.296   -- File entry --
+2026-05-02 07:49:33.296   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\hover-provider.d.ts.map
+2026-05-02 07:49:33.296   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.296   Installing the file.
+2026-05-02 07:49:33.296   Successfully installed the file.
+2026-05-02 07:49:33.296   -- File entry --
+2026-05-02 07:49:33.296   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\hover-provider.js
+2026-05-02 07:49:33.296   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.296   Installing the file.
+2026-05-02 07:49:33.297   Successfully installed the file.
+2026-05-02 07:49:33.297   -- File entry --
+2026-05-02 07:49:33.297   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\implementation-provider.d.ts.map
+2026-05-02 07:49:33.297   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.297   Installing the file.
+2026-05-02 07:49:33.298   Successfully installed the file.
+2026-05-02 07:49:33.298   -- File entry --
+2026-05-02 07:49:33.298   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\implementation-provider.js
+2026-05-02 07:49:33.298   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.298   Installing the file.
+2026-05-02 07:49:33.299   Successfully installed the file.
+2026-05-02 07:49:33.299   -- File entry --
+2026-05-02 07:49:33.299   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\index.d.ts.map
+2026-05-02 07:49:33.299   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.299   Installing the file.
+2026-05-02 07:49:33.300   Successfully installed the file.
+2026-05-02 07:49:33.300   -- File entry --
+2026-05-02 07:49:33.300   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\index.js
+2026-05-02 07:49:33.300   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.300   Installing the file.
+2026-05-02 07:49:33.300   Successfully installed the file.
+2026-05-02 07:49:33.300   -- File entry --
+2026-05-02 07:49:33.300   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\inlay-hint-provider.d.ts.map
+2026-05-02 07:49:33.300   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.300   Installing the file.
+2026-05-02 07:49:33.306   Successfully installed the file.
+2026-05-02 07:49:33.306   -- File entry --
+2026-05-02 07:49:33.307   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\inlay-hint-provider.js
+2026-05-02 07:49:33.307   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.307   Installing the file.
+2026-05-02 07:49:33.307   Successfully installed the file.
+2026-05-02 07:49:33.307   -- File entry --
+2026-05-02 07:49:33.307   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\language-server.d.ts.map
+2026-05-02 07:49:33.307   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.307   Installing the file.
+2026-05-02 07:49:33.307   Successfully installed the file.
+2026-05-02 07:49:33.308   -- File entry --
+2026-05-02 07:49:33.308   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\language-server.js
+2026-05-02 07:49:33.308   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.308   Installing the file.
+2026-05-02 07:49:33.308   Successfully installed the file.
+2026-05-02 07:49:33.308   -- File entry --
+2026-05-02 07:49:33.309   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\lsp-services.d.ts.map
+2026-05-02 07:49:33.309   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.309   Installing the file.
+2026-05-02 07:49:33.311   Successfully installed the file.
+2026-05-02 07:49:33.311   -- File entry --
+2026-05-02 07:49:33.311   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\lsp-services.js
+2026-05-02 07:49:33.311   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.311   Installing the file.
+2026-05-02 07:49:33.311   Successfully installed the file.
+2026-05-02 07:49:33.312   -- File entry --
+2026-05-02 07:49:33.312   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\node-kind-provider.d.ts.map
+2026-05-02 07:49:33.312   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.312   Installing the file.
+2026-05-02 07:49:33.320   Successfully installed the file.
+2026-05-02 07:49:33.320   -- File entry --
+2026-05-02 07:49:33.320   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\node-kind-provider.js
+2026-05-02 07:49:33.320   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.320   Installing the file.
+2026-05-02 07:49:33.320   Successfully installed the file.
+2026-05-02 07:49:33.320   -- File entry --
+2026-05-02 07:49:33.320   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\normalized-text-documents.d.ts.map
+2026-05-02 07:49:33.320   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.320   Installing the file.
+2026-05-02 07:49:33.322   Successfully installed the file.
+2026-05-02 07:49:33.322   -- File entry --
+2026-05-02 07:49:33.322   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\normalized-text-documents.js
+2026-05-02 07:49:33.322   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.322   Installing the file.
+2026-05-02 07:49:33.322   Successfully installed the file.
+2026-05-02 07:49:33.322   -- File entry --
+2026-05-02 07:49:33.322   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\references-provider.d.ts.map
+2026-05-02 07:49:33.322   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.322   Installing the file.
+2026-05-02 07:49:33.323   Successfully installed the file.
+2026-05-02 07:49:33.323   -- File entry --
+2026-05-02 07:49:33.323   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\references-provider.js
+2026-05-02 07:49:33.323   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.323   Installing the file.
+2026-05-02 07:49:33.323   Successfully installed the file.
+2026-05-02 07:49:33.323   -- File entry --
+2026-05-02 07:49:33.323   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\rename-provider.d.ts.map
+2026-05-02 07:49:33.323   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.323   Installing the file.
+2026-05-02 07:49:33.324   Successfully installed the file.
+2026-05-02 07:49:33.324   -- File entry --
+2026-05-02 07:49:33.325   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\rename-provider.js
+2026-05-02 07:49:33.325   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.325   Installing the file.
+2026-05-02 07:49:33.325   Successfully installed the file.
+2026-05-02 07:49:33.325   -- File entry --
+2026-05-02 07:49:33.325   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\semantic-token-provider.d.ts.map
+2026-05-02 07:49:33.325   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.325   Installing the file.
+2026-05-02 07:49:33.326   Successfully installed the file.
+2026-05-02 07:49:33.326   -- File entry --
+2026-05-02 07:49:33.326   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\semantic-token-provider.js
+2026-05-02 07:49:33.326   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.326   Installing the file.
+2026-05-02 07:49:33.329   Successfully installed the file.
+2026-05-02 07:49:33.329   -- File entry --
+2026-05-02 07:49:33.329   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\signature-help-provider.d.ts.map
+2026-05-02 07:49:33.329   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.329   Installing the file.
+2026-05-02 07:49:33.330   Successfully installed the file.
+2026-05-02 07:49:33.330   -- File entry --
+2026-05-02 07:49:33.330   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\signature-help-provider.js
+2026-05-02 07:49:33.330   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.330   Installing the file.
+2026-05-02 07:49:33.330   Successfully installed the file.
+2026-05-02 07:49:33.330   -- File entry --
+2026-05-02 07:49:33.330   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\type-hierarchy-provider.d.ts.map
+2026-05-02 07:49:33.330   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.330   Installing the file.
+2026-05-02 07:49:33.331   Successfully installed the file.
+2026-05-02 07:49:33.331   -- File entry --
+2026-05-02 07:49:33.331   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\type-hierarchy-provider.js
+2026-05-02 07:49:33.331   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.331   Installing the file.
+2026-05-02 07:49:33.331   Successfully installed the file.
+2026-05-02 07:49:33.331   -- File entry --
+2026-05-02 07:49:33.331   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\type-provider.d.ts.map
+2026-05-02 07:49:33.331   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.331   Installing the file.
+2026-05-02 07:49:33.334   Successfully installed the file.
+2026-05-02 07:49:33.334   -- File entry --
+2026-05-02 07:49:33.334   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\type-provider.js
+2026-05-02 07:49:33.334   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.334   Installing the file.
+2026-05-02 07:49:33.334   Successfully installed the file.
+2026-05-02 07:49:33.334   -- File entry --
+2026-05-02 07:49:33.334   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\workspace-symbol-provider.d.ts.map
+2026-05-02 07:49:33.334   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.334   Installing the file.
+2026-05-02 07:49:33.334   Successfully installed the file.
+2026-05-02 07:49:33.334   -- File entry --
+2026-05-02 07:49:33.334   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\workspace-symbol-provider.js
+2026-05-02 07:49:33.334   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.334   Installing the file.
+2026-05-02 07:49:33.348   Successfully installed the file.
+2026-05-02 07:49:33.348   -- File entry --
+2026-05-02 07:49:33.348   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\completion\completion-provider.d.ts.map
+2026-05-02 07:49:33.348   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.348   Installing the file.
+2026-05-02 07:49:33.348   Creating directory: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\completion
+2026-05-02 07:49:33.349   Successfully installed the file.
+2026-05-02 07:49:33.350   -- File entry --
+2026-05-02 07:49:33.350   Dest filename: C:\Users\xln\AppData\Local\Programs\Windsurf\_\resources\app\node_modules\langium\lib\lsp\completion\completion-provider.js
+2026-05-02 07:49:33.350   Time stamp of our file: 2026-04-29 19:34:14.000
+2026-05-02 07:49:33.350   Installing the file.
+2026-05-02 07:49:33.3

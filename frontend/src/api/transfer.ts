@@ -80,6 +80,13 @@ export function uploadTransferTemplateFile(kind: string, file: File) {
   return api.post<TransferTemplateStatusResponse>('/api/transfer/templates/upload', formData)
 }
 
+export function uploadTransferTemplateFromPath(smallType: string, filePath: string) {
+  const formData = new FormData()
+  formData.append('small_type', smallType)
+  formData.append('file_path', filePath)
+  return api.post<TransferTemplateStatusResponse>('/api/transfer/templates/upload-from-path', formData)
+}
+
 /**
  * Group a folder of "monthly" Excel uploads by date so the user can preview
  * which files will be processed before launching the long-running migration.
@@ -225,4 +232,8 @@ export async function executeTransferFromPaths(params: {
     responseType: 'blob',
   })
   return toDownloadPayload(response, 'transfer-result.docx')
+}
+
+export function openLocalFile(filePath: string) {
+  return api.post<{ success: boolean; message: string }>('/api/transfer/open-local', { path: filePath })
 }

@@ -18,7 +18,8 @@ import {
   type MonthlyTransferGroup,
   type TransferTemplateInfo,
 } from '../../../api'
-import { appendStatus, clearStatus, openPath, persistConfig, type DirBrowserHandle, type StatusLogHandle } from '../../shared/workflow'
+import { appendStatus, clearStatus, persistConfig, type StatusLogHandle } from '../../shared/workflow'
+import { useDirBrowserApi } from '../../shared/dirBrowser'
 import { triggerDownload } from '../../../utils/download'
 import { getFileName, parseVegNames } from '../../../utils/veg'
 
@@ -40,8 +41,8 @@ function todayMonth(): string {
 
 export function useDataTransferWorkflow(
   statusLogRef: Ref<StatusLogHandle | undefined>,
-  dirBrowserRef?: Ref<DirBrowserHandle | undefined>,
 ) {
+  const { openDirectory, openFile } = useDirBrowserApi()
   const smallTypes = SMALL_TYPES
   const workflowMode = ref<TransferWorkflowMode>('single')
 
@@ -55,6 +56,7 @@ export function useDataTransferWorkflow(
   const useSavedTemplate = ref(true)
 
   const bigTableFiles = ref<File[]>([])
+  const bigTablePaths = ref<string[]>([])
   const smallTemplateFile = ref<File | null>(null)
   const smallType = ref<SmallType>(SMALL_TYPES[0])
   const vegText = ref('')
@@ -71,6 +73,7 @@ export function useDataTransferWorkflow(
 
   // Monthly transfer state
   const monthlyTableFiles = ref<File[]>([])
+  const monthlyTablePaths = ref<string[]>([])
   const monthlyMonth = ref(todayMonth())
   const monthlyPreviewing = ref(false)
   const monthlyExecuting = ref(false)
@@ -366,10 +369,8 @@ export function useDataTransferWorkflow(
   }
 
   async function onBrowseBigDir() {
-    if (!dirBrowserRef) return
-    const selected = await openPath(dirBrowserRef, bigDir.value, {
+    const selected = await openDirectory('transfer:big-dir', bigDir.value, {
       title: '选择大表文件所在目录',
-      mode: 'directory',
     })
     if (selected) {
       bigDir.value = selected
@@ -454,10 +455,8 @@ export function useDataTransferWorkflow(
   }
 
   async function onBrowseTemplatePath() {
-    if (!dirBrowserRef) return
-    const selected = await openPath(dirBrowserRef, templatePath.value, {
+    const selected = await openFile('transfer:template-path', templatePath.value, {
       title: '选择小表模板文件',
-      mode: 'file',
       extensions: ['.docx'],
     })
     if (selected) {
@@ -475,14 +474,52 @@ export function useDataTransferWorkflow(
   }
 
   async function onBrowseOutputDir() {
-    if (!dirBrowserRef) return
-    const selected = await openPath(dirBrowserRef, outputDir.value, {
+    const selected = await openDirectory('transfer:output', outputDir.value, {
       title: '选择输出目录',
-      mode: 'directory',
     })
     if (selected) {
       outputDir.value = selected
       persistConfig({ transfer_output_dir: outputDir.value })
+    }
+  }
+
+  async function onBrowseBigTableFiles() {
+    const selected = await openFile('transfer:big-tables', '', {
+      title: '选择大表文件',
+      extensions: ['.doc', '.docx'],
+    })
+    if (selected) {
+      bigTablePaths.value = [...(bigTablePaths.value || []), selected]
+    }
+  }
+
+  async function onBrowseTemplateFile() {
+    const selected = await openFile('transfer:template', templatePath.value, {
+      title: '选择小表模板文件',
+      extensions: ['.doc', '.docx'],
+    })
+    if (selected) {
+      templatePath.value = selected
+    }
+  }
+
+  async function onBrowseMonthlyTableFiles() {
+    const selected = await openFile('transfer:monthly-tables', '', {
+      title: '选择当月大表文件',
+      extensions: ['.doc', '.docx'],
+    })
+    if (selected) {
+      monthlyTablePaths.value = [...(monthlyTablePaths.value || []), selected]
+    }
+  }
+
+  async function onBrowseSavedTemplateFile() {
+    const selected = await openFile('transfer:saved-template', '', {
+      title: '选择要保存的模板文件',
+      extensions: ['.doc', '.docx'],
+    })
+    if (selected) {
+      await uploadTransferTemplateFromPath(smallType.value, selected)
     }
   }
 
@@ -602,6 +639,7 @@ export function useDataTransferWorkflow(
     allSelected,
     bigDir,
     bigTableSummary,
+    bigTablePaths,
     clearVegInput,
     currentSavedTemplate,
     currentSavedTemplateReady,
@@ -618,11 +656,16 @@ export function useDataTransferWorkflow(
     monthlyMonth,
     monthlyPreviewing,
     monthlyTableFiles,
+    monthlyTablePaths,
     monthlyTableSummary,
     monthlyUnrecognizedFiles,
     onAnalyzePathVarieties,
     onBrowseBigDir,
+    onBrowseBigTableFiles,
+    onBrowseMonthlyTableFiles,
     onBrowseOutputDir,
+    onBrowseSavedTemplateFile,
+    onBrowseTemplateFile,
     onBrowseTemplatePath,
     onDedup,
     onDetect,

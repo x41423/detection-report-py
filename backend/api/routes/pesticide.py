@@ -66,6 +66,20 @@ async def get_templates():
     return PesticideTemplateStatusResponse(**get_pesticide_templates())
 
 
+@router.post("/templates/{kind}/from-path", response_model=PesticideTemplateStatusResponse)
+async def save_template_from_path(kind: str, file_path: str = Form(...)):
+    if kind not in {"big", "small"}:
+        raise HTTPException(status_code=400, detail="模板类型只能是 big 或 small")
+    source = Path(file_path.strip())
+    if not source.is_file():
+        raise HTTPException(status_code=400, detail=f"模板文件不存在: {file_path}")
+    try:
+        status = save_pesticide_template(kind, source, source.name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return PesticideTemplateStatusResponse(**status)
+
+
 @router.post("/templates/{kind}", response_model=PesticideTemplateStatusResponse)
 async def upload_template(kind: str, template_file: UploadFile = File(...)):
     if kind not in {"big", "small"}:
@@ -90,6 +104,25 @@ async def parse_monthly_list(
             with tempfile.TemporaryDirectory(prefix="pesticide-list-") as tmpdir:
                 saved_path = await save_upload(list_file, Path(tmpdir), "monthly-list")
                 result = monthly_parser.parse_file(saved_path, month)
+        else:
+            result = monthly_parser.parse_text(list_text, month)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return MonthlyListParseResponse(**result)
+
+
+@router.post("/monthly-list/parse-from-path", response_model=MonthlyListParseResponse)
+async def parse_monthly_list_from_path(
+    month: str = Form(default=""),
+    list_text: str = Form(default=""),
+    file_path: str = Form(default=""),
+):
+    try:
+        if file_path.strip():
+            source = Path(file_path.strip())
+            if not source.is_file():
+                raise HTTPException(status_code=400, detail=f"清单文件不存在: {file_path}")
+            result = monthly_parser.parse_file(source, month)
         else:
             result = monthly_parser.parse_text(list_text, month)
     except ValueError as exc:

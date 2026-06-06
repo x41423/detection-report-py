@@ -1,0 +1,11 @@
+MCP error -32602: Input validation error: Invalid arguments for tool take_snapshot: [
+  {
+    "code": "invalid_type",
+    "expected": "boolean",
+    "received": "string",
+    "path": [
+      "verbose"
+    ],
+    "message": "Expected boolean, received string"
+  }
+]

@@ -149,6 +149,10 @@ a {
   padding-bottom: 10px;
 }
 
+.page-shell--full {
+  max-width: none;
+}
+
 /* ── Hero metrics ── */
 .hero-metric-grid {
   display: grid;
