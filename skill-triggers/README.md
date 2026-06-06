@@ -1,6 +1,8 @@
 # Skill 唤醒提示词速查表
 
 > 放到项目根目录，随时查阅。你对我说左栏任一关键词，我会自动加载对应 Skill。
+>
+> **已安装**：Hermes 原生 124 个 + ECC 242 个 = 共 366 个 Skill
 
 ---
 
@@ -97,5 +99,65 @@
 | "WebUI"、"安装WebUI"、"hermes界面" | `hermes-webui` | Hermes WebUI 安装与配置 |
 
 ---
+
+## 九、ECC 增强包（242 个 Skill）
+
+ECC 是 Agent 增强操作系统，覆盖开发全流程。以下为重点类别速查，完整列表见 `hermes skills list ecc`。
+
+### 开发流程增强
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "代码审查"、"安全检查"、"review" | `security-review`、`security-scan` | 安全审查、AgentShield 扫描 |
+| "代码标准"、"规范" | `coding-standards` | 跨项目编码规范 |
+| "架构评审"、"架构决策" | `architecture-decision-records` | 记录架构决策为 ADR |
+| "生成蓝图"、"出蓝图"、"blueprint" | `blueprint` | 把一句话目标拆成多步骤工程计划 |
+| "E2E测试"、"端到端测试" | `e2e-testing` | Playwright E2E 测试 |
+| "docker"、"容器化" | `docker-patterns` | Docker/Compose 模式 |
+| "部署"、"CI/CD" | `deployment-patterns` | 部署流水线、健康检查、回滚 |
+| "postgres"、"mysql" | `postgres-patterns`、`mysql-patterns` | 数据库查询优化、索引设计 |
+| "redis"、"缓存" | `redis-patterns` | 缓存策略、分布式锁 |
+
+### 代码生成与审查
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "后端模式"、"API架构" | `backend-patterns` | Node.js/Express 后端架构 |
+| "Git工作流"、"分支策略" | `git-workflow` | Git 分支策略、commit 规范 |
+| "GitHub操作"、"PR管理" | `github-ops` | GitHub Issues/PRs/CI 操作 |
+| "设计系统"、"UI一致性" | `design-system` | 设计系统生成与审计 |
+| "React"、"Next.js优化" | `react-patterns`、`react-performance` | React 最佳实践与性能优化 |
+| "Vite"、"构建优化" | `vite-patterns` | Vite 配置、插件、HMR |
+| "接口体验"、"UI打磨" | `make-interfaces-feel-better` | UI 间距、排版、动效细节 |
+| "Vue组件生成"、"截图转Vue" | `ui-to-vue` | 截图批量转 Vue 3 组件 |
+
+### Agent 与自动化
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "自主Agent"、"自动化循环" | `autonomous-agent-harness` | 构建自主 Agent 系统 |
+| "多Agent"、"并行agent" | `team-agent-orchestration`、`dmux-workflows` | 多 Agent 编排 |
+| "连续学习"、"session学习" | `continuous-learning-v2` | 从 session 中自动提取经验 |
+| "eval"、"评估agent" | `eval-harness`、`agent-eval` | Agent 评估框架 |
+
+### 产品与内容
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "写文章"、"博客"、"长文" | `article-writing` | 撰写文章、指南、博客 |
+| "市场研究"、"竞品分析" | `market-research` | 市场研究、竞品分析 |
+| "投资者材料"、"BP"、"融资" | `investor-materials`、`investor-outreach` | 融资材料、投资人沟通 |
+| "SEO"、"搜索优化" | `seo` | 技术SEO、结构化数据 |
+| "内容分发"、"多平台" | `content-engine`、`crosspost` | 多平台内容适配发布 |
+
+### 效率与安全
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "成本追踪"、"用了多少token" | `cost-tracking` | Token 用量与花费追踪 |
+| "prompt优化"、"改进指令" | `prompt-optimizer` | 优化 Prompt 质量 |
+| "context预算"、"token太多" | `token-budget-advisor` | 控制回复深度 |
+| "安全检查"、"漏洞扫描" | `safety-guard` | 防误操作保护 |
+| "仓库审计"、"代码扫描" | `repo-scan` | 全仓库源码资产审计 |
 
 > **提示**：Skill 是按关键词自动匹配的，不需要精确说出 Skill 名字。只要你的话跟某个类别沾边，我就会加载对应的 Skill。
