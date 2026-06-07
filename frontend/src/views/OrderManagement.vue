@@ -523,7 +523,7 @@ const filterConfigs = [
     ],
   },
   {
-    key: 'date_mode', label: '', type: 'tags' as const,
+    key: 'date_mode', label: '', type: 'select' as const, placeholder: '日期筛选方式', width: '150px',
     options: [
       { value: 'order_date', label: '按下单日期' },
       { value: 'receipt_date', label: '按收货日期' },
