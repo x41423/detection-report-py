@@ -126,6 +126,50 @@ def test_confirm_already_outbound_rejected():
     assert resp2.status_code == 400
 
 
+def test_undo_outbound_restores_status():
+    """撤销出库 → 订单状态回退 pending + 库存恢复"""
+    store.init_database()
+    client = _client()
+    sid_resp = client.post("/api/supplier/", json={"name": "撤销出库供应商"}, headers=_headers(client))
+    sid = sid_resp.json()["id"]
+    client.post("/api/purchase/in", json={
+        "supplier_id": sid, "code": "IN-UNDO-001", "name": "撤销出库测试菜",
+        "quantity": 20, "price": 5, "unit": "斤", "date": "2026-05-25",
+    }, headers=_headers(client))
+    ord_resp = client.post("/api/order/", json={
+        "merchant_name": "撤销客户", "order_date": "2026-05-25",
+        "items": [{"product_name": "撤销出库测试菜", "quantity": 10, "unit_price": 2}],
+    }, headers=_headers(client))
+    oid = ord_resp.json()["record"]["id"]
+
+    # 出库
+    client.post(f"/api/order/{oid}/outbound", headers=_headers(client))
+    order = client.get(f"/api/order/{oid}", headers=_headers(client)).json()
+    assert order["order_status"] == "delivered"
+
+    # 撤销出库
+    undo_resp = client.post(f"/api/order/{oid}/undo-outbound", headers=_headers(client))
+    assert undo_resp.status_code == 200, undo_resp.text
+    order2 = client.get(f"/api/order/{oid}", headers=_headers(client)).json()
+    assert order2["order_status"] == "pending"
+
+    # 验证可删除
+    del_resp = client.delete(f"/api/order/{oid}", headers=_headers(client))
+    assert del_resp.status_code == 200
+
+
+def test_undo_outbound_non_delivered_rejected():
+    store.init_database()
+    client = _client()
+    ord_resp = client.post("/api/order/", json={
+        "merchant_name": "未出库客户", "order_date": "2026-05-25",
+        "items": [{"product_name": "测试菜", "quantity": 5, "unit_price": 2}],
+    }, headers=_headers(client))
+    oid = ord_resp.json()["record"]["id"]
+    resp = client.post(f"/api/order/{oid}/undo-outbound", headers=_headers(client))
+    assert resp.status_code == 400
+
+
 def test_get_order_not_found():
     store.init_database()
     client = _client()

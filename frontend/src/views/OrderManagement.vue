@@ -87,7 +87,12 @@
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click.stop="showDetail(row)">详情</el-button>
             <el-button size="small" type="primary" link @click.stop="openEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" link @click.stop="handleDelete(row)">删除</el-button>
+            <template v-if="row.order_status === 'delivered'">
+              <el-button size="small" type="warning" link @click.stop="handleUndoOutbound(row)">撤销出库</el-button>
+            </template>
+            <template v-else>
+              <el-button size="small" type="danger" link @click.stop="handleDelete(row)">删除</el-button>
+            </template>
             <el-dropdown trigger="click" @command="(cmd: string) => handleCopyCommand(row, cmd)">
               <el-button size="small" type="success" link @click.stop>复制</el-button>
               <template #dropdown>
@@ -388,7 +393,7 @@ import { Plus } from '@element-plus/icons-vue'
 import FilterBar from '../components/FilterBar.vue'
 import {
   getOrders, createOrder, updateOrder, deleteOrder, copyOrder,
-  saveColumnPreference, getColumnPreference,
+  saveColumnPreference, getColumnPreference, undoOrderOutbound,
   type Order, type OrderCreateForm, type OrderCopyOptions,
 } from '../api/order'
 import { getSuppliers, type Supplier } from '../api/supplier'
@@ -831,6 +836,21 @@ async function handleDelete(row: Order) {
     load()
   } catch {
     // 用户取消
+  }
+}
+
+async function handleUndoOutbound(row: Order) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要撤销订单 ${row.order_no} 的出库吗？库存将恢复，订单状态退回待处理。`,
+      '撤销出库确认',
+      { type: 'warning', confirmButtonText: '确定撤销', cancelButtonText: '取消' }
+    )
+    await undoOrderOutbound(row.id)
+    ElMessage.success('出库已撤销，库存已恢复')
+    load()
+  } catch {
+    // 用户取消或报错
   }
 }
 

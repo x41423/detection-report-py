@@ -97,6 +97,39 @@ class OrderService:
             c.close()
         return mutation_response("订单已出库，库存已同步")
 
+    def undo_outbound(self, order_id: int) -> dict[str, Any]:
+        """撤销出库 → 恢复库存 + 回退订单状态"""
+        record = OrderRepository.get_order_by_id(order_id)
+        if record is None:
+            raise LookupError(f"订单 {order_id} 不存在")
+        if record["order_status"] != "delivered":
+            raise ValueError("仅已出库订单可撤销")
+
+        items = OrderRepository.get_order_items(order_id)
+        today = date.today().isoformat()
+
+        for item in items:
+            self._write_undo_outbound_txn(
+                item=item,
+                business_date=record["order_date"] or today,
+                order_no=record["order_no"],
+            )
+
+        OrderRepository.update_order_status(order_id, "pending")
+        from app.db.store import get_connection
+        conn = get_connection()
+        c = conn.cursor()
+        try:
+            c.execute(
+                "UPDATE OrderRecord SET outbound_status = NULL, "
+                "last_operate_time = ? WHERE id = ?",
+                (today, order_id),
+            )
+            conn.commit()
+        finally:
+            c.close()
+        return mutation_response("出库已撤销，库存已恢复")
+
     # ==================================================================
     # After-Sale
     # ==================================================================
@@ -152,6 +185,20 @@ class OrderService:
     # ==================================================================
 
     def _write_outbound_txn(self, *, item: dict, business_date: str, order_no: str) -> None:
+        """Write OUT transaction for inventory deduction."""
+        self._write_inventory_txn(item, business_date, order_no, "OUT",
+                                   "purchase_outbound", "订单出库")
+
+    def _write_undo_outbound_txn(self, *, item: dict, business_date: str, order_no: str) -> None:
+        """Write IN transaction to restore inventory (undo outbound)."""
+        self._write_inventory_txn(item, business_date, order_no, "IN",
+                                   "purchase_outbound_undo", "撤销出库")
+
+    @staticmethod
+    def _write_inventory_txn(
+        item: dict, business_date: str, order_no: str,
+        direction: str, source_type: str, note: str,
+    ) -> None:
         from app.db.store import get_connection
         conn = get_connection()
         cursor = conn.cursor()
@@ -170,12 +217,12 @@ class OrderService:
                     item["product_name"],
                     item["product_name"],
                     unit_id,
-                    "OUT",
+                    direction,
                     float(item.get("quantity", 0)),
                     business_date,
-                    "purchase_outbound",
+                    source_type,
                     item["id"],
-                    f"订单出库 {order_no}",
+                    f"{note} {order_no}",
                 ),
             )
             conn.commit()

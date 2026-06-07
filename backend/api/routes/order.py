@@ -152,6 +152,18 @@ def confirm_order_outbound(order_id: int):
         _raise(exc)
 
 
+@router.post(
+    "/{order_id}/undo-outbound",
+    dependencies=[Depends(require_permission("order:update"))],
+)
+def undo_order_outbound(order_id: int):
+    """撤销出库 → 恢复库存 + 回退订单状态"""
+    try:
+        return service.undo_outbound(order_id)
+    except (LookupError, ValueError) as exc:
+        _raise(exc)
+
+
 # ==================================================================
 # After-Sale
 # ==================================================================

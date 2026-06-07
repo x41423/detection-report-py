@@ -164,6 +164,10 @@ export function confirmOrderOutbound(id: number) {
   return api.post<MutationResponse>(`/api/order/${id}/outbound`)
 }
 
+export function undoOrderOutbound(id: number) {
+  return api.post<MutationResponse>(`/api/order/${id}/undo-outbound`)
+}
+
 export function getAfterSales(orderId: number) {
   return api.get<OrderAfterSale[]>(`/api/order/${orderId}/after-sale`)
 }
