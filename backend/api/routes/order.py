@@ -66,12 +66,16 @@ def list_orders(
     search: str = Query(default=""),
     merchant_name: str | None = Query(default=None),
     order_status: str | None = Query(default=None),
+    date_mode: str | None = Query(default=None, description="order_date|receipt_date"),
+    date_from: str | None = Query(default=None, description="YYYY-MM-DD"),
+    date_to: str | None = Query(default=None, description="YYYY-MM-DD"),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ):
     try:
         return service.list_orders(
             search=search, merchant_name=merchant_name, order_status=order_status,
+            date_mode=date_mode, date_from=date_from, date_to=date_to,
             limit=limit, offset=offset,
         )
     except ValueError as exc:

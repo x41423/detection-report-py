@@ -133,7 +133,9 @@ export interface ColumnPreferenceResponse {
 // ====================================================================
 
 export function getOrders(params?: {
-  search?: string; merchant_name?: string; order_status?: string; limit?: number; offset?: number
+  search?: string; merchant_name?: string; order_status?: string;
+  date_mode?: string; date_from?: string; date_to?: string;
+  limit?: number; offset?: number
 }) {
   return api.get<ListResponse<Order>>('/api/order/', { params })
 }

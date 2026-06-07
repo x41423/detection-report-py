@@ -34,14 +34,18 @@ class OrderService:
         )
 
     def list_orders(
-        self, *, search="", merchant_name=None, order_status=None, limit=20, offset=0
+        self, *, search="", merchant_name=None, order_status=None,
+        date_mode=None, date_from=None, date_to=None,
+        limit=20, offset=0,
     ) -> dict[str, Any]:
         rows = OrderRepository.list_orders(
             search=search, merchant_name=merchant_name, order_status=order_status,
+            date_mode=date_mode, date_from=date_from, date_to=date_to,
             limit=limit, offset=offset,
         )
         total = OrderRepository.count_orders(
             search=search, merchant_name=merchant_name, order_status=order_status,
+            date_mode=date_mode, date_from=date_from, date_to=date_to,
         )
         items = [self._serialize_order_summary(r) for r in rows]
         return list_response(items, total, f"已加载 {len(items)} 条订单")

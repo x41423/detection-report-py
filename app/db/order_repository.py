@@ -129,6 +129,9 @@ class OrderRepository:
         search: str = "",
         merchant_name: str | None = None,
         order_status: str | None = None,
+        date_mode: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -143,6 +146,16 @@ class OrderRepository:
         if order_status:
             clauses.append("order_status = ?")
             params.append(order_status)
+        # --- date filtering ---
+        if date_mode and date_from and date_to:
+            if date_mode == "order_date":
+                clauses.append("order_date >= ? AND order_date <= ?")
+                params.extend([date_from, date_to])
+            elif date_mode == "receipt_date":
+                clauses.append(
+                    "receive_start_date >= ? AND (receive_end_date <= ? OR receive_end_date IS NULL)"
+                )
+                params.extend([date_from, date_to])
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         return query(
             f"SELECT * FROM OrderRecord {where} ORDER BY created_at DESC LIMIT ? OFFSET ?",
@@ -151,7 +164,8 @@ class OrderRepository:
 
     @staticmethod
     def count_orders(
-        *, search: str = "", merchant_name: str | None = None, order_status: str | None = None
+        *, search: str = "", merchant_name: str | None = None, order_status: str | None = None,
+        date_mode: str | None = None, date_from: str | None = None, date_to: str | None = None,
     ) -> int:
         clauses = []
         params: list[Any] = []
@@ -164,6 +178,15 @@ class OrderRepository:
         if order_status:
             clauses.append("order_status = ?")
             params.append(order_status)
+        if date_mode and date_from and date_to:
+            if date_mode == "order_date":
+                clauses.append("order_date >= ? AND order_date <= ?")
+                params.extend([date_from, date_to])
+            elif date_mode == "receipt_date":
+                clauses.append(
+                    "receive_start_date >= ? AND (receive_end_date <= ? OR receive_end_date IS NULL)"
+                )
+                params.extend([date_from, date_to])
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         row = query_one(f"SELECT COUNT(*) AS cnt FROM OrderRecord {where}", tuple(params))
         return row["cnt"] if row else 0

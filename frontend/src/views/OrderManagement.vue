@@ -522,12 +522,29 @@ const filterConfigs = [
       { value: 'partial', label: '部分支付' },
     ],
   },
+  {
+    key: 'date_mode', label: '', type: 'tags' as const,
+    options: [
+      { value: 'order_date', label: '按下单日期' },
+      { value: 'receipt_date', label: '按收货日期' },
+    ],
+  },
+  {
+    key: 'date_range', label: '', type: 'date-range' as const,
+    startPlaceholder: '开始日期', endPlaceholder: '结束日期', width: '260px',
+  },
 ]
 
-const filterValues = ref<Record<string, any>>({ search: '', order_status: '', payment_status: '' })
+const filterValues = ref<Record<string, any>>({
+  search: '', order_status: '', payment_status: '',
+  date_mode: '', date_range: [],
+})
 
 function resetFilters() {
-  filterValues.value = { search: '', order_status: '', payment_status: '' }
+  filterValues.value = {
+    search: '', order_status: '', payment_status: '',
+    date_mode: '', date_range: [],
+  }
   load()
 }
 
@@ -545,9 +562,13 @@ const limit = ref(20)
 async function load() {
   loading.value = true
   try {
+    const range = (filterValues.value.date_range as string[]) || []
     const { data } = await getOrders({
       search: filterValues.value.search,
       order_status: filterValues.value.order_status || undefined,
+      date_mode: filterValues.value.date_mode || undefined,
+      date_from: range[0] || undefined,
+      date_to: range[1] || undefined,
       limit: limit.value,
       offset: (page.value - 1) * limit.value,
     })
