@@ -60,7 +60,7 @@
         </el-table-column>
         <el-table-column prop="credit_limit" label="信用额度" width="100" />
         <el-table-column prop="status" label="状态" width="80"><template #default="{row}"><el-tag :type="row.status==='active'?'success':'info'">{{ row.status }}</el-tag></template></el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="240">
           <template #default="{row}">
             <el-button size="small" type="primary" link @click="$router.push(`/suppliers/${row.id}`)">详情</el-button>
             <el-button size="small" type="primary" link @click="openEdit(row)">编辑</el-button>
@@ -273,28 +273,46 @@ async function handleSave() {
 }
 
 async function handleDeactivate(row: Supplier) {
-  await ElMessageBox.confirm(`确定停用供应商「${row.name}」？`)
-  await deleteSupplier(row.id)
-  ElMessage.success('已停用')
-  load()
+  try {
+    await ElMessageBox.confirm(`确定停用供应商「${row.name}」？`)
+    await deleteSupplier(row.id)
+    ElMessage.success('已停用')
+    load()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e?.response?.data?.detail || '操作失败')
+    }
+  }
 }
 
 async function handleActivate(row: Supplier) {
-  await ElMessageBox.confirm(`确定重新启用供应商「${row.name}」？`)
-  await activateSupplier(row.id)
-  ElMessage.success('已启用')
-  load()
+  try {
+    await ElMessageBox.confirm(`确定重新启用供应商「${row.name}」？`)
+    await activateSupplier(row.id)
+    ElMessage.success('已启用')
+    load()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e?.response?.data?.detail || '操作失败')
+    }
+  }
 }
 
 async function handleHardDelete(row: Supplier) {
-  await ElMessageBox.confirm(
-    `确定永久删除供应商「${row.name}」？此操作不可撤销！`,
-    '删除确认',
-    { type: 'error', confirmButtonText: '确定删除', cancelButtonText: '取消' },
-  )
-  await hardDeleteSupplier(row.id)
-  ElMessage.success('已永久删除')
-  load()
+  try {
+    await ElMessageBox.confirm(
+      `确定永久删除供应商「${row.name}」？此操作不可撤销！`,
+      '删除确认',
+      { type: 'error', confirmButtonText: '确定删除', cancelButtonText: '取消' },
+    )
+    await hardDeleteSupplier(row.id)
+    ElMessage.success('已永久删除')
+    load()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e?.response?.data?.detail || '操作失败')
+    }
+  }
 }
 
 onMounted(load)
