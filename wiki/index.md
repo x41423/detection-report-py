@@ -1,7 +1,7 @@
 # Wiki Index
 
 > Content catalog. Every wiki page listed under its type with a one-line summary.
-> Last updated: 2026-06-07 | Total pages: 7
+> Last updated: 2026-06-07 | Total pages: 8
 
 ## 实体
 
@@ -30,5 +30,5 @@
 - product-management — 商品管理模块
 - pesticide-detection — 农残检测模块
 - data-transfer — 数据迁移模块
-- inventory-sync — 库存同步机制
+- [[concepts/inventory-sync]] — 库存同步机制 (OUT/IN 交易、撤销恢复)
 - mysql-vs-sqlite — MySQL/SQLite 双写演变
