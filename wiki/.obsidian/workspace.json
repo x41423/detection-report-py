@@ -178,6 +178,18 @@
   },
   "active": "e6faa1ebbbdf15e8",
   "lastOpenFiles": [
+    "entities/dashboard-analytics.md",
+    "comparisons/mysql-vs-sqlite.md",
+    "concepts/auth-and-permissions.md",
+    "concepts/pricing-center.md",
+    "entities/loss-report.md",
+    "entities/data-transfer.md",
+    "entities/pesticide-detection.md",
+    "entities/inspection-report.md",
+    "entities/inventory-management.md",
+    "entities/purchase-management.md",
+    "entities/weekly-price.md",
+    "entities/product-management.md",
     "concepts/inventory-sync.md",
     "comparisons/code-review-2026-06-07.md",
     "index.md"
