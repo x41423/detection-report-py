@@ -268,7 +268,7 @@ class DataTransferView(QWidget):
                 self.cmb_year.setCurrentText(year)
                 self.cmb_month.setCurrentText(month)
                 self.cmb_day.setCurrentText(day)
-            except:
+            except (ValueError, IndexError):
                 # 如果解析失败，使用今日日期
                 self.cmb_year.setCurrentText(str(today.year))
                 self.cmb_month.setCurrentText(f"{today.month:02d}")

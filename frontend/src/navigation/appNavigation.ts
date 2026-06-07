@@ -745,6 +745,15 @@ export const appRoutes: RouteRecordRaw[] = [
       requiredPermission: 'order:view',
     },
   },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('../views/NotFound.vue'),
+    meta: {
+      requiresAuth: true,
+      title: '404 页面不存在',
+    },
+  },
 ]
 
 export function findNavigationItemByName(name: string | symbol | null | undefined) {

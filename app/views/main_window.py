@@ -278,7 +278,7 @@ class MainWindow(QMainWindow):
             try:
                 icon_color = "#FFFFFF"
                 self.fab.setIcon(qta.icon("mdi.rocket-launch", color=icon_color))
-            except:
+            except Exception:
                 self.fab.setText("▶")
         else:
             self.fab.setText("▶")
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
             try:
                 icon_color = "#FFFFFF"
                 self.fab.setIcon(qta.icon("mdi.play", color=icon_color))
-            except:
+            except Exception:
                 self.fab.setText("▶")
         else:
             self.fab.setText("▶")

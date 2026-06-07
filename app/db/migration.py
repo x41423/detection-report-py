@@ -30,7 +30,7 @@ def get_current_migration_version() -> int:
         result = query("SELECT MAX(version) as max_version FROM MigrationVersion")
         if result and result[0]['max_version']:
             return result[0]['max_version']
-    except:
+    except Exception:
         pass
     return 0
 

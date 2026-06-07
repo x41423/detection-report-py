@@ -132,11 +132,25 @@ class SupplierRepository:
         row = query_one(f"SELECT COUNT(*) AS cnt FROM Supplier WHERE {where}", tuple(params))
         return row["cnt"] if row else 0
 
+    # FUTURE: 新增 Supplier 字段时需同步更新此白名单
+    _UPDATE_WHITELIST = {
+        'name', 'contact_person', 'contact_phone', 'contact_address',
+        'supplier_type', 'business_license', 'tax_number',
+        'bank_name', 'bank_account', 'settlement_method', 'payment_terms',
+        'credit_limit', 'level', 'settlement_person', 'settlement_phone',
+        'date_dimension', 'period_start_day', 'settlement_day',
+        'freeze_status', 'approval_status', 'sorting_priority',
+        'status', 'remark',
+    }
+
     @staticmethod
     def update(supplier_id: int, data: dict[str, Any]) -> bool:
         """Partial update — only provided fields are changed."""
         if not data:
             return False
+        for key in data:
+            if key not in SupplierRepository._UPDATE_WHITELIST:
+                raise ValueError(f"不允许的字段: {key}")
         sets = [f"{key} = ?" for key in data]
         values = list(data.values())
         conn = get_connection()

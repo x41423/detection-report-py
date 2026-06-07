@@ -101,8 +101,10 @@ class SupplierService:
             raise LookupError(f"供应商 {supplier_id} 不存在")
 
         name = supplier["name"]
-        clause = "WHERE oi.product_name LIKE ?"
-        params: list[Any] = [f"%{name}%"]
+        # 注意：当前通过 merchant_name 精确匹配关联订单与供应商
+        # 若供应商名在 OrderRecord.merchant_name 中不存在，统计数据会为 0
+        clause = "WHERE o.merchant_name = ?"
+        params: list[Any] = [name]
 
         if date_from:
             clause += " AND o.order_date >= ?"

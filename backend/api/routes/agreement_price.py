@@ -1,4 +1,8 @@
-"""Supplier-product price agreement routes."""
+"""Supplier-product price agreement routes.
+
+NOTE: 本模块为极简 CRUD，无业务逻辑，直接使用 crud_helpers。
+FUTURE: 如需校验/转换/副作用，届时提取 Service 层。
+"""
 
 from __future__ import annotations
 
@@ -37,7 +41,7 @@ class AgreementUpdate(BaseModel):
 def list_agreements(limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0)):
     items = simple_list(TABLE, limit, offset)
     total = len(simple_list(TABLE, 1000, 0))
-    return {"success": True, "items": items, "total": total}
+    return {"success": True, "message": f"共{total}条", "items": items, "total": total}
 
 
 @router.post("/", dependencies=[Depends(require_permission("supplier:create"))])

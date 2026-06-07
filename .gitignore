@@ -44,6 +44,7 @@ graphify-out/
 _tok.txt
 mcp_commands.txt
 =7.0.0
+config/mcporter.json
 
 # MinIO credentials
 config/minio.env
