@@ -36,8 +36,8 @@ function openCreate(){rf();dv.value=true}
 function openEdit(r:PriceMarkup){eid.value=r.id;f.name=r.name;f.ratePct=Math.round(r.rate*100);f.scope=r.scope;f.is_active=r.is_active;dv.value=true}
 async function save(){try{const d={name:f.name,rate:f.ratePct/100,scope:f.scope,scope_id:0,is_active:f.is_active}
 eid.value?await updateMarkup(eid.value,d):await createMarkup(d);dv.value=false;ElMessage.success('已保存');await load()}catch(e:any){ElMessage.error(e?.response?.data?.detail||'保存失败')}}
-async function del(id:number){await deleteMarkup(id);items.value=items.value.filter(i=>i.id!==id);ElMessage.success('已删除')}
-async function load(){const{data}=await getMarkups();items.value=(data as any).items??[]}
+async function del(id:number){try{await deleteMarkup(id);items.value=items.value.filter(i=>i.id!==id);ElMessage.success('已删除')}catch(e:any){ElMessage.error(e?.response?.data?.detail||'删除失败')}}
+async function load(){try{const{data}=await getMarkups();items.value=(data as any).items??[]}catch(e:any){ElMessage.error(e?.response?.data?.detail||'加载失败')}}
 onMounted(load)
 </script>
 <style scoped>.fcard{margin-bottom:12px}.trow{display:flex;justify-content:space-between;align-items:center}.snote{color:var(--el-text-color-secondary);font-size:13px}</style>

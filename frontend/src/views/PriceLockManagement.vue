@@ -63,12 +63,26 @@ const newItem = reactive({ veg_name: '', locked_price: 0 })
 
 async function load() {
   loading.value = true
-  try { const { data } = await getPriceLockRules({ search: search.value, limit, offset: (page.value-1)*limit }); items.value = data.items; total.value = data.total } finally { loading.value = false }
+  try { const { data } = await getPriceLockRules({ search: search.value, limit, offset: (page.value-1)*limit }); items.value = data.items; total.value = data.total }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '加载锁价规则失败') }
+  finally { loading.value = false }
 }
 function openCreate() { form.rule_name = ''; form.salemenu_name = ''; form.start_time = ''; form.end_time = ''; form.items = []; dialogVisible.value = true }
 function addItem() { if (newItem.veg_name) { form.items.push({...newItem}); newItem.veg_name = ''; newItem.locked_price = 0 } }
-async function save() { saving.value = true; try { await createPriceLockRule({...form}); ElMessage.success('已创建'); dialogVisible.value = false; load() } finally { saving.value = false } }
-async function handleDeactivate(row: PriceLockRule) { await ElMessageBox.confirm(`确定停用规则「${row.rule_name}」？`); await deactivatePriceLockRule(row.id); ElMessage.success('已停用'); load() }
+async function save() {
+  saving.value = true
+  try { await createPriceLockRule({...form}); ElMessage.success('已创建'); dialogVisible.value = false; load() }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '创建锁价规则失败') }
+  finally { saving.value = false }
+}
+async function handleDeactivate(row: PriceLockRule) {
+  try {
+    await ElMessageBox.confirm(`确定停用规则「${row.rule_name}」？`)
+    await deactivatePriceLockRule(row.id); ElMessage.success('已停用'); load()
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '停用失败')
+  }
+}
 
 onMounted(load)
 </script>

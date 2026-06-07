@@ -430,7 +430,7 @@ async function handleMoreCommand(command: string) {
       await deleteOrder(order.value.id)
       ElMessage.success('订单已删除')
       router.push('/orders')
-    } catch {}
+    } catch (e: any) { ElMessage.error(e?.response?.data?.detail || \'操作失败\') }
   } else if (command === 'copy-order' || command === 'copy-supplement') {
     copyTargetType.value = command === 'copy-supplement' ? 'supplement' : 'order'
     copyForm.copy_type = 'normal'

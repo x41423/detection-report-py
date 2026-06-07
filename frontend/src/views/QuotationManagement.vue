@@ -359,7 +359,9 @@ async function handleToggle(q: Quotation) {
     await toggleQuotationStatus(q.id, newStatus)
     ElMessage.success(`报价单已${action}`)
     load()
-  } catch { /* cancelled */ }
+  } catch (e: any) {
+    if (e !== \'cancel\') ElMessage.error(e?.response?.data?.detail || \'操作失败\')
+  }
 }
 
 // ── 详情弹窗 ──
@@ -432,7 +434,9 @@ async function removeQp(qp: any) {
       detail.value = data.item as unknown as Quotation
       load()
     }
-  } catch { /* cancelled */ }
+  } catch (e: any) {
+    if (e !== \'cancel\') ElMessage.error(e?.response?.data?.detail || \'操作失败\')
+  }
 }
 
 // ── 生命周期 ──

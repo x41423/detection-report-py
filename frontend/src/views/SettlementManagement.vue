@@ -65,13 +65,28 @@ const autoForm = reactive({ supplier_id: 0, period: '' })
 
 async function load() {
   loading.value = true
-  try { const { data } = await getSettlements({ period: periodFilter.value || undefined, limit, offset: (page.value-1)*limit }); items.value = data.items; total.value = data.total } finally { loading.value = false }
+  try { const { data } = await getSettlements({ period: periodFilter.value || undefined, limit, offset: (page.value-1)*limit }); items.value = data.items; total.value = data.total }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '加载结算单失败') }
+  finally { loading.value = false }
 }
 function openCreate() { form.supplier_id = 0; form.settlement_period = ''; form.payable_amount = 0; dialogVisible.value = true }
 function openAutoCreate() { autoForm.supplier_id = 0; autoForm.period = ''; autoDialogVisible.value = true }
-async function save() { saving.value = true; try { await createSettlement({...form}); ElMessage.success('已创建'); dialogVisible.value = false; load() } finally { saving.value = false } }
-async function autoSave() { saving.value = true; try { await autoCreateSettlement(autoForm.supplier_id, autoForm.period); ElMessage.success('已自动生成'); autoDialogVisible.value = false; load() } catch { ElMessage.warning('该周期无已确认入库记录') } finally { saving.value = false } }
-async function handleConfirm(row: Settlement) { await confirmSettlement(row.id); ElMessage.success('已确认'); load() }
+async function save() {
+  saving.value = true
+  try { await createSettlement({...form}); ElMessage.success('已创建'); dialogVisible.value = false; load() }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '创建结算单失败') }
+  finally { saving.value = false }
+}
+async function autoSave() {
+  saving.value = true
+  try { await autoCreateSettlement(autoForm.supplier_id, autoForm.period); ElMessage.success('已自动生成'); autoDialogVisible.value = false; load() }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '自动生成失败') }
+  finally { saving.value = false }
+}
+async function handleConfirm(row: Settlement) {
+  try { await confirmSettlement(row.id); ElMessage.success('已确认'); load() }
+  catch (e: any) { ElMessage.error(e?.response?.data?.detail || '确认结算失败') }
+}
 
 onMounted(load)
 </script>

@@ -62,9 +62,9 @@ const f=reactive<{report_date:string;report_type:string;notes:string;items:ItemD
 function rf(){f.report_date='';f.report_type='loss';f.notes='';f.items=[]}
 function openCreate(){rf();dv.value=true}
 async function save(){try{await createLossReport({...f,report_no:''});dv.value=false;ElMessage.success('已创建');await load()}catch(e:any){ElMessage.error(e?.response?.data?.detail||'保存失败')}}
-async function del(id:number){await deleteLossReport(id);items.value=items.value.filter(i=>i.id!==id);ElMessage.success('已删除')}
+async function del(id:number){try{await deleteLossReport(id);items.value=items.value.filter(i=>i.id!==id);ElMessage.success('已删除')}catch(e:any){ElMessage.error(e?.response?.data?.detail||'删除失败')}}
 async function showDetail(r:LossReport){try{const{data}=await getLossReport(r.id);dr.value=(data as any).report;ditems.value=(data as any).items;ddv.value=true}catch(e:any){ElMessage.error('加载明细失败')}}
-async function load(){const{data}=await getLossReports();items.value=(data as any).items??[]}
+async function load(){try{const{data}=await getLossReports();items.value=(data as any).items??[]}catch(e:any){ElMessage.error(e?.response?.data?.detail||'加载失败')}}
 onMounted(load)
 </script>
 <style scoped>

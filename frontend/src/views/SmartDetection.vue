@@ -289,31 +289,35 @@ async function saveInspectorName() {
 }
 
 async function runDetection() {
-  const result = await execute({
-    date: detectionDate.value,
-    big_template: bigTemplate.value,
-    small_template: smallTemplate.value,
-    output_dir: outputDir.value,
-    inspector_name: inspectorName.value,
-    export_format: 'docx',
-  })
-  if (result && !result.success) {
-    ElMessage.error(result.error || '检测执行失败')
-  }
+  try {
+    const result = await execute({
+      date: detectionDate.value,
+      big_template: bigTemplate.value,
+      small_template: smallTemplate.value,
+      output_dir: outputDir.value,
+      inspector_name: inspectorName.value,
+      export_format: 'docx',
+    })
+    if (result && !result.success) {
+      ElMessage.error(result.error || '检测执行失败')
+    }
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '检测执行失败') }
 }
 
 async function runDetectionWithPdf() {
-  const result = await execute({
-    date: detectionDate.value,
-    big_template: bigTemplate.value,
-    small_template: smallTemplate.value,
-    output_dir: outputDir.value,
-    inspector_name: inspectorName.value,
-    export_format: 'both',
-  })
-  if (result && !result.success) {
-    ElMessage.error(result.error || '检测执行失败')
-  }
+  try {
+    const result = await execute({
+      date: detectionDate.value,
+      big_template: bigTemplate.value,
+      small_template: smallTemplate.value,
+      output_dir: outputDir.value,
+      inspector_name: inspectorName.value,
+      export_format: 'both',
+    })
+    if (result && !result.success) {
+      ElMessage.error(result.error || '检测执行失败')
+    }
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '检测执行失败') }
 }
 
 function showBackfillDialog() {
@@ -326,9 +330,11 @@ async function runBackfill() {
     ElMessage.warning('请选择日期范围')
     return
   }
-  await backfill(backfillDateRange.value[0], backfillDateRange.value[1], inspectorName.value)
-  backfillDialogVisible.value = false
-  ElMessage.success('补做完成')
+  try {
+    await backfill(backfillDateRange.value[0], backfillDateRange.value[1], inspectorName.value)
+    backfillDialogVisible.value = false
+    ElMessage.success('补做完成')
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '补做失败') }
 }
 
 async function refreshPrepare() {
@@ -337,7 +343,7 @@ async function refreshPrepare() {
     bigTemplate.value = prep.big_template
     smallTemplate.value = prep.small_template
     outputDir.value = prep.output_dir || outputDir.value
-  } catch { /* ignore */ }
+  } catch (e: any) { /* non-critical */ }
 }
 
 async function loadTemplateInfo() {
@@ -345,7 +351,7 @@ async function loadTemplateInfo() {
     const { data } = await getPesticideTemplates()
     bigTemplateInfo.value = { configured: data.big_template.configured, filename: data.big_template.filename }
     smallTemplateInfo.value = { configured: data.small_template.configured, filename: data.small_template.filename }
-  } catch { /* ignore */ }
+  } catch (e: any) { /* non-critical */ }
 }
 
 async function uploadTemplate(kind: 'big' | 'small', file: File | null) {

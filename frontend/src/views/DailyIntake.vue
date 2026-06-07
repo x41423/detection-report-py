@@ -346,9 +346,7 @@ const asrProviderSelection = ref<DailyIntakeAsrProviderSelection>(loadStoredAsrP
 watch(asrProviderSelection, (next, prev) => {
   try {
     window.localStorage.setItem(ASR_PROVIDER_STORAGE_KEY, next)
-  } catch {
-    // ignore
-  }
+  } catch (e: any) { /* non-critical */ }
   if (prev !== undefined && next !== prev) {
     void trackAudit({
       module: 'daily_intake',

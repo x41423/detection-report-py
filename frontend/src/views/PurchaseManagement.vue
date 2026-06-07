@@ -98,7 +98,7 @@ async function load() {
     const fn = activeTab.value === 'in' ? getPurchaseIns : getPurchaseReturns
     const { data } = await fn({ search: search.value, status: statusFilter.value || undefined, limit, offset: (page.value-1)*limit })
     items.value = data.items; total.value = data.total
-  } finally { loading.value = false }
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '操作失败') } finally { loading.value = false }
 }
 
 function openCreateIn() { inForm.supplier_id = 0; inForm.inbound_date = new Date().toISOString().slice(0,10); inForm.items = []; inDialogVisible.value = true }
@@ -109,16 +109,18 @@ function addRetItem() { if (retNewItem.veg_name) { retForm.items.push({...retNew
 
 async function saveIn() {
   saving.value = true
-  try { await createPurchaseIn({...inForm}); ElMessage.success('入库单已创建'); inDialogVisible.value = false; load() } finally { saving.value = false }
+  try { await createPurchaseIn({...inForm}); ElMessage.success('入库单已创建'); inDialogVisible.value = false; load()  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '操作失败') } finally { saving.value = false }
 }
 async function saveRet() {
   saving.value = true
-  try { await createPurchaseReturn({...retForm}); ElMessage.success('退货单已创建'); retDialogVisible.value = false; load() } finally { saving.value = false }
+  try { await createPurchaseReturn({...retForm}); ElMessage.success('退货单已创建'); retDialogVisible.value = false; load()  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '操作失败') } finally { saving.value = false }
 }
 
 async function handleConfirm(row: any) {
-  const fn = activeTab.value === 'in' ? confirmPurchaseIn : confirmPurchaseReturn
-  await fn(row.id); ElMessage.success('已确认，库存已同步'); load()
+  try {
+    const fn = activeTab.value === 'in' ? confirmPurchaseIn : confirmPurchaseReturn
+    await fn(row.id); ElMessage.success('已确认，库存已同步'); load()
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '确认失败') }
 }
 
 import { onMounted } from 'vue'; onMounted(load)

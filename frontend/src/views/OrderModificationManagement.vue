@@ -62,7 +62,7 @@ function reject(r:OrderModification){pendingId=r.id;pendingAction='reject';revie
 async function confirmAction(){try{
 pendingAction==='approve'?await approveModification(pendingId,'管理员',reviewComment.value):await rejectModification(pendingId,'管理员',reviewComment.value)
 av.value=false;ElMessage.success(pendingAction==='approve'?'已通过':'已驳回');await load()}catch(e:any){ElMessage.error('操作失败')}}
-async function load(){const{data}=await getModifications({status:filterStatus.value||undefined});items.value=(data as any).items??[]}
+async function load(){try{const{data}=await getModifications({status:filterStatus.value||undefined});items.value=(data as any).items??[]}catch(e:any){ElMessage.error(e?.response?.data?.detail||'加载失败')}}
 onMounted(load)
 </script>
 <style scoped>.fcard{margin-bottom:12px}.trow{display:flex;justify-content:space-between;align-items:center}.snote{color:var(--el-text-color-secondary);font-size:13px}</style>

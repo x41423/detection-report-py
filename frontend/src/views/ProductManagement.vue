@@ -384,7 +384,7 @@ async function loadCategories() {
   try {
     const { data } = await getCategories()
     categoryTree.value = buildCategoryTree(data.items || [])
-  } catch { /* ignore */ }
+  } catch { ElMessage.error('分类加载失败') }
 }
 
 function onCategoryChange(value: number | null) {
@@ -581,7 +581,9 @@ async function handleDelete(row: Product) {
     await deleteProduct(row.id)
     row.is_active = 0
     ElMessage.success('商品已下架')
-  } catch { /* cancelled */ }
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '删除失败')
+  }
 }
 
 async function handleActivate(row: Product) {
@@ -589,7 +591,7 @@ async function handleActivate(row: Product) {
     await activateProduct(row.id)
     row.is_active = 1
     ElMessage.success('商品已上架')
-  } catch { /* ignore */ }
+  } catch { ElMessage.error('商品上架失败') }
 }
 
 // ── 详情弹窗 ──
@@ -601,9 +603,7 @@ async function showDetail(row: Product) {
     const { data } = await getProduct(row.id)
     detail.value = (data as any).item ?? data
     detailVisible.value = true
-  } catch {
-    ElMessage.error('加载商品详情失败')
-  }
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '加载详情失败') }
 }
 
 // ── 生命周期 ──

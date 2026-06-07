@@ -288,7 +288,7 @@ async function loadSuppliers() {
     const { default: api } = await import('../api/supplier')
     const { data } = await api.getSuppliers({ limit: 200 })
     suppliers.value = (data as any).items ?? []
-  } catch { /* ignore */ }
+  } catch (e: any) { /* non-critical */ }
 }
 
 // ── Form ──
@@ -393,7 +393,7 @@ async function openDetail(row: InspectionReport) {
     const { data } = await getReport(row.id)
     detail.value = (data as any).item ?? data
     detailVisible.value = true
-  } catch { /* ignore */ }
+  } catch (e: any) { /* non-critical */ }
 }
 
 onMounted(() => {

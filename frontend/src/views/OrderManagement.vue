@@ -834,8 +834,8 @@ async function handleDelete(row: Order) {
     await deleteOrder(row.id)
     ElMessage.success('订单已删除')
     load()
-  } catch {
-    // 用户取消
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '删除失败')
   }
 }
 
@@ -849,8 +849,8 @@ async function handleUndoOutbound(row: Order) {
     await undoOrderOutbound(row.id)
     ElMessage.success('出库已撤销，库存已恢复')
     load()
-  } catch {
-    // 用户取消或报错
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '撤销失败')
   }
 }
 
@@ -892,7 +892,7 @@ async function confirmCopy() {
     ElMessage.success(`订单已复制为 ${data.new_order_no}`)
     copyDialogVisible.value = false
     load()
-  } finally {
+  } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '复制订单失败') } finally {
     copying.value = false
   }
 }
@@ -900,7 +900,6 @@ async function confirmCopy() {
 // ====================================================================
 // 其他
 // ====================================================================
-
 function showDetail(row: Order) {
   router.push(`/orders/${row.id}`)
 }
