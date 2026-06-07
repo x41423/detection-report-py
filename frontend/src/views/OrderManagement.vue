@@ -138,7 +138,10 @@
                 @clear="onMerchantClear"
               >
                 <template #default="{ item }">
-                  <div class="merchant-option">
+                  <div v-if="item.action === 'create'" class="merchant-option merchant-option--create">
+                    <el-icon style="margin-right:4px"><Plus /></el-icon> 新建商户「{{ merchantQuery }}」
+                  </div>
+                  <div v-else class="merchant-option">
                     <span class="merchant-option__name">{{ item.value }}</span>
                     <el-tag v-if="item.tag" size="small" type="info" style="margin-left:8px">{{ item.tag }}</el-tag>
                   </div>
@@ -261,7 +264,15 @@
         <el-divider content-position="left">商品清单</el-divider>
         <el-row :gutter="12">
           <el-col :span="8">
-            <el-input v-model="newItem.product_name" placeholder="品名" @keyup.enter="addItem" />
+            <el-autocomplete
+              v-model="productQuery"
+              :fetch-suggestions="fetchProductSuggestions"
+              placeholder="搜索商品名称..."
+              :trigger-on-focus="false"
+              clearable
+              style="width:100%"
+              @select="onProductSelect"
+            />
           </el-col>
           <el-col :span="4">
             <el-input-number v-model="newItem.quantity" :min="0" placeholder="数量" controls-position="right" style="width:100%" />
@@ -373,6 +384,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Setting } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import FilterBar from '../components/FilterBar.vue'
 import {
   getOrders, createOrder, updateOrder, deleteOrder, copyOrder,
@@ -380,6 +392,7 @@ import {
   type Order, type OrderCreateForm, type OrderCopyOptions,
 } from '../api/order'
 import { getSuppliers, type Supplier } from '../api/supplier'
+import { getProducts, type Product } from '../api/product'
 
 // ====================================================================
 // 列定义（49 个可选字段）
@@ -642,22 +655,31 @@ const newItem = reactive({ product_name: '', quantity: 0, unit_price: 0, unit: '
 const merchantQuery = ref('')
 let merchantSuggestionsTimer: ReturnType<typeof setTimeout> | null = null
 
-async function fetchMerchantSuggestions(keyword: string, cb: (results: { value: string; tag?: string; supplier?: Supplier }[]) => void) {
+async function fetchMerchantSuggestions(keyword: string, cb: (results: { value: string; tag?: string; supplier?: Supplier; action?: string }[]) => void) {
   if (!keyword || keyword.length < 1) { cb([]); return }
   if (merchantSuggestionsTimer) clearTimeout(merchantSuggestionsTimer)
   merchantSuggestionsTimer = setTimeout(async () => {
     try {
       const { data } = await getSuppliers({ search: keyword, limit: 10, status: 'active' })
-      cb((data.items || []).map((s: Supplier) => ({
+      const results = (data.items || []).map((s: Supplier) => ({
         value: s.name,
         tag: s.supplier_type || undefined,
         supplier: s,
-      })))
+      }))
+      // 追加"新建商户"选项
+      if (results.length === 0 || keyword.length >= 2) {
+        results.push({ value: keyword, tag: undefined, supplier: undefined, action: 'create' })
+      }
+      cb(results)
     } catch { cb([]) }
   }, 200)
 }
 
-function onMerchantSelect(item: { value: string; tag?: string; supplier?: Supplier }) {
+function onMerchantSelect(item: { value: string; tag?: string; supplier?: Supplier; action?: string }) {
+  if (item.action === 'create') {
+    window.open('/suppliers', '_blank')
+    return
+  }
   const s = item.supplier
   form.merchant_name = item.value
   form.merchant_tag = s?.supplier_type || ''
@@ -670,6 +692,32 @@ function onMerchantClear() {
   form.merchant_tag = ''
   form.receiver = ''
   form.delivery_address = ''
+}
+
+// ── 商品自动完成 ──
+const productQuery = ref('')
+let productSuggestionsTimer: ReturnType<typeof setTimeout> | null = null
+
+async function fetchProductSuggestions(keyword: string, cb: (results: { value: string; unit?: string; price?: number }[]) => void) {
+  if (!keyword || keyword.length < 1) { cb([]); return }
+  if (productSuggestionsTimer) clearTimeout(productSuggestionsTimer)
+  productSuggestionsTimer = setTimeout(async () => {
+    try {
+      const { data } = await getProducts({ search: keyword, limit: 10, include_inactive: false })
+      cb((data.items || []).map((p: Product) => ({
+        value: p.name,
+        unit: p.base_unit || undefined,
+        price: p.suggested_min_cost || undefined,
+      })))
+    } catch { cb([]) }
+  }, 200)
+}
+
+function onProductSelect(item: { value: string; unit?: string; price?: number }) {
+  newItem.product_name = item.value
+  if (item.unit) newItem.unit = item.unit
+  if (item.price && item.price > 0) newItem.unit_price = item.price
+  productQuery.value = ''
 }
 
 const itemsTotal = computed(() =>
@@ -689,6 +737,7 @@ function openCreate() {
   form.receive_start_time = '05:00'
   form.receive_end_time = '17:00'
   merchantQuery.value = ''
+  productQuery.value = ''
   dialogVisible.value = true
 }
 
@@ -725,13 +774,18 @@ function openEdit(row: Order) {
       unit: it.unit,
     })),
   })
+  merchantQuery.value = row.merchant_name || ''
   dialogVisible.value = true
 }
 
 function addItem() {
+  if (productQuery.value && !newItem.product_name) {
+    newItem.product_name = productQuery.value
+  }
   if (!newItem.product_name) return
   form.items.push({ ...newItem })
   newItem.product_name = ''; newItem.quantity = 0; newItem.unit_price = 0; newItem.unit = '斤'
+  productQuery.value = ''
 }
 
 async function saveOrder() {
@@ -855,5 +909,9 @@ onMounted(() => {
 
 .column-selector__item {
   padding: 2px 0;
+}
+.merchant-option--create {
+  color: var(--el-color-primary);
+  font-weight: 500;
 }
 </style>
