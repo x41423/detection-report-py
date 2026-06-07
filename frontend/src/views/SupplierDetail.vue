@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getSupplier } from '../api/supplier'
@@ -128,7 +128,7 @@ import api from '../api/client'
 import type { Supplier } from '../api/supplier'
 
 const route = useRoute()
-const supplierId = Number(route.params.id)
+const supplierId = computed(() => Number(route.params.id))
 const loading = ref(true)
 const activeTab = ref('basic')
 
@@ -148,7 +148,7 @@ const txSummary = ref({
 async function loadSupplier() {
   loading.value = true
   try {
-    const { data } = await getSupplier(supplierId)
+    const { data } = await getSupplier(supplierId.value)
     supplier.value = data as Supplier
   } finally {
     loading.value = false
@@ -161,7 +161,7 @@ async function loadTransaction() {
     const params: Record<string, string> = {}
     if (txDateRange.value?.[0]) params.date_from = txDateRange.value[0]
     if (txDateRange.value?.[1]) params.date_to = txDateRange.value[1]
-    const { data } = await api.get(`/api/supplier/${supplierId}/transaction-summary`, { params })
+    const { data } = await api.get(`/api/supplier/${supplierId.value}/transaction-summary`, { params })
     txSummary.value = data
   } finally {
     txLoading.value = false
@@ -189,6 +189,11 @@ function settlementPeriodLabel(m: string) {
 }
 
 onMounted(() => {
+  loadSupplier()
+})
+
+// 路由参数变化时重新加载（不同供应商切换）
+watch(supplierId, () => {
   loadSupplier()
 })
 </script>
