@@ -18,3 +18,11 @@
 - Source: skill-triggers/README.md
 - Created: skill-ecosystem
 - 366 skills cataloged (Hermes 124 + ECC 242 + Superpowers 19)
+
+## [2026-06-07] ingest | Full project upload
+ Added 11 pages covering all business modules:
+ - entities: product, purchase, inventory, weekly-price, pesticide-detection,
+   inspection-report, loss-report, data-transfer, dashboard-analytics
+ - concepts: pricing-center, auth-and-permissions
+ - comparisons: mysql-vs-sqlite
+ Wiki now at 20 pages, 63 wikilinks, 0 broken links
