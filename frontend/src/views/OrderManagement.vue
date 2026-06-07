@@ -125,14 +125,25 @@
         <!-- 客户信息 -->
         <el-divider content-position="left">客户信息</el-divider>
         <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="商户">
-              <el-input v-model="form.merchant_name" placeholder="输入商户名" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="商户标签">
-              <el-input v-model="form.merchant_tag" placeholder="输入商户标签" />
+          <el-col :span="16">
+            <el-form-item label="商户" required>
+              <el-autocomplete
+                v-model="merchantQuery"
+                :fetch-suggestions="fetchMerchantSuggestions"
+                placeholder="输入商户名称搜索..."
+                :trigger-on-focus="false"
+                clearable
+                style="width:100%"
+                @select="onMerchantSelect"
+                @clear="onMerchantClear"
+              >
+                <template #default="{ item }">
+                  <div class="merchant-option">
+                    <span class="merchant-option__name">{{ item.value }}</span>
+                    <el-tag v-if="item.tag" size="small" type="info" style="margin-left:8px">{{ item.tag }}</el-tag>
+                  </div>
+                </template>
+              </el-autocomplete>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -141,19 +152,9 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="关联出库单号">
-              <el-input v-model="form.related_outbound_no" placeholder="-" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="第三方订单号">
-              <el-input v-model="form.third_party_order_no" placeholder="-" />
-            </el-form-item>
-          </el-col>
-        </el-row>
 
+        <!-- 阶段 2：商户选定后解锁 -->
+        <template v-if="form.merchant_name">
         <!-- 时间信息 -->
         <el-divider content-position="left">时间信息</el-divider>
         <el-row :gutter="16">
@@ -311,6 +312,8 @@
             商品合计: ¥{{ itemsTotal.toFixed(2) }}
           </el-col>
         </el-row>
+        </template>
+        <!-- end v-if form.merchant_name -->
       </el-form>
 
       <template #footer>
@@ -376,6 +379,7 @@ import {
   saveColumnPreference, getColumnPreference,
   type Order, type OrderCreateForm, type OrderCopyOptions,
 } from '../api/order'
+import { getSuppliers, type Supplier } from '../api/supplier'
 
 // ====================================================================
 // 列定义（49 个可选字段）
@@ -634,6 +638,40 @@ const emptyForm = (): OrderCreateForm => ({
 const form = reactive<OrderCreateForm>(emptyForm())
 const newItem = reactive({ product_name: '', quantity: 0, unit_price: 0, unit: '斤' })
 
+// ── 商户自动完成 ──
+const merchantQuery = ref('')
+let merchantSuggestionsTimer: ReturnType<typeof setTimeout> | null = null
+
+async function fetchMerchantSuggestions(keyword: string, cb: (results: { value: string; tag?: string; supplier?: Supplier }[]) => void) {
+  if (!keyword || keyword.length < 1) { cb([]); return }
+  if (merchantSuggestionsTimer) clearTimeout(merchantSuggestionsTimer)
+  merchantSuggestionsTimer = setTimeout(async () => {
+    try {
+      const { data } = await getSuppliers({ search: keyword, limit: 10, status: 'active' })
+      cb((data.items || []).map((s: Supplier) => ({
+        value: s.name,
+        tag: s.supplier_type || undefined,
+        supplier: s,
+      })))
+    } catch { cb([]) }
+  }, 200)
+}
+
+function onMerchantSelect(item: { value: string; tag?: string; supplier?: Supplier }) {
+  const s = item.supplier
+  form.merchant_name = item.value
+  form.merchant_tag = s?.supplier_type || ''
+  form.receiver = s?.contact_person || s?.settlement_person || ''
+  form.delivery_address = s?.contact_address || ''
+}
+
+function onMerchantClear() {
+  form.merchant_name = ''
+  form.merchant_tag = ''
+  form.receiver = ''
+  form.delivery_address = ''
+}
+
 const itemsTotal = computed(() =>
   form.items.reduce((sum, it) => sum + it.quantity * it.unit_price, 0)
 )
@@ -642,6 +680,15 @@ function openCreate() {
   isEditMode.value = false
   editingOrder.value = null
   Object.assign(form, emptyForm())
+  // 默认收货日期：明天 5:00 - 17:00
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const dateStr = tomorrow.toISOString().slice(0, 10)
+  form.receive_start_date = dateStr
+  form.receive_end_date = dateStr
+  form.receive_start_time = '05:00'
+  form.receive_end_time = '17:00'
+  merchantQuery.value = ''
   dialogVisible.value = true
 }
 
