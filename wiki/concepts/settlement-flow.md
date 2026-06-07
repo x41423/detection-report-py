@@ -36,6 +36,6 @@ tags: [settlement, supplier, order]
 
 ## 相关页面
 
-- [[supplier-management]] — 结算配置的来源
-- [[order-management]] — 订单的结算周期计算
-- [[purchase-management]] — 入库记录驱动结算
+- [[entities/supplier-management]] — 结算配置的来源
+- [[entities/order-management]] — 订单的结算周期计算
+- 采购管理（采购入库/退货记录驱动结算）

@@ -56,5 +56,5 @@ sources: [skill-triggers/README.md]
 
 ## 相关
 
-- [[convention-pitfalls]] — 技能驱动的开发约定
-- [[code-review-2026-06-07]] — 审查中发现的规范问题
+- [[concepts/convention-pitfalls]] — 技能驱动的开发约定
+- [[comparisons/code-review-2026-06-07]] — 审查中发现的规范问题

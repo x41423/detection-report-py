@@ -53,6 +53,6 @@ sources: [raw/docs/code-review-report.md]
 
 ## 相关页面
 
-- [[order-management]] — 订单创建时选择供应商
-- [[settlement-flow]] — 结算配置影响结算周期
-- [[purchase-management]] — 采购记录关联供应商
+- [[entities/order-management]] — 订单创建时选择供应商
+- [[concepts/settlement-flow]] — 结算配置影响结算周期
+- 采购管理（关联采购记录、has_purchase_records 保护）

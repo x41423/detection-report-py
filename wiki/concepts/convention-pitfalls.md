@@ -67,5 +67,5 @@ try {
 
 ## 相关页面
 
-- [[code-review-2026-06-07]] — 原始代码审查报告
-- [[skill-ecosystem]] — 开发中常用的 Skill 清单
+- [[comparisons/code-review-2026-06-07]] — 原始代码审查报告
+- [[comparisons/skill-ecosystem]] — 开发中常用的 Skill 清单

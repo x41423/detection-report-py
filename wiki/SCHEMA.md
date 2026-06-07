@@ -6,7 +6,7 @@
 ## Conventions
 - File names: lowercase, hyphens, no spaces (e.g., `order-management.md`)
 - Every wiki page starts with YAML frontmatter
-- Use `[[wikilinks]]` to link between pages (minimum 2 outbound links per page)
+- Use wikilinks to link between pages (minimum 2 outbound links per page)
 - When updating a page, always bump the `updated` date
 - Every new page must be added to `index.md` under the correct section
 - Every action must be appended to `log.md`

@@ -30,12 +30,12 @@ sources: [docs/code-review-report.html]
 
 ## Phase 2 待执行
 
-- [[convention-pitfalls]] 中的 `store.py` 拆分（按域 → `schema/_orders.py` 等）
-- [[order-management]] 中 `OrderManagement.vue` 的搜索 composable 提取
+- [[concepts/convention-pitfalls]] 中的 `store.py` 拆分（按域 → `schema/_orders.py` 等）
+- [[entities/order-management]] 中 `OrderManagement.vue` 的搜索 composable 提取
 - 审计追踪已在 Router 层就绪，需在关键端点加 `audit_log_service.record()`
 
 ## 相关
 
-- [[convention-pitfalls]] — 修复过程中沉淀的开发约定
-- [[order-management]] — 订单模块的关联修复
-- [[supplier-management]] — 供应商模块的关联修复
+- [[concepts/convention-pitfalls]] — 修复过程中沉淀的开发约定
+- [[entities/order-management]] — 订单模块的关联修复
+- [[entities/supplier-management]] — 供应商模块的关联修复

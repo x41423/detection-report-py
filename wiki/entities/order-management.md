@@ -73,6 +73,6 @@ sources: [raw/docs/code-review-report.md]
 
 ## 相关页面
 
-- [[supplier-management]] — 供应商选择联动
-- [[inventory-sync]] — 出库/撤销的库存影响
-- [[settlement-flow]] — 结算的订单数据来源
+- [[entities/supplier-management]] — 供应商选择联动
+- 出库/撤销的库存影响（OUT/IN 交易恢复）
+- [[concepts/settlement-flow]] — 结算的订单数据来源
