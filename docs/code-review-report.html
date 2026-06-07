@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>滨鲜工作台 — 代码审查报告</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #0f172a; color: #e2e8f0; font-family: system-ui; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .badge-risk { background: #7f1d1d; color: #fca5a5; }
+  .badge-warn { background: #78350f; color: #fcd34d; }
+  .badge-info { background: #1e3a5f; color: #93c5fd; }
+  .badge-ok { background: #14532d; color: #86efac; }
+  .filepath { font-family: monospace; color: #64748b; font-size: 13px; }
+  pre { background: #0f172a; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  h2 { border-bottom: 1px solid #334155; padding-bottom: 8px; margin-top: 32px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .summary-item { text-align: center; padding: 16px; border-radius: 8px; }
+  .summary-item .num { font-size: 32px; font-weight: 700; }
+  .summary-item .label { font-size: 13px; color: #94a3b8; }
+</style>
+</head>
+<body class="max-w-4xl mx-auto p-6">
+
+<h1 class="text-2xl font-bold mb-2">🔍 滨鲜工作台 代码审查报告</h1>
+<p class="text-slate-400 mb-6">审查日期：2026-06-07 | 142 Python 文件 + 110 Vue/TS 文件</p>
+
+<!-- Summary -->
+<div class="summary-grid mb-8">
+  <div class="summary-item card"><div class="num text-red-400">3</div><div class="label">🔴 高风险</div></div>
+  <div class="summary-item card"><div class="num text-yellow-400">5</div><div class="label">🟡 中风险</div></div>
+  <div class="summary-item card"><div class="num text-blue-400">4</div><div class="label">🔵 建议改进</div></div>
+  <div class="summary-item card"><div class="num text-green-400">✅</div><div class="label">安全基线通过</div></div>
+</div>
+
+<!-- ==================== 架构 ==================== -->
+<h2>🏗️ 一、架构问题</h2>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">1. 数据库双写不同步 — SQLite 与 MySQL 字段不一致</h3>
+    <span class="badge badge-risk">🔴 高风险</span>
+  </div>
+  <p class="filepath">app/db/store.py + app/db/mysql_schema.py</p>
+  <p class="text-slate-300 mt-2">
+    Supplier 表在 SQLite 中已扩展（本次会话修复），但 <strong>Product、PurchaseInRecord、SettlementRecord</strong> 等其他表同样存在
+    SQLite 定义少于 MySQL 或 Repository 实际使用的字段。MySQL 启用时会因字段缺失直接报错。
+  </p>
+  <p class="text-slate-400 mt-1 text-sm">
+    <strong>建议</strong>：编写一个 <code>_verify_schema_sync()</code> 函数，启动时对 SQLite/MySQL 进行 PRAGMA table_info 对比校验。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">2. 响应格式不统一</h3>
+    <span class="badge badge-warn">🟡 中风险</span>
+  </div>
+  <p class="filepath">backend/api/routes/agreement_price.py, storage.py 等</p>
+  <p class="text-slate-300 mt-2">
+    项目约定响应格式为 <code>{success, message, items, total}</code>，但部分路由直接返回 
+    <code>{"success": True, "message": "xxx"}</code> 或裸 <code>{"ok": true}</code>。
+    agreement_price.py 直接操作数据库而不经过 Service 层。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">3. 部分模块缺少 Service 层</h3>
+    <span class="badge badge-warn">🟡 中风险</span>
+  </div>
+  <p class="filepath">backend/api/routes/agreement_price.py, storage.py</p>
+  <p class="text-slate-300 mt-2">
+    agreement_price 和 storage 路由直接在 Route 层调用 <code>simple_update/simple_delete</code>，
+    跳过了 Service 层。这导致业务逻辑散落在 Route 中，无法复用、无法单测。
+  </p>
+</div>
+
+<!-- ==================== 安全 ==================== -->
+<h2>🔒 二、安全问题</h2>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">4. 自动生成的残留文件在仓库中</h3>
+    <span class="badge badge-risk">🔴 高风险</span>
+  </div>
+  <p class="filepath">config/mcporter.json, _tok.txt, =7.0.0, mcp_commands.txt</p>
+  <p class="text-slate-300 mt-2">
+    这些文件包含了本地环境配置和 token 信息。虽然 .gitignore 已更新但之前已提交的版本
+    仍残留在 Git 历史中。建议用 <code>git filter-repo</code> 清理历史。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">5. 前端 API 错误处理不完整</h3>
+    <span class="badge badge-warn">🟡 中风险</span>
+  </div>
+  <p class="filepath">frontend/src/views/*.vue (多处)</p>
+  <p class="text-slate-300 mt-2">
+    多个 Vue 组件中的 API 调用用 <code>try {} catch {}</code> 静默吞掉错误。
+    用户看不到后端返回的具体错误信息。例如 <code>OrderManagement.vue</code> 的 
+    <code>handleDelete</code> 在 <code>catch</code> 中仅 <code>// 用户取消或报错</code>。
+  </p>
+  <pre>// 当前
+} catch {
+  // 用户取消或报错
+}
+
+// 建议
+} catch (e: any) {
+  if (e !== 'cancel') {
+    ElMessage.error(e?.response?.data?.detail || '操作失败')
+  }
+}</pre>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">6. Token 存放在 localStorage</h3>
+    <span class="badge badge-info">🔵 建议</span>
+  </div>
+  <p class="filepath">frontend/src/api/client.ts</p>
+  <p class="text-slate-300 mt-2">
+    JWT token 存储在 localStorage 中，易受 XSS 攻击。对于内部系统可接受，
+    但建议后续迁移到 httpOnly cookie 或使用 fingerprint + session 方案。
+  </p>
+</div>
+
+<!-- ==================== 代码质量 ==================== -->
+<h2>📋 三、代码质量问题</h2>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">7. 裸 except 子句</h3>
+    <span class="badge badge-warn">🟡 中风险</span>
+  </div>
+  <p class="filepath">app/db/migration.py, app/views/data_transfer_view.py, app/views/main_window.py</p>
+  <p class="text-slate-300 mt-2">
+    三个文件使用了裸 <code>except:</code>，会捕获 <code>KeyboardInterrupt</code> 和 
+    <code>SystemExit</code>，导致程序无法正常终止。
+  </p>
+  <pre># 坏
+try:
+    do_something()
+except:
+    pass
+
+# 好
+try:
+    do_something()
+except Exception as e:
+    logger.error("操作失败: %s", e)</pre>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">8. 超大文件需要拆分</h3>
+    <span class="badge badge-info">🔵 建议</span>
+  </div>
+  <p class="filepath">frontend/src/views/OrderManagement.vue (917 行), app/db/store.py (1998 行)</p>
+  <p class="text-slate-300 mt-2">
+    <code>OrderManagement.vue</code> 集列表/筛选/新建/编辑/复制/删除/日期筛选/商户搜索/商品搜索于一体，
+    即将突破 1000 行。建议拆分为 composables：
+    <code>useOrderList</code> / <code>useOrderForm</code> / <code>useMerchantSearch</code>。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">9. 缺少请求日志/审计追踪</h3>
+    <span class="badge badge-info">🔵 建议</span>
+  </div>
+  <p class="filepath">backend/api/routes/*.py</p>
+  <p class="text-slate-300 mt-2">
+    当前只有认证相关的审计日志。CRUD 操作（如创建/删除订单、修改供应商）没有记录操作人和操作时间。
+    建议在关键写操作中加入 <code>AuditLog</code> 记录。
+  </p>
+</div>
+
+<!-- ==================== 潜在 Bug ==================== -->
+<h2>🐛 四、潜在 Bug</h2>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">10. 订单交易概况查询可能匹配错误供应商</h3>
+    <span class="badge badge-risk">🔴 高风险</span>
+  </div>
+  <p class="filepath">backend/services/supplier_service.py:get_transaction_summary()</p>
+  <p class="text-slate-300 mt-2">
+    交易概况用 <code>oi.product_name LIKE '%供应商名%'</code> 关联订单，如果
+    供应商名是常见词（如"测试"），会错误匹配其他供应商的商品。
+  </p>
+  <p class="text-slate-400 mt-1 text-sm">
+    <strong>建议</strong>：改成通过 OrderRecord.merchant_name 精确匹配，或通过关联表查询。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">11. SQLite UPDATE 的通用写法可能 SQL 注入</h3>
+    <span class="badge badge-warn">🟡 中风险</span>
+  </div>
+  <p class="filepath">app/db/supplier_repository.py:update()</p>
+  <p class="text-slate-300 mt-2">
+    <code>update()</code> 方法动态拼接字段名：<code>f"{key} = ?"</code>。
+    如果 <code>data</code> 中的 key 来自不可信输入（虽然当前来自 Pydantic），
+    存在潜在风险。建议对字段名做白名单校验。
+  </p>
+</div>
+
+<div class="card">
+  <div class="flex justify-between items-start mb-2">
+    <h3 class="font-semibold">12. 前端路由缺少 404 兜底</h3>
+    <span class="badge badge-info">🔵 建议</span>
+  </div>
+  <p class="filepath">frontend/src/navigation/appNavigation.ts</p>
+  <p class="text-slate-300 mt-2">
+    没有定义 catch-all 路由（path: '/:pathMatch(.*)*'），访问不存在的页面会白屏。
+  </p>
+</div>
+
+<!-- ==================== 总结 ==================== -->
+<h2>📊 五、总结与优先级</h2>
+
+<table class="w-full text-sm border-collapse">
+  <thead>
+    <tr class="text-left border-b border-slate-600">
+      <th class="p-2 w-8">#</th><th class="p-2">问题</th><th class="p-2 w-24">风险</th><th class="p-2 w-20">修复成本</th>
+    </tr>
+  </thead>
+  <tbody class="text-slate-300">
+    <tr class="border-b border-slate-700"><td class="p-2">10</td><td class="p-2">交易概况 LIKE 匹配错误</td><td class="p-2"><span class="badge badge-risk">高</span></td><td class="p-2">中</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">4</td><td class="p-2">敏感文件残留 Git 历史</td><td class="p-2"><span class="badge badge-risk">高</span></td><td class="p-2">中</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">1</td><td class="p-2">数据库双写不同步</td><td class="p-2"><span class="badge badge-risk">高</span></td><td class="p-2">高</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">7</td><td class="p-2">裸 except 子句</td><td class="p-2"><span class="badge badge-warn">中</span></td><td class="p-2">低</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">11</td><td class="p-2">UPDATE 字段名动态拼接</td><td class="p-2"><span class="badge badge-warn">中</span></td><td class="p-2">低</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">5</td><td class="p-2">前端错误静默吞掉</td><td class="p-2"><span class="badge badge-warn">中</span></td><td class="p-2">中</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">2</td><td class="p-2">响应格式不统一</td><td class="p-2"><span class="badge badge-warn">中</span></td><td class="p-2">中</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">3</td><td class="p-2">部分模块缺失 Service 层</td><td class="p-2"><span class="badge badge-warn">中</span></td><td class="p-2">中</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">8</td><td class="p-2">超大文件需拆分</td><td class="p-2"><span class="badge badge-info">低</span></td><td class="p-2">高</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">9</td><td class="p-2">缺少审计追踪</td><td class="p-2"><span class="badge badge-info">低</span></td><td class="p-2">高</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">12</td><td class="p-2">缺少 404 路由</td><td class="p-2"><span class="badge badge-info">低</span></td><td class="p-2">低</td></tr>
+    <tr class="border-b border-slate-700"><td class="p-2">6</td><td class="p-2">Token 在 localStorage</td><td class="p-2"><span class="badge badge-info">低</span></td><td class="p-2">高</td></tr>
+  </tbody>
+</table>
+
+<div class="card mt-6 bg-slate-800 border border-slate-600">
+  <h3 class="font-semibold mb-2">✅ 做得好的地方</h3>
+  <ul class="text-slate-300 text-sm space-y-1">
+    <li>✅ 密码使用 salt + hash 存储（auth_service.py）</li>
+    <li>✅ 权限控制使用 Depends(require_permission) 统一模式</li>
+    <li>✅ 数据库操作使用参数化查询，无 SQL 注入风险（已验证）</li>
+    <li>✅ 响应格式基本统一为 {success, message, items, total}</li>
+    <li>✅ Repository 层使用 @staticmethod 约定一致</li>
+    <li>✅ 21 个 API 测试覆盖核心 CRUD 流程</li>
+  </ul>
+</div>
+
+<p class="text-slate-500 text-center mt-8 text-sm">滨鲜工作台 代码审查报告 · 2026-06-07</p>
+
+</body>
+</html>
