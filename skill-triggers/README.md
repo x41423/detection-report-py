@@ -40,9 +40,9 @@
 
 | 说这些话 | 触发 Skill | 做什么 |
 |----------|-----------|--------|
-| "调试"、"debug"、"bug"、"报错"、"出问题了" | `systematic-debugging` | 四阶段根因调试法 |
+| "调试"、"debug"、"bug"、"报错"、"出问题了"、"diagnose" | `systematic-debugging`、`diagnose` | 四阶段根因调试法 / 诊断循环 |
 | "验证"、"检查"、"跑一下"、"确认没问题" | `verification-loop` | 全面验证：类型检查、构建、无残留 |
-| "TDD"、"测试驱动"、"先写测试" | `test-driven-development` | 红-绿-重构循环 |
+| "TDD"、"测试驱动"、"先写测试"、"red-green-refactor" | `test-driven-development`、`tdd` | 红-绿-重构循环 |
 | "代码审查"、"review"、"审代码"、"检查一下" | `requesting-code-review` | 提交前安全检查、质量门禁 |
 
 ---
@@ -76,6 +76,8 @@
 | "上下文"、"token预算"、"太长了" | `context-budget` | 审计上下文消耗、优化建议 |
 | "脚手架"、"快速原型"、"prototype" | `prototype` | 抛弃式原型，验证想法 |
 | "spike"、"验证可行性" | `spike` | 快速实验，确认技术路线 |
+| "写文章"、"编辑文章"、"润色" | `edit-article` | 编辑和润色文章 |
+| "Obsidian"、"笔记"、"知识库" | `obsidian`、`obsidian-vault` | Obsidian 知识库读写 |
 
 ---
 
@@ -87,6 +89,7 @@
 | "开issue"、"创建issue"、"GitHub问题" | `github-issues` | 创建/管理 Issues |
 | "提交PR"、"pull request"、"PR流程" | `github-pr-workflow` | 从分支到合并的完整 PR 流程 |
 | "clone仓库"、"fork"、"fork项目" | `github-repo-management` | 仓库克隆/创建/Fork |
+| "git安全"、"禁止push"、"防误删" | `git-guardrails-claude-code` | 拦截危险 Git 操作 |
 
 ---
 
@@ -161,3 +164,68 @@ ECC 是 Agent 增强操作系统，覆盖开发全流程。以下为重点类别
 | "仓库审计"、"代码扫描" | `repo-scan` | 全仓库源码资产审计 |
 
 > **提示**：Skill 是按关键词自动匹配的，不需要精确说出 Skill 名字。只要你的话跟某个类别沾边，我就会加载对应的 Skill。
+
+---
+
+## 十、Agent Reach — 全网搜索与平台访问
+
+> 17 个平台统一入口：网页、社交、视频、招聘、开发。零配置 8 个渠道，剩余需登录 Cookie 或 API Key。
+
+| 说这些话 | 触发 Skill | 做什么 |
+|----------|-----------|--------|
+| "搜一下"、"查一下"、"搜索"、"帮我搜" | `agent-reach` | 全网语义搜索（Exa）、通用网页阅读（Jina） |
+| "小红书"、"xhs"、"红书" | `agent-reach` | 小红书笔记阅读、搜索、发帖（需登录） |
+| "抖音"、"douyin" | `agent-reach` | 抖音视频解析、无水印下载 |
+| "Twitter"、"推特"、"x.com"、"推文" | `agent-reach` | Twitter/X 搜索推文、看时间线（需 Cookie） |
+| "微博"、"weibo"、"热搜" | `agent-reach` | 微博热搜、搜索、用户动态（装好即用） |
+| "B站"、"bilibili"、"哔哩哔哩" | `agent-reach` | B站视频、字幕、热门排行、搜索 |
+| "Reddit" | `agent-reach` | Reddit 搜索帖子、读帖+评论 |
+| "V2EX" | `agent-reach` | V2EX 热门主题、节点、用户信息 |
+| "雪球"、"股票"、"xueqiu"、"行情" | `agent-reach` | 雪球股票行情、热门帖子（需 Cookie） |
+| "LinkedIn"、"领英"、"招聘"、"找工作" | `agent-reach` | LinkedIn Profile 查看、职位搜索 |
+| "公众号"、"微信文章"、"RSS"、"读一下" | `agent-reach` | 微信公众号文章搜索、RSS 订阅源 |
+| "YouTube"、"视频字幕"、"小宇宙"、"播客"、"转录" | `agent-reach` | YouTube/B站字幕下载、小宇宙播客转文字（需 Groq Key） |
+
+### 快速命令参考
+
+```bash
+# Exa 全网搜索
+mcporter call 'exa.web_search_exa(query: "关键词", numResults: 5)'
+
+# 通用网页阅读
+curl -s "https://r.jina.ai/URL"
+
+# GitHub 搜索
+gh search repos "关键词" --sort stars --limit 10
+
+# Twitter 搜索
+twitter search "关键词" --limit 10
+
+# YouTube/B站字幕
+yt-dlp --write-sub --skip-download -o "/tmp/%(id)s" "URL"
+
+# Reddit 搜索
+rdt search "关键词" --limit 10
+
+# V2EX 热门
+curl -s "https://www.v2ex.com/api/topics/hot.json"
+
+# 环境检查
+agent-reach doctor
+```
+
+### 配置更多渠道
+
+```bash
+# 安装指定渠道
+agent-reach install --channels=twitter,weibo,xiaohongshu
+
+# 安装全部
+agent-reach install --channels=all
+
+# Cookie 导入（Twitter/小红书/雪球）
+agent-reach configure twitter-cookies "PASTED_STRING"
+
+# 代理配置（中国大陆环境）
+agent-reach configure proxy http://user:***@ip:port
+```
