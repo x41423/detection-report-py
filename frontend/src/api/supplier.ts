@@ -87,3 +87,11 @@ export function updateSupplier(id: number, data: SupplierUpdateForm) {
 export function deleteSupplier(id: number) {
   return api.delete<MutationResponse>(`/api/supplier/${id}`)
 }
+
+export function activateSupplier(id: number) {
+  return api.post<MutationResponse>(`/api/supplier/${id}/activate`)
+}
+
+export function hardDeleteSupplier(id: number) {
+  return api.delete<MutationResponse>(`/api/supplier/${id}/hard`)
+}

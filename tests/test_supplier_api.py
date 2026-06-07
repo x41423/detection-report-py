@@ -23,6 +23,24 @@ def _headers(client: TestClient) -> dict[str, str]:
     return auth_headers_for_permissions(client, SUPPLIER_PERMISSIONS)
 
 
+def _cleanup_tables():
+    """Clean test data from business tables without dropping auth tables."""
+    conn = store.get_connection()
+    c = conn.cursor()
+    tables = [
+        "SupplierSettlement", "Supplier", "PurchaseInItem", "PurchaseInRecord",
+        "PurchaseReturnItem", "PurchaseReturnRecord", "OrderItem", "OrderAfterSale",
+        "OrderRecord", "InventoryTransaction", "SupplierProductPrice",
+    ]
+    for t in tables:
+        try:
+            c.execute(f"DELETE FROM {t}")
+        except Exception:
+            pass
+    conn.commit()
+    c.close()
+
+
 def _create(client: TestClient, name: str = "测试供应商") -> dict:
     resp = client.post(
         "/api/supplier/",

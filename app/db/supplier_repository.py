@@ -175,6 +175,21 @@ class SupplierRepository:
             cursor.close()
 
     @staticmethod
+    def hard_delete(supplier_id: int) -> bool:
+        """Permanently delete a supplier record."""
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM Supplier WHERE id = ?", (supplier_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+    @staticmethod
     def has_purchase_records(supplier_id: int) -> bool:
         """Check whether the supplier has any linked purchase records."""
         row = query_one(

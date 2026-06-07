@@ -90,6 +90,30 @@ def delete_supplier(supplier_id: int):
         _raise_http_error(exc)
 
 
+@router.post(
+    "/{supplier_id}/activate",
+    dependencies=[Depends(require_permission("supplier:edit"))],
+)
+def activate_supplier(supplier_id: int):
+    """重新启用已停用的供应商"""
+    try:
+        return service.activate_supplier(supplier_id)
+    except (LookupError, ValueError) as exc:
+        _raise_http_error(exc)
+
+
+@router.delete(
+    "/{supplier_id}/hard",
+    dependencies=[Depends(require_permission("supplier:delete"))],
+)
+def hard_delete_supplier(supplier_id: int):
+    """永久删除供应商"""
+    try:
+        return service.hard_delete_supplier(supplier_id)
+    except (LookupError, ValueError) as exc:
+        _raise_http_error(exc)
+
+
 # ------------------------------------------------------------------
 # FUTURE endpoints (P1 / P2)
 # ------------------------------------------------------------------

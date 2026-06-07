@@ -60,11 +60,17 @@
         </el-table-column>
         <el-table-column prop="credit_limit" label="信用额度" width="100" />
         <el-table-column prop="status" label="状态" width="80"><template #default="{row}"><el-tag :type="row.status==='active'?'success':'info'">{{ row.status }}</el-tag></template></el-table-column>
-        <el-table-column label="操作" width="160">
+        <el-table-column label="操作" width="200">
           <template #default="{row}">
             <el-button size="small" type="primary" link @click="$router.push(`/suppliers/${row.id}`)">详情</el-button>
-            <el-button size="small" @click="openEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">停用</el-button>
+            <el-button size="small" type="primary" link @click="openEdit(row)">编辑</el-button>
+            <template v-if="row.status === 'active'">
+              <el-button size="small" type="warning" link @click="handleDeactivate(row)">停用</el-button>
+            </template>
+            <template v-else>
+              <el-button size="small" type="success" link @click="handleActivate(row)">启用</el-button>
+              <el-button size="small" type="danger" link @click="handleHardDelete(row)">删除</el-button>
+            </template>
           </template>
         </el-table-column>
       </el-table>
@@ -158,7 +164,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getSuppliers, createSupplier, updateSupplier, deleteSupplier, type Supplier, type SupplierCreateForm } from '../api/supplier'
+import { getSuppliers, createSupplier, updateSupplier, deleteSupplier, activateSupplier, hardDeleteSupplier, type Supplier, type SupplierCreateForm } from '../api/supplier'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const supplierTypeMap: Record<string, string> = { enterprise: '企业', individual: '个人', cooperative: '合作社' }
@@ -266,10 +272,28 @@ async function handleSave() {
   }
 }
 
-async function handleDelete(row: Supplier) {
+async function handleDeactivate(row: Supplier) {
   await ElMessageBox.confirm(`确定停用供应商「${row.name}」？`)
   await deleteSupplier(row.id)
   ElMessage.success('已停用')
+  load()
+}
+
+async function handleActivate(row: Supplier) {
+  await ElMessageBox.confirm(`确定重新启用供应商「${row.name}」？`)
+  await activateSupplier(row.id)
+  ElMessage.success('已启用')
+  load()
+}
+
+async function handleHardDelete(row: Supplier) {
+  await ElMessageBox.confirm(
+    `确定永久删除供应商「${row.name}」？此操作不可撤销！`,
+    '删除确认',
+    { type: 'error', confirmButtonText: '确定删除', cancelButtonText: '取消' },
+  )
+  await hardDeleteSupplier(row.id)
+  ElMessage.success('已永久删除')
   load()
 }
 

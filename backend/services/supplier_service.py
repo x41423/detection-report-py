@@ -73,6 +73,25 @@ class SupplierService:
         SupplierRepository.deactivate(supplier_id)
         return mutation_response("供应商已停用")
 
+    def activate_supplier(self, supplier_id: int) -> dict[str, Any]:
+        """重新启用已停用的供应商"""
+        record = SupplierRepository.get_by_id(supplier_id)
+        if record is None:
+            raise LookupError(f"供应商 {supplier_id} 不存在")
+        if record["status"] != "inactive":
+            raise ValueError("仅已停用的供应商可启用")
+        SupplierRepository.update(supplier_id, {"status": "active"})
+        return mutation_response("供应商已启用")
+
+    def hard_delete_supplier(self, supplier_id: int) -> dict[str, Any]:
+        """硬删除供应商（无关联采购记录才能删）"""
+        if SupplierRepository.get_by_id(supplier_id) is None:
+            raise LookupError(f"供应商 {supplier_id} 不存在")
+        if SupplierRepository.has_purchase_records(supplier_id):
+            raise ValueError("该供应商存在关联的采购入库记录，无法删除。请先处理关联单据。")
+        SupplierRepository.hard_delete(supplier_id)
+        return mutation_response("供应商已永久删除")
+
     def get_transaction_summary(
         self, supplier_id: int, *, date_from: str | None = None, date_to: str | None = None,
     ) -> dict[str, Any]:
