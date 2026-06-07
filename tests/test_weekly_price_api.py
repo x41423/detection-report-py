@@ -528,9 +528,9 @@ class WeeklyQuotePersistenceApiTests(unittest.TestCase):
         self.assertEqual(supplier_resp.json()["supplier"]["name"], "自采API")
         self.assertEqual(supplier_resp.json()["supplier"]["summary_rule"], "average")
 
-        unit_resp = self.client.post("/api/weekly-price/summary/measure-units", json={"name": "盒"})
+        unit_resp = self.client.post("/api/weekly-price/summary/measure-units", json={"name": "盒_API测试"})
         self.assertEqual(unit_resp.status_code, 200)
-        self.assertEqual(unit_resp.json()["measure_unit"]["name"], "盒")
+        self.assertEqual(unit_resp.json()["measure_unit"]["name"], "盒_API测试")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             import_path = Path(tmpdir) / "custom-import.xlsx"

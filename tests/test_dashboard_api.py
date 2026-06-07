@@ -10,6 +10,7 @@ from tests.auth_api_utils import auth_headers_for_permissions
 PERMS = (
     "supplier:view", "supplier:create",
     "inventory:view", "inventory:create", "inventory:update",
+    "order:create",
 )
 
 _headers_cache: dict[int, dict[str, str]] = {}
@@ -55,22 +56,25 @@ def test_dashboard_with_data():
     client = _client()
     sid = _create_supplier(client)
 
+    from datetime import date
+    today = date.today().isoformat()
+
     # Create purchase-in with large amount to ensure top-5 placement
     r = client.post("/api/purchase/in", json={
-        "supplier_id": sid, "inbound_date": "2026-05-15",
+        "supplier_id": sid, "inbound_date": today,
         "items": [{"veg_name": "驾驶舱测试菜", "quantity": 2000, "unit_price": 500}],
     }, headers=_headers(client))
     client.post(f"/api/purchase/in/{r.json()['id']}/confirm", headers=_headers(client))
 
     # Create order
     client.post("/api/order/", json={
-        "merchant_name": "驾驶舱客户", "order_date": "2026-05-20",
+        "merchant_name": "驾驶舱客户", "order_date": today,
         "items": [{"product_name": "驾驶舱测试菜", "quantity": 10, "unit_price": 8}],
     }, headers=_headers(client))
 
     # Create settlement
     client.post("/api/settlement/", json={
-        "supplier_id": sid, "settlement_period": "2026-05", "payable_amount": 100,
+        "supplier_id": sid, "settlement_period": date.today().strftime("%Y-%m"), "payable_amount": 100,
     }, headers=_headers(client))
 
     resp = client.get("/api/dashboard/", headers=_headers(client))
