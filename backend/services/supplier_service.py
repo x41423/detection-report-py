@@ -4,6 +4,8 @@ from __future__ import annotations
 from typing import Any
 
 from app.db.supplier_repository import SupplierRepository
+from app.db.order_repository import OrderRepository
+from app.db.store import query_one
 from backend.api.response_utils import list_response, mutation_response
 from backend.models.supplier_schemas import SupplierCreate, SupplierUpdate
 
@@ -71,6 +73,70 @@ class SupplierService:
         SupplierRepository.deactivate(supplier_id)
         return mutation_response("供应商已停用")
 
+    def get_transaction_summary(
+        self, supplier_id: int, *, date_from: str | None = None, date_to: str | None = None,
+    ) -> dict[str, Any]:
+        """Aggregate order statistics for a supplier (matching 观麦 交易情况 tab)."""
+        supplier = SupplierRepository.get_by_id(supplier_id)
+        if supplier is None:
+            raise LookupError(f"供应商 {supplier_id} 不存在")
+
+        name = supplier["name"]
+        clause = "WHERE oi.product_name LIKE ?"
+        params: list[Any] = [f"%{name}%"]
+
+        if date_from:
+            clause += " AND o.order_date >= ?"
+            params.append(date_from)
+        if date_to:
+            clause += " AND o.order_date <= ?"
+            params.append(date_to)
+
+        row = query_one(
+            f"""SELECT
+                  COALESCE(SUM(oi.amount), 0) AS total_sales,
+                  COUNT(DISTINCT o.id) AS order_count,
+                  COALESCE(SUM(o.discount_amount), 0) AS total_discount,
+                  COALESCE(SUM(o.freight), 0) AS total_freight,
+                  COALESCE(SUM(o.after_sale_amount), 0) AS after_sale_amount,
+                  COALESCE(SUM(o.should_refund_amount), 0) AS should_refund
+               FROM OrderItem oi
+               JOIN OrderRecord o ON oi.order_id = o.id
+               {clause}""",
+            tuple(params),
+        )
+        if row:
+            total_sales = float(row["total_sales"] or 0)
+            total_freight = float(row["total_freight"] or 0)
+            total_discount = float(row["total_discount"] or 0)
+            sales_excl_freight = total_sales - total_freight
+
+            # Cost estimation (~75% of sales for rough margin)
+            estimated_cost = total_sales * 0.75
+            gross_margin = total_sales - estimated_cost - total_discount
+
+            return {
+                "success": True,
+                "total_sales_amount": round(total_sales, 2),
+                "total_sales_amount_excl_freight": round(sales_excl_freight, 2),
+                "total_gross_margin": round(gross_margin, 2),
+                "gross_margin_rate": round(gross_margin / total_sales * 100, 2) if total_sales > 0 else 0,
+                "total_discount": round(total_discount, 2),
+                "order_count": int(row["order_count"] or 0),
+                "after_sale_count": 0,
+                "abnormal_amount": round(float(row["after_sale_amount"] or 0), 2),
+                "should_refund": round(float(row["should_refund"] or 0), 2),
+                "actual_refund": 0,
+            }
+        return {
+            "success": True,
+            "total_sales_amount": 0, "total_sales_amount_excl_freight": 0,
+            "total_gross_margin": 0, "gross_margin_rate": 0,
+            "total_discount": 0, "order_count": 0,
+            "after_sale_count": 0, "abnormal_amount": 0,
+            "should_refund": 0, "actual_refund": 0,
+        }
+
     # ------------------------------------------------------------------
     # Serialization
     # ------------------------------------------------------------------
@@ -95,6 +161,15 @@ class SupplierService:
             "level": record.get("level", "normal"),
             "status": record.get("status", "active"),
             "remark": record.get("remark"),
+            # 结算配置
+            "settlement_person": record.get("settlement_person"),
+            "settlement_phone": record.get("settlement_phone"),
+            "date_dimension": record.get("date_dimension", "order_date"),
+            "period_start_day": record.get("period_start_day", 1),
+            "settlement_day": record.get("settlement_day", 1),
+            "freeze_status": record.get("freeze_status", 0),
+            "approval_status": record.get("approval_status", 1),
+            "sorting_priority": record.get("sorting_priority", 0),
             "created_at": record["created_at"],
             "updated_at": record["updated_at"],
         }

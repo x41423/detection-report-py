@@ -100,6 +100,19 @@ def supplier_purchase_history(supplier_id: int):
     raise HTTPException(status_code=501, detail=future_endpoint("supplier_purchase_history"))
 
 
+@router.get("/{supplier_id}/transaction-summary")
+def supplier_transaction_summary(
+    supplier_id: int,
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+):
+    """Get supplier transaction overview (观麦-style 交易情况 tab)."""
+    try:
+        return service.get_transaction_summary(supplier_id, date_from=date_from, date_to=date_to)
+    except (LookupError, ValueError) as exc:
+        _raise_http_error(exc)
+
+
 @router.get("/{supplier_id}/settlement")
 def supplier_settlement(supplier_id: int):
     raise HTTPException(status_code=501, detail=future_endpoint("supplier_settlement"))

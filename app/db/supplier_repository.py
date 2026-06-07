@@ -37,8 +37,12 @@ class SupplierRepository:
                 """INSERT INTO Supplier (code, name, contact_person, contact_phone,
                    contact_address, supplier_type, business_license, tax_number,
                    bank_name, bank_account, settlement_method, payment_terms,
-                   credit_limit, level, remark)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   credit_limit, level,
+                   settlement_person, settlement_phone, date_dimension,
+                   period_start_day, settlement_day, freeze_status,
+                   approval_status, sorting_priority, remark)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     code,
                     data["name"],
@@ -54,6 +58,14 @@ class SupplierRepository:
                     data.get("payment_terms"),
                     data.get("credit_limit", 0),
                     data.get("level", "normal"),
+                    data.get("settlement_person"),
+                    data.get("settlement_phone"),
+                    data.get("date_dimension", "order_date"),
+                    data.get("period_start_day", 1),
+                    data.get("settlement_day", 1),
+                    data.get("freeze_status", 0),
+                    data.get("approval_status", 1),
+                    data.get("sorting_priority", 0),
                     data.get("remark"),
                 ),
             )

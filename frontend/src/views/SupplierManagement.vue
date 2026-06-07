@@ -62,6 +62,7 @@
         <el-table-column prop="status" label="状态" width="80"><template #default="{row}"><el-tag :type="row.status==='active'?'success':'info'">{{ row.status }}</el-tag></template></el-table-column>
         <el-table-column label="操作" width="160">
           <template #default="{row}">
+            <el-button size="small" type="primary" link @click="$router.push(`/suppliers/${row.id}`)">详情</el-button>
             <el-button size="small" @click="openEdit(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">停用</el-button>
           </template>

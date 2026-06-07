@@ -341,6 +341,32 @@ def _is_mysql_connection_error(exc: Exception) -> bool:
     )
 
 
+def _migrate_supplier_columns(cursor: sqlite3.Cursor) -> None:
+    """Add columns that may be missing from older Supplier table definitions."""
+    migrations = [
+        ("supplier_type", "TEXT DEFAULT 'enterprise'"),
+        ("business_license", "TEXT"),
+        ("tax_number", "TEXT"),
+        ("bank_name", "TEXT"),
+        ("bank_account", "TEXT"),
+        ("payment_terms", "TEXT"),
+        ("credit_limit", "REAL DEFAULT 0"),
+        ("level", "TEXT DEFAULT 'normal'"),
+        ("settlement_person", "TEXT"),
+        ("settlement_phone", "TEXT"),
+        ("date_dimension", "TEXT DEFAULT 'order_date'"),
+        ("period_start_day", "INTEGER DEFAULT 1"),
+        ("settlement_day", "INTEGER DEFAULT 1"),
+        ("freeze_status", "INTEGER DEFAULT 0"),
+        ("approval_status", "INTEGER DEFAULT 1"),
+        ("sorting_priority", "INTEGER DEFAULT 0"),
+    ]
+    existing = {r[1] for r in cursor.execute("PRAGMA table_info(Supplier)")}
+    for col, col_def in migrations:
+        if col not in existing:
+            cursor.execute(f"ALTER TABLE Supplier ADD COLUMN {col} {col_def}")
+
+
 def init_database():
     """Create all known database tables and indexes."""
     conn = get_connection()
@@ -735,8 +761,24 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
             contact_person TEXT,
             contact_phone TEXT,
             contact_address TEXT,
+            supplier_type TEXT DEFAULT 'enterprise',
+            business_license TEXT,
+            tax_number TEXT,
+            bank_name TEXT,
+            bank_account TEXT,
             settlement_method TEXT DEFAULT 'monthly',
-            -- FUTURE: 财务模块 - business_license, tax_id, credit_limit
+            payment_terms TEXT,
+            credit_limit REAL DEFAULT 0,
+            level TEXT DEFAULT 'normal',
+            -- 结算配置（融合观麦商户模式）
+            settlement_person TEXT,
+            settlement_phone TEXT,
+            date_dimension TEXT DEFAULT 'order_date',
+            period_start_day INTEGER DEFAULT 1,
+            settlement_day INTEGER DEFAULT 1,
+            freeze_status INTEGER DEFAULT 0,
+            approval_status INTEGER DEFAULT 1,
+            sorting_priority INTEGER DEFAULT 0,
             status TEXT DEFAULT 'active',
             remark TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -745,6 +787,9 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
     """)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_status ON Supplier(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_name ON Supplier(name)")
+
+    # Migration: add columns that may be missing from older table definitions
+    _migrate_supplier_columns(cursor)
 
     # ----------------------------------------------------------------
     # P0: 采购入库

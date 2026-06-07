@@ -19,6 +19,14 @@ export interface Supplier {
   level: string
   status: string
   remark?: string
+  settlement_person?: string
+  settlement_phone?: string
+  date_dimension?: string
+  period_start_day?: number
+  settlement_day?: number
+  freeze_status?: number
+  approval_status?: number
+  sorting_priority?: number
   created_at: string
   updated_at: string
 }

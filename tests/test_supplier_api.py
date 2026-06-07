@@ -220,3 +220,71 @@ def test_unauthenticated_rejected():
     client = _client()
     resp = client.get("/api/supplier/")
     assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Transaction Summary
+# ---------------------------------------------------------------------------
+
+def test_transaction_summary_returns_success():
+    """GET /api/supplier/{id}/transaction-summary should return success."""
+    store.init_database()
+    client = _client()
+    supplier = _create(client, "交易测试供应商")
+    resp = client.get(
+        f"/api/supplier/{supplier['id']}/transaction-summary",
+        headers=_headers(client),
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert "total_sales_amount" in data
+    assert "order_count" in data
+    assert "gross_margin_rate" in data
+
+
+def test_transaction_summary_supplier_not_found():
+    store.init_database()
+    client = _client()
+    resp = client.get("/api/supplier/99999/transaction-summary", headers=_headers(client))
+    assert resp.status_code == 404
+
+
+def test_transaction_summary_with_date_range():
+    store.init_database()
+    client = _client()
+    supplier = _create(client, "日期测试供应商")
+    resp = client.get(
+        f"/api/supplier/{supplier['id']}/transaction-summary",
+        params={"date_from": "2026-01-01", "date_to": "2026-12-31"},
+        headers=_headers(client),
+    )
+    assert resp.status_code == 200, resp.text
+
+
+# ---------------------------------------------------------------------------
+# Settlement Config Fields
+# ---------------------------------------------------------------------------
+
+def test_create_supplier_with_settlement_fields():
+    store.init_database()
+    client = _client()
+    resp = client.post(
+        "/api/supplier/",
+        json={
+            "name": "结算字段测试",
+            "settlement_person": "李四",
+            "settlement_phone": "13600000000",
+            "date_dimension": "receipt_date",
+            "period_start_day": 5,
+            "settlement_day": 25,
+            "sorting_priority": 100,
+        },
+        headers=_headers(client),
+    )
+    assert resp.status_code == 200, resp.text
+    supplier = resp.json()
+    assert supplier["settlement_person"] == "李四"
+    assert supplier["date_dimension"] == "receipt_date"
+    assert supplier["period_start_day"] == 5
+    assert supplier["sorting_priority"] == 100

@@ -507,6 +507,40 @@ MYSQL_SCHEMA_STATEMENTS = [
         KEY idx_om_status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
+    # ── 供应商管理 ──
+    """
+    CREATE TABLE IF NOT EXISTS Supplier (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        code VARCHAR(64) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        contact_person VARCHAR(100),
+        contact_phone VARCHAR(20),
+        contact_address VARCHAR(500),
+        supplier_type VARCHAR(32) DEFAULT 'enterprise',
+        business_license VARCHAR(50),
+        tax_number VARCHAR(50),
+        bank_name VARCHAR(100),
+        bank_account VARCHAR(50),
+        settlement_method VARCHAR(32) DEFAULT 'monthly',
+        payment_terms VARCHAR(100),
+        credit_limit DOUBLE DEFAULT 0,
+        level VARCHAR(32) DEFAULT 'normal',
+        settlement_person VARCHAR(100),
+        settlement_phone VARCHAR(20),
+        date_dimension VARCHAR(32) DEFAULT 'order_date',
+        period_start_day INT DEFAULT 1,
+        settlement_day INT DEFAULT 1,
+        freeze_status TINYINT DEFAULT 0,
+        approval_status TINYINT DEFAULT 1,
+        sorting_priority INT DEFAULT 0,
+        status VARCHAR(32) DEFAULT 'active',
+        remark VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_supplier_status (status),
+        KEY idx_supplier_name (name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
 ]
 
 

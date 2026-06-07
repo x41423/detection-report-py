@@ -464,6 +464,12 @@ export const appNavigationItems: AppNavigationItem[] = [
     requiredPermission: 'supplier:view',
   },
   {
+    name: 'supplier-detail',
+    path: '/suppliers/:id',
+    component: () => import('../views/SupplierDetail.vue'),
+    meta: { hidden: true },
+  },
+  {
     name: 'purchase',
     path: '/purchase',
     title: '采购入库 & 退货',
