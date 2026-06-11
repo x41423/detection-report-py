@@ -1,0 +1,1 @@
+var e=[{label:`蔬菜`,value:`vegetable`},{label:`冻品`,value:`frozen`},{label:`肉类`,value:`meat`}],t={vegetable:`蔬菜`,frozen:`冻品`,meat:`肉类`},n=[`斤`,`公斤`,`包`,`个`,`条`,`筐`,`箱`,`袋`,`盒`,`瓶`,`桶`,`罐`,`块`,`升`,`克`];export{e as n,n as r,t};

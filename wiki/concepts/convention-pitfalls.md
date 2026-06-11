@@ -65,6 +65,10 @@ try {
 
 供应商测试可能创建采购记录 → 阻断停用。测试前需调用 `_cleanup_tables()` 清理。
 
+**完整清理工具**：`python scripts/cleanup_test_data.py --dry-run`（预览）→ `python scripts/cleanup_test_data.py`（执行）。
+清理范围：所有 `test.*` 用户 + `display_name='API Test User'` + 全部业务表数据。
+详见 `test-data-cleanup` skill。
+
 ## 相关页面
 
 - [[comparisons/code-review-2026-06-07]] — 原始代码审查报告

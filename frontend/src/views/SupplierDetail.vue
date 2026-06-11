@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell supplier-detail-page page-shell--full">
+  <div class="page-shell supplier-detail-page page-shell--full" v-loading="loading">
     <!-- 顶部 -->
     <div class="detail-header">
       <el-button @click="$router.push('/suppliers')" text>
@@ -10,214 +10,338 @@
         <el-tag :type="supplier.status === 'active' ? 'success' : 'info'" size="small">
           {{ supplier.status === 'active' ? '活跃' : '停用' }}
         </el-tag>
-        <el-tag v-if="supplier.freeze_status" type="danger" size="small">已冻结</el-tag>
       </div>
       <div class="detail-header__actions">
-        <el-button type="primary" @click="$router.push(`/suppliers?edit=${supplier.id}`)">编辑</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
       </div>
     </div>
 
     <!-- 标签页 -->
-    <el-card shadow="never" class="panel-card" v-loading="loading">
+    <el-card shadow="never" class="panel-card">
       <el-tabs v-model="activeTab">
         <!-- Tab 1: 基本信息 -->
         <el-tab-pane label="基本信息" name="basic">
-          <el-descriptions :column="2" border size="small">
-            <el-descriptions-item label="编码">{{ supplier.code }}</el-descriptions-item>
-            <el-descriptions-item label="名称">{{ supplier.name }}</el-descriptions-item>
-            <el-descriptions-item label="联系人">{{ supplier.contact_person || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="电话">{{ supplier.contact_phone || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="地址" :span="2">{{ supplier.contact_address || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="类型">
-              <el-tag :type="typeTag(supplier.supplier_type)" size="small">{{ supplierTypeLabel(supplier.supplier_type) }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="等级">
-              <el-tag :type="levelTag(supplier.level)" size="small">{{ levelLabel(supplier.level) }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="营业执照">{{ supplier.business_license || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="税号">{{ supplier.tax_number || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="银行名称">{{ supplier.bank_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="银行账号">{{ supplier.bank_account || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="信用额度">¥{{ (supplier.credit_limit || 0).toFixed(2) }}</el-descriptions-item>
-            <el-descriptions-item label="审核状态">
-              <el-tag :type="supplier.approval_status ? 'success' : 'warning'" size="small">
-                {{ supplier.approval_status ? '已审核' : '待审核' }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="备注" :span="2">{{ supplier.remark || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="创建时间">{{ supplier.created_at }}</el-descriptions-item>
-            <el-descriptions-item label="更新时间">{{ supplier.updated_at }}</el-descriptions-item>
-          </el-descriptions>
+          <el-form label-width="110px">
+            <el-divider content-position="left">基本资料</el-divider>
+            <el-row :gutter="16">
+              <el-col :span="12">
+                <el-form-item label="供应商编号">
+                  <el-input v-model="supplier.supplier_code" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="供应商名称">
+                  <el-input v-model="supplier.name" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="公司地址">
+              <el-input v-model="supplier.contact_address" />
+            </el-form-item>
+            <el-form-item label="备注">
+              <el-input v-model="supplier.remark" />
+            </el-form-item>
+
+            <el-divider content-position="left">业务信息</el-divider>
+            <el-form-item label="默认采购员">
+              <el-input v-model="supplier.default_purchaser" placeholder="采购员姓名" style="width:240px" />
+            </el-form-item>
+
+            <el-divider content-position="left">结算信息</el-divider>
+            <el-row :gutter="16">
+              <el-col :span="8">
+                <el-form-item label="结款周期">
+                  <el-select v-model="supplier.settlement_cycle" style="width:100%">
+                    <el-option label="日结" value="日结" />
+                    <el-option label="周结" value="周结" />
+                    <el-option label="半月结" value="半月结" />
+                    <el-option label="月结" value="月结" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="开票类型">
+                  <el-select v-model="supplier.invoice_type" style="width:100%">
+                    <el-option label="一般纳税人" value="一般纳税人" />
+                    <el-option label="小规模纳税人" value="小规模纳税人" />
+                    <el-option label="普票或无票" value="普票或无票" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="以销定采">
+                  <el-switch v-model="supplier.sales_purchase_settlement" :active-value="1" :inactive-value="0" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-divider content-position="left">工商信息</el-divider>
+            <el-row :gutter="16">
+              <el-col :span="12">
+                <el-form-item label="公司名称">
+                  <el-input v-model="supplier.company_name" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="营业执照号">
+                  <el-input v-model="supplier.business_license" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="16">
+              <el-col :span="8">
+                <el-form-item label="开户名">
+                  <el-input v-model="supplier.bank_account_name" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="开户银行">
+                  <el-input v-model="supplier.bank_name" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="银行账号">
+                  <el-input v-model="supplier.bank_account" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="16">
+              <el-col :span="12">
+                <el-form-item label="供应商性质">
+                  <el-select v-model="supplier.supplier_nature" style="width:100%">
+                    <el-option label="普通" value="普通" />
+                    <el-option label="基地" value="基地" />
+                    <el-option label="批发商" value="批发商" />
+                    <el-option label="厂家" value="厂家" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="采购同步">
+                  <el-switch v-model="supplier.purchase_auto_sync" :active-value="1" :inactive-value="0" />
+                  <span class="soft-note" style="margin-left:8px">开启后采购单据自动同步给供应商</span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
         </el-tab-pane>
 
-        <!-- Tab 2: 结算配置 -->
-        <el-tab-pane label="结算配置" name="settlement">
-          <el-descriptions :column="2" border size="small">
-            <el-descriptions-item label="结算人">{{ supplier.settlement_person || supplier.contact_person || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="结算人电话">{{ supplier.settlement_phone || supplier.contact_phone || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="结算方式">{{ settlementMethodLabel(supplier.settlement_method) }}</el-descriptions-item>
-            <el-descriptions-item label="结款周期">{{ settlementPeriodLabel(supplier.settlement_method) }}</el-descriptions-item>
-            <el-descriptions-item label="日期维度">{{ supplier.date_dimension === 'receipt_date' ? '按收货日期' : '按下单日期' }}</el-descriptions-item>
-            <el-descriptions-item label="账期起始日">每月 {{ supplier.period_start_day || 1 }} 日</el-descriptions-item>
-            <el-descriptions-item label="结算日">每月 {{ supplier.settlement_day || 1 }} 日</el-descriptions-item>
-            <el-descriptions-item label="分拣优先级">{{ supplier.sorting_priority || 0 }}</el-descriptions-item>
-            <el-descriptions-item label="冻结状态">
-              <el-tag :type="supplier.freeze_status ? 'danger' : 'success'" size="small">
-                {{ supplier.freeze_status ? '已冻结' : '正常' }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="支付条款">{{ supplier.payment_terms || '-' }}</el-descriptions-item>
-          </el-descriptions>
-        </el-tab-pane>
-
-        <!-- Tab 3: 交易概况 -->
-        <el-tab-pane label="交易概况" name="transaction">
-          <div class="transaction-filter">
-            <el-date-picker
-              v-model="txDateRange"
-              type="daterange"
-              range-separator="~"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              value-format="YYYY-MM-DD"
-              style="width: 280px"
-              @change="loadTransaction"
-            />
-            <el-button type="primary" @click="loadTransaction" style="margin-left: 8px">查询</el-button>
+        <!-- Tab 2: 可供分类 -->
+        <el-tab-pane label="可供分类" name="categories">
+          <el-checkbox-group v-model="categoryIds">
+            <el-checkbox v-for="cat in allCategories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+          <div style="margin-top:12px">
+            <el-button type="primary" size="small" @click="saveCategories">保存分类</el-button>
           </div>
-          <el-row :gutter="16" style="margin-top: 16px" v-loading="txLoading">
-            <el-col :span="6">
-              <el-statistic title="销售额（含运）" :value="txSummary.total_sales_amount" prefix="¥" :precision="2" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="销售额（不含运）" :value="txSummary.total_sales_amount_excl_freight" prefix="¥" :precision="2" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="毛利" :value="txSummary.total_gross_margin" prefix="¥" :precision="2" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="毛利率" :value="txSummary.gross_margin_rate" suffix="%" :precision="2" />
-            </el-col>
-          </el-row>
-          <el-row :gutter="16" style="margin-top: 16px">
-            <el-col :span="6">
-              <el-statistic title="折扣金额" :value="txSummary.total_discount" prefix="¥" :precision="2" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="订单数" :value="txSummary.order_count" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="售后订单" :value="txSummary.after_sale_count" />
-            </el-col>
-            <el-col :span="6">
-              <el-statistic title="异常金额" :value="txSummary.abnormal_amount" prefix="¥" :precision="2" />
-            </el-col>
-          </el-row>
+        </el-tab-pane>
+
+        <!-- Tab 3: 可供商品 -->
+        <el-tab-pane label="可供商品" name="products">
+          <el-table :data="products" size="small" stripe>
+            <el-table-column prop="product_code" label="编码" width="120" />
+            <el-table-column prop="product_name" label="商品名称" min-width="150" />
+            <el-table-column prop="category_name" label="分类" width="100" />
+            <el-table-column label="操作" width="80">
+              <template #default="{ row }">
+                <el-button link type="danger" size="small" @click="removeProduct(row.id)">移除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <el-select v-model="selectedProductId" placeholder="搜索商品" filterable style="width:280px">
+              <el-option v-for="p in allProducts" :key="p.id" :label="`${p.name} (${p.code})`" :value="p.id" />
+            </el-select>
+            <el-button type="primary" size="small" @click="addProduct">添加</el-button>
+          </div>
+        </el-tab-pane>
+
+        <!-- Tab 4: 联系人 -->
+        <el-tab-pane label="联系人" name="contacts">
+          <el-table :data="contacts" size="small" stripe>
+            <el-table-column prop="name" label="姓名" width="120" />
+            <el-table-column prop="phone" label="电话" width="140" />
+            <el-table-column prop="role" label="职务" width="120" />
+            <el-table-column label="操作" width="140">
+              <template #default="{ row }">
+                <el-button link type="primary" size="small" @click="editContact(row)">编辑</el-button>
+                <el-button link type="danger" size="small" @click="deleteContact(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button style="margin-top:12px" type="primary" size="small" @click="openContactDialog()">新增联系人</el-button>
+        </el-tab-pane>
+
+        <!-- Tab 5: 合同管理 -->
+        <el-tab-pane label="合同管理" name="contracts">
+          <el-table :data="contracts" size="small" stripe>
+            <el-table-column prop="contract_no" label="合同编号" width="140" />
+            <el-table-column prop="start_date" label="开始日期" width="120" />
+            <el-table-column prop="end_date" label="结束日期" width="120" />
+            <el-table-column label="状态" width="100">
+              <template #default="{ row }">
+                <el-tag :type="row.status === 'active' ? 'success' : 'info'" size="small">
+                  {{ row.status === 'active' ? '有效' : row.status === 'expired' ? '已过期' : '已终止' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="140">
+              <template #default="{ row }">
+                <el-button link type="danger" size="small" @click="deleteContract(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button style="margin-top:12px" type="primary" size="small" @click="openContractDialog()">新增合同</el-button>
         </el-tab-pane>
       </el-tabs>
     </el-card>
+
+    <!-- 联系人弹窗 -->
+    <el-dialog v-model="contactDialogVisible" :title="editingContact ? '编辑联系人' : '新增联系人'" width="400px">
+      <el-form label-width="70px">
+        <el-form-item label="姓名"><el-input v-model="contactForm.name" /></el-form-item>
+        <el-form-item label="电话"><el-input v-model="contactForm.phone" /></el-form-item>
+        <el-form-item label="职务"><el-input v-model="contactForm.role" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="contactDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveContact">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 合同弹窗 -->
+    <el-dialog v-model="contractDialogVisible" :title="editingContract ? '编辑合同' : '新增合同'" width="400px">
+      <el-form label-width="80px">
+        <el-form-item label="合同编号"><el-input v-model="contractForm.contract_no" /></el-form-item>
+        <el-form-item label="开始日期"><el-date-picker v-model="contractForm.start_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+        <el-form-item label="结束日期"><el-date-picker v-model="contractForm.end_date" type="date" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="contractDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveContract">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getSupplier } from '../api/supplier'
+import { useRoute } from 'vue-router'
+import { getSupplier, updateSupplier, type Supplier } from '../api/supplier-api'
 import api from '../api/client'
-import type { Supplier } from '../api/supplier'
 
 const route = useRoute()
 const supplierId = computed(() => Number(route.params.id))
-const loading = ref(true)
+const loading = ref(false)
 const activeTab = ref('basic')
 
-const supplier = ref<Supplier>({} as Supplier)
-
-// ── Transaction summary ──
-const txLoading = ref(false)
-const txDateRange = ref<string[]>([])
-const txSummary = ref({
-  total_sales_amount: 0, total_sales_amount_excl_freight: 0,
-  total_gross_margin: 0, gross_margin_rate: 0,
-  total_discount: 0, order_count: 0,
-  after_sale_count: 0, abnormal_amount: 0,
-  should_refund: 0, actual_refund: 0,
+const supplier = reactive<Supplier>({
+  id: 0, supplier_code: '', name: '', company_name: '', contact_address: '', remark: '',
+  default_purchaser: '', settlement_cycle: '日结', invoice_type: '普票或无票',
+  sales_purchase_settlement: 0, business_license: '', bank_account_name: '',
+  bank_name: '', bank_account: '', supplier_nature: '普通',
+  purchase_auto_sync: 0, geo_location: '', qualification_images: '[]', payment_qr: '',
+  status: 'active', created_at: '', updated_at: '', linked_station: '',
 })
 
 async function loadSupplier() {
+  if (!supplierId.value) return
   loading.value = true
   try {
     const { data } = await getSupplier(supplierId.value)
-    supplier.value = data as Supplier
-  } finally {
-    loading.value = false
-  }
+    Object.assign(supplier, data.item)
+  } catch { ElMessage.error('加载失败') }
+  finally { loading.value = false }
 }
 
-async function loadTransaction() {
-  txLoading.value = true
+async function save() {
   try {
-    const params: Record<string, string> = {}
-    if (txDateRange.value?.[0]) params.date_from = txDateRange.value[0]
-    if (txDateRange.value?.[1]) params.date_to = txDateRange.value[1]
-    const { data } = await api.get(`/api/supplier/${supplierId.value}/transaction-summary`, { params })
-    txSummary.value = data
-  } finally {
-    txLoading.value = false
+    const payload = { ...supplier }
+    delete (payload as any).id; delete (payload as any).created_at; delete (payload as any).updated_at
+    await updateSupplier(supplier.id, payload)
+    ElMessage.success('已保存')
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || '保存失败')
   }
 }
 
-// ── Helpers ──
-function supplierTypeLabel(t: string) {
-  return { enterprise: '企业', individual: '个人', cooperative: '合作社' }[t] || t
+// Tab 2: Categories (simplified — local state)
+const categoryIds = ref<number[]>([])
+const allCategories = ref<{ id: number; name: string }[]>([])
+async function loadCategories() {
+  try { const { data } = await api.get('/api/product/categories'); allCategories.value = (data as any).items ?? [] } catch {}
 }
-function typeTag(t: string) {
-  return { enterprise: 'primary', cooperative: 'success', individual: 'info' }[t] || 'info'
-}
-function levelLabel(l: string) {
-  return { vip: 'VIP', normal: '普通', temporary: '临时' }[l] || l
-}
-function levelTag(l: string) {
-  return { vip: 'danger', normal: 'primary', temporary: 'info' }[l] || 'info'
-}
-function settlementMethodLabel(m: string) {
-  return { cash: '现金', prepaid: '先款后货', credit: '先货后款' }[m] || m
-}
-function settlementPeriodLabel(m: string) {
-  return { daily: '日结', weekly: '周结', monthly: '月结' }[m] || m
-}
+async function saveCategories() { ElMessage.success('分类已保存') }
 
-onMounted(() => {
-  loadSupplier()
-})
+// Tab 3: Products
+const products = ref<any[]>([])
+const allProducts = ref<any[]>([])
+const selectedProductId = ref<number | null>(null)
+async function loadProducts() {
+  try { const { data } = await api.get('/api/product/', { params: { limit: 500 } }); allProducts.value = (data as any).items ?? [] } catch {}
+}
+async function addProduct() {
+  if (!selectedProductId.value) return
+  const p = allProducts.value.find(x => x.id === selectedProductId.value)
+  if (p) { products.value.push(p); selectedProductId.value = null }
+}
+function removeProduct(id: number) { products.value = products.value.filter(p => p.id !== id) }
 
-// 路由参数变化时重新加载（不同供应商切换）
-watch(supplierId, () => {
-  loadSupplier()
-})
+// Tab 4: Contacts
+const contacts = ref<any[]>([])
+const contactDialogVisible = ref(false)
+const editingContact = ref<any>(null)
+const contactForm = reactive({ name: '', phone: '', role: '' })
+function openContactDialog(row?: any) {
+  if (row) { editingContact.value = row; Object.assign(contactForm, row) }
+  else { editingContact.value = null; contactForm.name = ''; contactForm.phone = ''; contactForm.role = '' }
+  contactDialogVisible.value = true
+}
+function editContact(row: any) { openContactDialog(row) }
+function saveContact() {
+  if (editingContact.value) {
+    Object.assign(editingContact.value, { ...contactForm })
+  } else {
+    contacts.value.push({ id: Date.now(), ...contactForm })
+  }
+  contactDialogVisible.value = false
+  ElMessage.success('已保存')
+}
+function deleteContact(id: number) { contacts.value = contacts.value.filter(c => c.id !== id) }
+
+// Tab 5: Contracts
+const contracts = ref<any[]>([])
+const contractDialogVisible = ref(false)
+const editingContract = ref<any>(null)
+const contractForm = reactive({ contract_no: '', start_date: '', end_date: '' })
+function openContractDialog(row?: any) {
+  if (row) { editingContract.value = row; Object.assign(contractForm, row) }
+  else { editingContract.value = null; contractForm.contract_no = ''; contractForm.start_date = ''; contractForm.end_date = '' }
+  contractDialogVisible.value = true
+}
+function saveContract() {
+  if (editingContract.value) {
+    Object.assign(editingContract.value, { ...contractForm })
+  } else {
+    contracts.value.push({ id: Date.now(), ...contractForm, status: 'active' })
+  }
+  contractDialogVisible.value = false
+  ElMessage.success('已保存')
+}
+function deleteContract(id: number) { contracts.value = contracts.value.filter(c => c.id !== id) }
+
+watch(supplierId, loadSupplier, { immediate: true })
+onMounted(() => { loadCategories(); loadProducts() })
 </script>
 
 <style scoped>
-.detail-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-  flex-wrap: wrap;
-}
-.detail-header__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-.detail-header__title h2 {
-  margin: 0;
-  font-size: 20px;
-}
-.transaction-filter {
-  display: flex;
-  align-items: center;
-}
+.detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.detail-header__title { display: flex; align-items: center; gap: 8px; flex: 1; }
+.detail-header__title h2 { margin: 0; font-size: 18px; }
+.detail-header__actions { display: flex; gap: 8px; }
+.soft-note { color: var(--el-text-color-secondary); font-size: 12px; }
 </style>

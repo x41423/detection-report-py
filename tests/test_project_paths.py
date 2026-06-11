@@ -33,7 +33,7 @@ class ProjectPathsTests(unittest.TestCase):
 
 
 class LoggingUtilsTests(unittest.TestCase):
-    def test_configure_application_logging_writes_to_logs_directory(self):
+    def test_configure_application_logging_creates_log_files(self):
         root_logger = logging.getLogger()
         previous_handlers = root_logger.handlers[:]
         previous_level = root_logger.level
@@ -44,19 +44,21 @@ class LoggingUtilsTests(unittest.TestCase):
                 root_logger.removeHandler(handler)
                 handler.close()
 
-            paths = ProjectPaths.for_root(Path(temp_dir.name))
-            log_path = configure_application_logging(
-                "desktop.log",
-                paths=paths,
-                force=False,
-            )
+            log_dir = Path(temp_dir.name) / "logs"
+            configure_application_logging(log_dir)
+
             logging.info("hello from tests")
 
             for handler in logging.getLogger().handlers:
                 handler.flush()
 
-            self.assertTrue(log_path.exists())
-            self.assertIn("hello from tests", log_path.read_text(encoding="utf-8"))
+            app_log = log_dir / "app.log"
+            error_log = log_dir / "error.log"
+            self.assertTrue(app_log.exists())
+            self.assertTrue(error_log.exists())
+
+            content = app_log.read_text(encoding="utf-8")
+            self.assertIn("hello from tests", content)
         finally:
             for handler in root_logger.handlers[:]:
                 root_logger.removeHandler(handler)

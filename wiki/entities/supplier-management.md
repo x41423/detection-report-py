@@ -1,58 +1,46 @@
 ---
-title: 供应商管理模块
+title: 商户管理模块（原"供应商管理"）
 created: 2026-06-07
-updated: 2026-06-07
+updated: 2026-06-08
 type: entity
-tags: [supplier, backend, frontend, vue3, fastapi]
+tags: [merchant, backend, frontend, vue3, fastapi]
 sources: [raw/docs/code-review-report.md]
 ---
 
-# 供应商管理（SupplierManagement）
+# 商户管理（MerchantManagement）
 
-## 概述
+## ⚠️ 2026-06-08 重大重构
 
-管理滨鲜公司的供应商（上游供货商），支持详情页、结算配置、交易概况。2026-06-07 完成观麦模式融合升级。
+原 `Supplier` 模块实际管理的是**商户**（下游客户），现已重命名为 `Merchant`。
+
+- **旧表**: `Supplier` → **新表**: `Merchant`
+- **旧路由**: `/api/supplier/` → **新路由**: `/api/merchant/`
+- **旧页面**: `/suppliers` → **新页面**: `/merchants`
+- **列名**: `supplier_id` 保留不变（避免全库迁移风险）
+
+真正的供应商管理见 [[entities/supplier-management-new]]。
 
 ## 后端架构
 
-| 层 | 文件 | 关键方法 |
-|----|------|----------|
-| Route | `backend/api/routes/supplier.py` | `list_suppliers`, `create_supplier`, `update_supplier`, `delete_supplier`, `activate_supplier`, `hard_delete_supplier` |
-| Service | `backend/services/supplier_service.py` | CRUD + `deactivate`, `activate`, `hard_delete`, `get_transaction_summary` |
-| Repository | `app/db/supplier_repository.py` | CRUD + `has_purchase_records` 保护 |
-| Schema | `backend/models/supplier_schemas.py` | `SupplierCreate`, `SupplierUpdate`, `SupplierResponse` |
+| 层 | 文件 |
+|----|------|
+| Route | `backend/api/routes/merchant.py` |
+| Service | `backend/services/merchant_service.py` |
+| Repository | `app/db/merchant_repository.py` |
+| Schema | `backend/models/merchant_schemas.py` |
 
-## 关键功能
+## 前端组件
 
-### 详情页（2026-06-07 新增）
-三个 Tab：基本信息、结算配置、交易概况
-- **基本信息**：编码/名称/联系人/银行/审核状态（15 字段）
-- **结算配置**：结算人/周期/日期维度/冻结/白名单/优先级（9 字段）
-- **交易概况**：销售额/毛利/折扣/售后数据
-
-### 启用/停用/删除（2026-06-07 修复）
-- 活跃→「停用」，停用→「启用」+「删除」
-- 停用有采购记录保护（`has_purchase_records` 阻断）
-- 硬删除检查无关联采购记录
-- 按钮统一 `link` 样式，try/catch 错误提示
-
-### Vue Router 参数响应（2026-06-07 修复）
-- `supplierId` 从普通变量改为 `computed(() => Number(route.params.id))`
-- 添加 `watch(supplierId, loadSupplier)` 监听参数变化
-- 解决了「切换供应商详情页显示旧数据」的 bug
+`MerchantManagement.vue` + `MerchantDetail.vue`：
+- 商户列表（编码/名称/联系人/结算方式/状态）
+- 详情页（基本信息 / 结算配置 / 交易概况）
 
 ## 数据库
 
-`Supplier` 表（27 列），核心字段：
-- `settlement_method` — 结算方式（日结/周结/月结）
-- `date_dimension` — 日期维度（order_date/receipt_date）
-- `period_start_day` / `settlement_day` — 周期起始日/结算日
-- `freeze_status` — 冻结状态
-- `approval_status` — 审核状态
-- `_UPDATE_WHITELIST` — Repository 字段白名单（2026-06-07 新增）
+`Merchant` 表（原 `Supplier` 表，27 列），延迟迁移至 MySQL。
 
 ## 相关页面
 
-- [[entities/order-management]] — 订单创建时选择供应商
-- [[concepts/settlement-flow]] — 结算配置影响结算周期
-- 采购管理（关联采购记录、has_purchase_records 保护）
+- [[entities/order-management]] — 订单关联商户
+- [[concepts/settlement-flow]] — 结算配置
+- [[entities/supplier-management-new]] — 真正的供应商模块

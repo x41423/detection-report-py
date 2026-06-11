@@ -11,8 +11,12 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@vue-office/docx": "^1.6.3",
+    "@vue-office/excel": "^1.7.14",
+    "@vue-office/pdf": "^2.0.10",
     "axios": "^1.14.0",
     "element-plus": "^2.13.6",
+    "v-viewer": "^3.0.23",
     "vue": "^3.5.30",
     "vue-router": "^4.6.4"
   },

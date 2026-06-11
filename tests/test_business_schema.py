@@ -15,7 +15,7 @@ EXPECTED_TABLES = [
     "OrderRecord",
     "OrderItem",
     "OrderAfterSale",
-    "SupplierSettlement",
+    "MerchantSettlement",
     "PriceLockRule",
     "PriceLockRuleItem",
     "Coupon",

@@ -195,8 +195,8 @@ class ProductAnalysisRepository:
             f"""SELECT s.name AS supplier_name, ss.settlement_period,
                        ss.payable_amount, ss.paid_amount, ss.balance_amount,
                        ss.status, ss.reconciliation_status
-                FROM SupplierSettlement ss
-                JOIN Supplier s ON ss.supplier_id = s.id
+                FROM MerchantSettlement ss
+                JOIN Merchant s ON ss.supplier_id = s.id
                 WHERE {where} ORDER BY ss.settlement_period DESC""",
             params,
         )
@@ -211,9 +211,9 @@ class ProductAnalysisRepository:
                       SUM(order_amount) AS total_amount
                FROM OrderRecord
                GROUP BY merchant_name
-               HAVING MAX(order_date) < date('now', ?)
+               HAVING MAX(order_date) < DATE_SUB(CURDATE(), INTERVAL ? DAY)
                ORDER BY last_order DESC""",
-            (f"-{days} days",),
+            (days,),
         )
 
     # ── Product ledger (P3.4) ──────────────────────────────────────────

@@ -6,7 +6,7 @@ from typing import Any
 
 from app.db.purchase_repository import PurchaseRepository
 from app.db.inventory_repository import InventoryRepository
-from app.db.supplier_repository import SupplierRepository
+from app.db.merchant_repository import MerchantRepository
 from backend.api.response_utils import list_response, mutation_response
 from backend.models.purchase_schemas import (
     PurchaseInCreate,
@@ -27,7 +27,7 @@ class PurchaseService:
     # ==================================================================
 
     def create_in(self, data: PurchaseInCreate) -> dict[str, Any]:
-        if SupplierRepository.get_by_id(data.supplier_id) is None:
+        if MerchantRepository.get_by_id(data.supplier_id) is None:
             raise LookupError(f"供应商 {data.supplier_id} 不存在")
 
         payload = data.model_dump()
@@ -167,7 +167,7 @@ class PurchaseService:
     # ==================================================================
 
     def create_return(self, data: PurchaseReturnCreate) -> dict[str, Any]:
-        if SupplierRepository.get_by_id(data.supplier_id) is None:
+        if MerchantRepository.get_by_id(data.supplier_id) is None:
             raise LookupError(f"供应商 {data.supplier_id} 不存在")
 
         rid = PurchaseRepository.create_return(data.model_dump())

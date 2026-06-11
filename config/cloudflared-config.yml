@@ -1,0 +1,7 @@
+tunnel: d18d41ee-bd1a-41e4-9888-85369064ef6e
+credentials-file: C:\Users\34585\.cloudflared\d18d41ee-bd1a-41e4-9888-85369064ef6e.json
+
+ingress:
+  - hostname: lina1126.eu.cc
+    service: http://localhost:8080
+  - service: http_status:404

@@ -12,7 +12,7 @@ service = DashboardService()
 
 @router.get(
     "/",
-    dependencies=[Depends(require_permission("inventory:view"))],
+    dependencies=[Depends(require_permission("dashboard:view"))],
 )
 def get_dashboard():
     """数据驾驶舱：概览、采购/订单趋势、Top供应商"""

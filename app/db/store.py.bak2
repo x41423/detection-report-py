@@ -1,0 +1,2115 @@
+"""Database storage helpers for the local application."""
+
+import logging
+import os
+import re
+import shutil
+import sqlite3
+import threading
+from datetime import date, datetime, time
+from pathlib import Path
+from typing import Any, Protocol
+
+try:
+    import pymysql
+    from pymysql.cursors import DictCursor
+except ImportError:  # pragma: no cover - optional dependency until MySQL mode is used.
+    pymysql = None
+    DictCursor = None
+
+from app.db.auth_seed import seed_auth_defaults
+from shared.project_paths import ProjectPaths, get_project_paths
+
+WEEKLY_QUOTE_DEFAULT_SUPPLIERS = (
+    ("勾庄", 7, "highest", 1, 10),
+    ("理想", 1, "average", 1, 20),
+    ("刘慧", 1, "highest", 1, 30),
+    ("酱菜", 7, "highest", 1, 40),
+    ("豆制品", 7, "highest", 1, 50),
+)
+WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS = (
+    ("斤", 10),
+    ("公斤", 20),
+    ("千克", 30),
+    ("克", 40),
+    ("吨", 50),
+    ("件", 60),
+    ("箱", 70),
+    ("袋", 80),
+    ("瓶", 90),
+    ("包", 100),
+    ("桶", 110),
+    ("盒", 120),
+    ("条", 130),
+    ("个", 140),
+    ("把", 150),
+    ("捆", 160),
+    ("扎", 170),
+    ("罐", 180),
+    ("袋/件", 190),
+    ("板", 200),
+)
+
+
+def resolve_default_db_path(paths: ProjectPaths | None = None) -> Path:
+    project_paths = paths or get_project_paths()
+    if project_paths.database_file.exists():
+        return project_paths.database_file
+    if project_paths.legacy_database_file.exists():
+        project_paths.data_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.copy2(project_paths.legacy_database_file, project_paths.database_file)
+            logging.info("Migrated legacy database to %s", project_paths.database_file)
+            return project_paths.database_file
+        except Exception:
+            logging.warning(
+                "Failed to copy legacy database to canonical path, continuing with legacy path: %s",
+                project_paths.legacy_database_file,
+                exc_info=True,
+            )
+            return project_paths.legacy_database_file
+    return project_paths.database_file
+
+
+DB_PATH = str(resolve_default_db_path())
+DB_DIR = os.path.dirname(DB_PATH)
+DB_DRIVER = os.getenv("APP_DB_DRIVER", "mysql").strip().lower() or "mysql"
+MYSQL_HOST = os.getenv("APP_DB_MYSQL_HOST", os.getenv("MYSQL_HOST", "localhost")).strip() or "localhost"
+MYSQL_PORT = int(os.getenv("APP_DB_MYSQL_PORT", os.getenv("MYSQL_PORT", "3306")))
+MYSQL_DATABASE = os.getenv("APP_DB_MYSQL_DATABASE", os.getenv("MYSQL_DATABASE", "inspection_report")).strip()
+MYSQL_USER = os.getenv("APP_DB_MYSQL_USER", os.getenv("MYSQL_USER", "inspection_app")).strip()
+MYSQL_PASSWORD = os.getenv("APP_DB_MYSQL_PASSWORD", os.getenv("MYSQL_PASSWORD", "")).strip()
+MYSQL_CHARSET = os.getenv("APP_DB_MYSQL_CHARSET", os.getenv("MYSQL_CHARSET", "utf8mb4")).strip() or "utf8mb4"
+
+DATABASE_INTEGRITY_ERRORS = (
+    (sqlite3.IntegrityError, pymysql.err.IntegrityError)
+    if pymysql is not None
+    else (sqlite3.IntegrityError,)
+)
+
+
+class CursorLike(Protocol):
+    description: Any
+    lastrowid: int | None
+    rowcount: int
+
+    def execute(self, sql: str, params: tuple | list | None = None) -> "CursorLike": ...
+    def executemany(self, sql: str, params: list[tuple] | tuple[tuple, ...]) -> "CursorLike": ...
+    def fetchone(self) -> Any: ...
+    def fetchall(self) -> list[Any]: ...
+    def close(self) -> None: ...
+
+
+class ConnectionLike(Protocol):
+    def cursor(self) -> CursorLike: ...
+    def execute(self, sql: str, params: tuple | list | None = None) -> CursorLike: ...
+    def commit(self) -> None: ...
+    def rollback(self) -> None: ...
+    def close(self) -> None: ...
+
+
+_connection: ConnectionLike | None = None
+_mysql_local = threading.local()
+
+
+def get_db_driver() -> str:
+    return DB_DRIVER
+
+
+def is_mysql_driver() -> bool:
+    return os.getenv("APP_DB_DRIVER", "mysql").strip().lower() == "mysql"
+
+
+class MySQLCursorAdapter:
+    def __init__(self, cursor: Any):
+        self._cursor = cursor
+
+    @property
+    def description(self) -> Any:
+        return self._cursor.description
+
+    @property
+    def lastrowid(self) -> int | None:
+        return self._cursor.lastrowid
+
+    @property
+    def rowcount(self) -> int:
+        return self._cursor.rowcount
+
+    def execute(self, sql: str, params: tuple | list | None = None) -> "MySQLCursorAdapter":
+        self._cursor.execute(_translate_sql_for_mysql(sql), params)
+        return self
+
+    def executemany(self, sql: str, params: list[tuple] | tuple[tuple, ...]) -> "MySQLCursorAdapter":
+        self._cursor.executemany(_translate_sql_for_mysql(sql), params)
+        return self
+
+    def fetchone(self) -> Any:
+        return _normalize_mysql_row(self._cursor.fetchone())
+
+    def fetchall(self) -> list[Any]:
+        return [_normalize_mysql_row(row) for row in self._cursor.fetchall()]
+
+    def close(self) -> None:
+        self._cursor.close()
+
+
+class MySQLConnectionAdapter:
+    def __init__(self, connection: Any):
+        self._connection = connection
+
+    def cursor(self) -> MySQLCursorAdapter:
+        return MySQLCursorAdapter(self._connection.cursor())
+
+    def execute(self, sql: str, params: tuple | list | None = None) -> MySQLCursorAdapter:
+        cursor = self.cursor()
+        cursor.execute(sql, params)
+        return cursor
+
+    def commit(self) -> None:
+        self._connection.commit()
+
+    def rollback(self) -> None:
+        self._connection.rollback()
+
+    def close(self) -> None:
+        self._connection.close()
+
+    def ping(self) -> None:
+        self._connection.ping(reconnect=True)
+
+
+def _translate_sql_for_mysql(sql: str) -> str:
+    translated = sql.strip() if sql.strip().upper() == "BEGIN IMMEDIATE" else sql
+    if translated.upper() == "BEGIN IMMEDIATE":
+        translated = "START TRANSACTION"
+    translated = re.sub(r"\bINSERT\s+OR\s+IGNORE\s+INTO\b", "INSERT IGNORE INTO", translated, flags=re.IGNORECASE)
+    translated = re.sub(
+        r"\bON\s+CONFLICT\s*\([^)]*\)\s+DO\s+UPDATE\s+SET\b",
+        "ON DUPLICATE KEY UPDATE",
+        translated,
+        flags=re.IGNORECASE,
+    )
+    translated = re.sub(
+        r"\bexcluded\.([A-Za-z_][A-Za-z0-9_]*)\b",
+        lambda match: f"VALUES({match.group(1)})",
+        translated,
+        flags=re.IGNORECASE,
+    )
+    return _convert_qmark_placeholders(translated)
+
+
+def _convert_qmark_placeholders(sql: str) -> str:
+    result: list[str] = []
+    in_single = False
+    in_double = False
+    index = 0
+    while index < len(sql):
+        char = sql[index]
+        if char == "'" and not in_double:
+            result.append(char)
+            if in_single and index + 1 < len(sql) and sql[index + 1] == "'":
+                result.append(sql[index + 1])
+                index += 2
+                continue
+            in_single = not in_single
+        elif char == '"' and not in_single:
+            result.append(char)
+            in_double = not in_double
+        elif char == "?" and not in_single and not in_double:
+            result.append("%s")
+        else:
+            result.append(char)
+        index += 1
+    return "".join(result)
+
+
+def _normalize_mysql_row(row: Any) -> Any:
+    if isinstance(row, dict):
+        return {key: _normalize_mysql_value(value) for key, value in row.items()}
+    return row
+
+
+def _normalize_mysql_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat(sep=" ")
+    if isinstance(value, (date, time)):
+        return value.isoformat()
+    return value
+
+
+def get_connection() -> ConnectionLike:
+    """Return a shared database connection."""
+    global _connection
+    if is_mysql_driver():
+        mysql_connection = getattr(_mysql_local, "connection", None)
+        if mysql_connection is not None:
+            try:
+                mysql_connection.ping()
+                return mysql_connection
+            except Exception:
+                _drop_mysql_thread_connection()
+        mysql_connection = _create_mysql_connection()
+        _mysql_local.connection = mysql_connection
+        logging.info(
+            "MySQL database connection established for thread %s: %s:%s/%s",
+            threading.get_ident(),
+            MYSQL_HOST,
+            MYSQL_PORT,
+            MYSQL_DATABASE,
+        )
+        return mysql_connection
+
+    if _connection is None:
+        os.makedirs(DB_DIR, exist_ok=True)
+        sqlite_connection = sqlite3.connect(DB_PATH, check_same_thread=False)
+        sqlite_connection.row_factory = sqlite3.Row
+        sqlite_connection.execute("PRAGMA journal_mode = WAL")
+        sqlite_connection.execute("PRAGMA foreign_keys = ON")
+        _connection = sqlite_connection
+        logging.info("数据库连接已建立: %s", DB_PATH)
+    return _connection
+
+
+def _create_mysql_connection() -> MySQLConnectionAdapter:
+    if pymysql is None or DictCursor is None:
+        raise RuntimeError("APP_DB_DRIVER=mysql requires PyMySQL to be installed")
+    if not MYSQL_DATABASE or not MYSQL_USER:
+        raise RuntimeError("MySQL database and user must be configured for APP_DB_DRIVER=mysql")
+    connection = pymysql.connect(
+        host=MYSQL_HOST,
+        port=MYSQL_PORT,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DATABASE,
+        charset=MYSQL_CHARSET,
+        cursorclass=DictCursor,
+        autocommit=False,
+    )
+    with connection.cursor() as cursor:
+        cursor.execute("SET time_zone = '+00:00'")
+    return MySQLConnectionAdapter(connection)
+
+
+def close_connection():
+    """Close the shared database connection if it exists."""
+    global _connection
+    if is_mysql_driver():
+        _drop_mysql_thread_connection()
+        return
+
+    if _connection is not None:
+        _connection.close()
+        _connection = None
+        logging.info("数据库连接已关闭")
+
+
+def _drop_mysql_thread_connection() -> None:
+    mysql_connection = getattr(_mysql_local, "connection", None)
+    if mysql_connection is None:
+        return
+    try:
+        mysql_connection.close()
+    except Exception:
+        pass
+    finally:
+        _mysql_local.connection = None
+
+
+def _is_mysql_connection_error(exc: Exception) -> bool:
+    if pymysql is not None and isinstance(
+        exc,
+        (
+            pymysql.err.OperationalError,
+            pymysql.err.InternalError,
+            pymysql.err.InterfaceError,
+        ),
+    ):
+        return True
+    message = str(exc).lower()
+    return any(
+        marker in message
+        for marker in (
+            "packet sequence number wrong",
+            "read of closed file",
+            "non-socket",
+            "not a socket",
+            "closed socket",
+            "lost connection",
+            "server has gone away",
+        )
+    )
+
+
+def _run_supplier_to_merchant_migration(cursor: sqlite3.Cursor) -> None:
+    """自动迁移: 将旧 Supplier 表重命名为 Merchant，创建新 Supplier 表。
+
+    幂等操作——重复执行不会出错。
+    """
+    # 检查是否已迁移
+    cursor.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='Merchant'"
+    )
+    already_migrated = cursor.fetchone() is not None
+
+    if not already_migrated:
+        # 检查旧表是否存在
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='Supplier'"
+        )
+        if cursor.fetchone():
+            # Step 1: 重命名主表
+            cursor.execute("ALTER TABLE Supplier RENAME TO Merchant")
+
+            # Step 2: 重命名依赖表
+            for old_t, new_t in [
+                ("SupplierProductPrice", "MerchantProductPrice"),
+                ("SupplierSettlement", "MerchantSettlement"),
+                ("WeeklyQuoteSupplierConfig", "WeeklyQuoteMerchantConfig"),
+            ]:
+                cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    (old_t,),
+                )
+                if cursor.fetchone():
+                    cursor.execute(f"ALTER TABLE {old_t} RENAME TO {new_t}")
+
+            # Step 3: 重命名外键列
+            for table, old_col, new_col in [
+                ("MerchantProductPrice", "supplier_id", "merchant_id"),
+                ("MerchantSettlement", "supplier_id", "merchant_id"),
+                ("PurchaseInRecord", "supplier_id", "merchant_id"),
+                ("PurchaseReturnRecord", "supplier_id", "merchant_id"),
+                ("InspectionReport", "supplier_id", "merchant_id"),
+            ]:
+                cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    (table,),
+                )
+                if cursor.fetchone():
+                    # Check if new column already exists
+                    cursor.execute(f"PRAGMA table_info({table})")
+                    cols = {r[1] for r in cursor.fetchall()}
+                    if old_col in cols and new_col not in cols:
+                        try:
+                            cursor.execute(
+                                f"ALTER TABLE {table} RENAME COLUMN {old_col} TO {new_col}"
+                            )
+                        except sqlite3.OperationalError:
+                            pass  # Column might not have the name we expect
+
+            # Step 4: 删除旧索引（store.py 会用新名字重建）
+            for idx in [
+                "idx_supplier_status", "idx_supplier_name",
+                "idx_spp_supplier", "idx_supplier_settlement_period",
+                "idx_supplier_settlement_supplier",
+                "idx_ir_supplier",
+                "idx_purchase_in_record_supplier",
+                "idx_purchase_return_record_supplier",
+            ]:
+                try:
+                    cursor.execute(f"DROP INDEX IF EXISTS {idx}")
+                except sqlite3.OperationalError:
+                    pass
+
+    # 记录迁移版本
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS app_version (
+            category TEXT,
+            version  TEXT,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (category, version)
+        )
+    """)
+    cursor.execute(
+        "INSERT OR IGNORE INTO app_version (category, version) VALUES (?, ?)",
+        ("migration", "supplier_to_merchant_v1"),
+    )
+
+
+def _migrate_supplier_columns(cursor: sqlite3.Cursor) -> None:
+    """Add columns that may be missing from older Supplier table definitions."""
+    migrations = [
+        ("supplier_type", "TEXT DEFAULT 'enterprise'"),
+        ("business_license", "TEXT"),
+        ("tax_number", "TEXT"),
+        ("bank_name", "TEXT"),
+        ("bank_account", "TEXT"),
+        ("payment_terms", "TEXT"),
+        ("credit_limit", "REAL DEFAULT 0"),
+        ("level", "TEXT DEFAULT 'normal'"),
+        ("settlement_person", "TEXT"),
+        ("settlement_phone", "TEXT"),
+        ("date_dimension", "TEXT DEFAULT 'order_date'"),
+        ("period_start_day", "INTEGER DEFAULT 1"),
+        ("settlement_day", "INTEGER DEFAULT 1"),
+        ("freeze_status", "INTEGER DEFAULT 0"),
+        ("approval_status", "INTEGER DEFAULT 1"),
+        ("sorting_priority", "INTEGER DEFAULT 0"),
+    ]
+    existing = {r[1] for r in cursor.execute("PRAGMA table_info(Supplier)")}
+    for col, col_def in migrations:
+        if col not in existing:
+            cursor.execute(f"ALTER TABLE Supplier ADD COLUMN {col} {col_def}")
+
+
+def init_database():
+    """Create all known database tables and indexes."""
+    conn = get_connection()
+    if is_mysql_driver():
+        from app.db.mysql_schema import init_mysql_database
+
+        init_mysql_database(conn, seed_auth_defaults)
+        return
+
+    cursor = conn.cursor()
+
+    try:
+        # ── 自动迁移: Supplier → Merchant (v1) ──
+        _run_supplier_to_merchant_migration(cursor)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS Veg (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                category TEXT DEFAULT 'other',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS Unit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS PriceHistory (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                vegetable_id INTEGER NOT NULL,
+                unit_id INTEGER NOT NULL,
+                price REAL NOT NULL,
+                date TEXT NOT NULL,
+                source TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (vegetable_id) REFERENCES Veg(id) ON DELETE CASCADE,
+                FOREIGN KEY (unit_id) REFERENCES Unit(id) ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyPriceEntry (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                week_start TEXT NOT NULL,
+                vegetable_id INTEGER NOT NULL,
+                unit_id INTEGER NOT NULL,
+                price REAL NOT NULL,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (vegetable_id) REFERENCES Veg(id) ON DELETE CASCADE,
+                FOREIGN KEY (unit_id) REFERENCES Unit(id) ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteBatch (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier TEXT NOT NULL,
+                quote_date TEXT NOT NULL,
+                source_label TEXT DEFAULT '',
+                source_path TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(supplier, quote_date)
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteEntry (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id INTEGER NOT NULL REFERENCES WeeklyQuoteBatch(id) ON DELETE CASCADE,
+                name TEXT NOT NULL,
+                unit TEXT NOT NULL DEFAULT '斤',
+                price REAL NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteMerchantConfig (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                weekly_batch_limit INTEGER NOT NULL DEFAULT 7,
+                summary_rule TEXT NOT NULL DEFAULT 'highest',
+                is_builtin INTEGER NOT NULL DEFAULT 0,
+                sort_order INTEGER NOT NULL DEFAULT 1000,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CHECK (weekly_batch_limit >= 1 AND weekly_batch_limit <= 7),
+                CHECK (summary_rule IN ('highest', 'average')),
+                CHECK (is_builtin IN (0, 1))
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteMeasureUnitOption (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                sort_order INTEGER NOT NULL DEFAULT 1000,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS DailyIntakeSheet (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                intake_date TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'open',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS DailyIntakeItem (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sheet_id INTEGER NOT NULL,
+                veg_id INTEGER,
+                raw_name TEXT NOT NULL,
+                normalized_name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                unit_id INTEGER NOT NULL,
+                quantity REAL NOT NULL,
+                source TEXT NOT NULL DEFAULT 'manual',
+                transcript TEXT DEFAULT '',
+                last_source TEXT NOT NULL DEFAULT 'manual',
+                last_transcript TEXT DEFAULT '',
+                merge_count INTEGER NOT NULL DEFAULT 1,
+                last_confirmed_at TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sheet_id) REFERENCES DailyIntakeSheet(id) ON DELETE CASCADE,
+                FOREIGN KEY (veg_id) REFERENCES Veg(id) ON DELETE SET NULL,
+                FOREIGN KEY (unit_id) REFERENCES Unit(id) ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS InventoryTransaction (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                veg_id INTEGER,
+                display_name TEXT NOT NULL,
+                normalized_name TEXT NOT NULL,
+                unit_id INTEGER NOT NULL,
+                direction TEXT NOT NULL,
+                quantity_delta REAL NOT NULL,
+                business_date TEXT NOT NULL,
+                source_type TEXT NOT NULL,
+                source_ref_id INTEGER,
+                note TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (veg_id) REFERENCES Veg(id) ON DELETE SET NULL,
+                FOREIGN KEY (unit_id) REFERENCES Unit(id) ON DELETE CASCADE
+            )
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS Config (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        _create_auth_schema(cursor)
+        _ensure_auth_schema_columns(cursor)
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_price_veg_unit_date
+            ON PriceHistory (vegetable_id, unit_id, date DESC)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_weekly_veg_unit_week
+            ON WeeklyPriceEntry (vegetable_id, unit_id, week_start DESC)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_weekly_quote_supplier_config_order
+            ON WeeklyQuoteSupplierConfig (sort_order, id)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_weekly_quote_measure_unit_order
+            ON WeeklyQuoteMeasureUnitOption (sort_order, id)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_intake_sheet_date
+            ON DailyIntakeSheet (intake_date)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_intake_item_merge_key
+            ON DailyIntakeItem (sheet_id, normalized_name, unit_id)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_daily_intake_item_sheet
+            ON DailyIntakeItem (sheet_id, updated_at DESC)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_inventory_transaction_item
+            ON InventoryTransaction (normalized_name, unit_id, updated_at DESC)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_inventory_transaction_business_date
+            ON InventoryTransaction (business_date DESC, id DESC)
+            """
+        )
+
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_inventory_transaction_source_ref
+            ON InventoryTransaction (source_type, source_ref_id)
+            WHERE source_ref_id IS NOT NULL
+            """
+        )
+
+        _create_auth_indexes(cursor)
+
+        # ============================================================
+        # v3 migration: 业务扩展表 (供应商/采购/订单/结算/营销/系统)
+        # ============================================================
+        _create_business_schema(cursor)
+
+        _seed_weekly_quote_defaults(cursor)
+        _seed_default_categories(cursor)
+
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO schema_migrations (version, name)
+            VALUES (1, 'auth_core_schema')
+            """
+        )
+
+        seed_auth_defaults(cursor)
+
+        conn.commit()
+        logging.info("数据库表结构初始化完成")
+    except Exception:
+        conn.rollback()
+        logging.exception("数据库初始化失败")
+        raise
+    finally:
+        cursor.close()
+
+
+def _create_business_schema(cursor: sqlite3.Cursor) -> None:
+    """Create all business-extension tables in a single idempotent pass."""
+
+    # ----------------------------------------------------------------
+    # P0: 商品库 (Product/Category/SKU)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Category (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            parent_id INTEGER REFERENCES Category(id),
+            level INTEGER NOT NULL DEFAULT 1,
+            sort_order INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Product (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            alias TEXT DEFAULT '',
+            category_id INTEGER REFERENCES Category(id),
+            product_type TEXT DEFAULT '通用',
+            custom_code TEXT DEFAULT '',
+            delivery_method TEXT DEFAULT '按订单投框',
+            purchase_type TEXT DEFAULT '临采',
+            base_unit TEXT NOT NULL DEFAULT '斤',
+            image_url TEXT DEFAULT '',
+            shelf_life_days INTEGER DEFAULT 0,
+            purchase_mode TEXT DEFAULT '订单采购',
+            default_supplier_id INTEGER DEFAULT NULL,
+            description TEXT DEFAULT '',
+            tax_category_code TEXT DEFAULT '',
+            tax_rate REAL DEFAULT 0,
+            custom_field_1 TEXT DEFAULT '',
+            custom_field_2 TEXT DEFAULT '',
+            custom_field_3 TEXT DEFAULT '',
+            has_inspection_report INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            -- Phase 3: 扩展字段（对齐观麦）
+            performance_method TEXT DEFAULT '计重',
+            suggested_min_cost REAL DEFAULT 0,
+            product_tags TEXT DEFAULT '',
+            fixed_url TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ProductSku (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id INTEGER NOT NULL REFERENCES Product(id),
+            sku_code TEXT DEFAULT '',
+            spec_name TEXT DEFAULT '',
+            sku_type TEXT DEFAULT '销售规格',
+            is_listed INTEGER DEFAULT 1,
+            price REAL DEFAULT 0,
+            stock REAL DEFAULT 0,
+            -- Phase 1: 报价单增强字段（对齐观麦）
+            pricing_method TEXT DEFAULT 'manual',
+            min_order_qty REAL DEFAULT 1,
+            sale_spec_value REAL DEFAULT 1,
+            sale_spec_unit TEXT DEFAULT '',
+            reference_cost REAL DEFAULT 0,
+            purchase_spec TEXT DEFAULT '',
+            stock_setting TEXT DEFAULT 'none',
+            stock_limit_value REAL DEFAULT 0,
+            -- Phase 2: 报价单增强字段
+            pricing_rule TEXT DEFAULT 'normal',
+            is_spot INTEGER DEFAULT 0,
+            default_stock_slot TEXT DEFAULT '',
+            waste_ratio REAL DEFAULT 0,
+            box_type TEXT DEFAULT 'loose',
+            -- Phase 3: 扩展字段
+            order_round_up INTEGER DEFAULT 0,
+            is_cycle_item INTEGER DEFAULT 0
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_code ON Product(code)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_category ON Product(category_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_is_active ON Product(is_active)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_product_sku_product ON ProductSku(product_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_category_parent ON Category(parent_id)")
+
+    # ----------------------------------------------------------------
+    # P0: 供应商管理
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Merchant (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT UNIQUE,
+            name TEXT NOT NULL,
+            contact_person TEXT,
+            contact_phone TEXT,
+            contact_address TEXT,
+            supplier_type TEXT DEFAULT 'enterprise',
+            business_license TEXT,
+            tax_number TEXT,
+            bank_name TEXT,
+            bank_account TEXT,
+            settlement_method TEXT DEFAULT 'monthly',
+            payment_terms TEXT,
+            credit_limit REAL DEFAULT 0,
+            level TEXT DEFAULT 'normal',
+            -- 结算配置（融合观麦商户模式）
+            settlement_person TEXT,
+            settlement_phone TEXT,
+            date_dimension TEXT DEFAULT 'order_date',
+            period_start_day INTEGER DEFAULT 1,
+            settlement_day INTEGER DEFAULT 1,
+            freeze_status INTEGER DEFAULT 0,
+            approval_status INTEGER DEFAULT 1,
+            sorting_priority INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'active',
+            remark TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_status ON Merchant(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_name ON Merchant(name)")
+
+    # Migration: add columns that may be missing from older table definitions
+    _migrate_merchant_columns(cursor)
+
+    # ----------------------------------------------------------------
+    # P0: 采购入库
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PurchaseInRecord (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_no TEXT UNIQUE NOT NULL,
+            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            inbound_date TEXT NOT NULL,
+            total_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            operator TEXT,
+            remark TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PurchaseInItem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            record_id INTEGER NOT NULL REFERENCES PurchaseInRecord(id) ON DELETE CASCADE,
+            veg_name TEXT NOT NULL,
+            category TEXT,
+            unit TEXT DEFAULT '斤',
+            quantity REAL DEFAULT 0,
+            unit_price REAL DEFAULT 0,
+            amount REAL DEFAULT 0,
+            tax_rate REAL DEFAULT 0,
+            -- FUTURE: 批次管理 - batch_no, production_date, expiry_date
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_purchase_in_record_supplier ON PurchaseInRecord(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_purchase_in_record_date ON PurchaseInRecord(inbound_date)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_purchase_in_item_record ON PurchaseInItem(record_id)")
+
+    # ----------------------------------------------------------------
+    # P0: 采购退货
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PurchaseReturnRecord (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_no TEXT UNIQUE NOT NULL,
+            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            return_date TEXT NOT NULL,
+            total_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            operator TEXT,
+            remark TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PurchaseReturnItem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            record_id INTEGER NOT NULL REFERENCES PurchaseReturnRecord(id) ON DELETE CASCADE,
+            veg_name TEXT NOT NULL,
+            category TEXT,
+            unit TEXT DEFAULT '斤',
+            quantity REAL DEFAULT 0,
+            unit_price REAL DEFAULT 0,
+            amount REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_purchase_return_record_supplier ON PurchaseReturnRecord(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_purchase_return_record_date ON PurchaseReturnRecord(return_date)")
+
+    # ----------------------------------------------------------------
+    # P0: 订单管理
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OrderRecord (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_no TEXT UNIQUE NOT NULL,
+            merchant_name TEXT,
+            merchant_id TEXT,
+            order_date TEXT NOT NULL,
+            delivery_method TEXT,
+            order_type TEXT,
+            original_amount REAL DEFAULT 0,
+            order_amount REAL DEFAULT 0,
+            outbound_amount REAL DEFAULT 0,
+            sales_amount_excl_freight REAL DEFAULT 0,
+            freight REAL DEFAULT 0,
+            sales_amount_incl_freight REAL DEFAULT 0,
+            discount_amount REAL DEFAULT 0,
+            abnormal_amount REAL DEFAULT 0,
+            refund_amount REAL DEFAULT 0,
+            actual_refund REAL DEFAULT 0,
+            order_status TEXT DEFAULT 'pending',
+            payment_status TEXT,
+            loading_status TEXT,
+            print_status TEXT,
+            outbound_status TEXT,
+            driver_name TEXT,
+            order_source TEXT,
+            remark TEXT,
+            operator TEXT,
+            print_time TEXT,
+            last_operate_time TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OrderItem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL REFERENCES OrderRecord(id) ON DELETE CASCADE,
+            product_id TEXT,
+            product_name TEXT NOT NULL,
+            category TEXT,
+            unit TEXT DEFAULT '斤',
+            quantity REAL DEFAULT 0,
+            unit_price REAL DEFAULT 0,
+            amount REAL DEFAULT 0,
+            original_price REAL DEFAULT 0,
+            -- FUTURE: 配送管理 - delivery_route_id, sort_batch_id
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    # -- OrderRecord 新增列（对齐观麦订单创建页面）--
+    _order_new_cols = [
+        ("receive_start_date", "TEXT"),
+        ("receive_end_date", "TEXT"),
+        ("receive_start_time", "TEXT"),
+        ("receive_end_time", "TEXT"),
+        ("operation_time", "TEXT"),
+        ("receiver", "TEXT"),
+        ("delivery_address", "TEXT"),
+        ("sign_method", "TEXT"),
+        ("related_outbound_no", "TEXT"),
+        ("third_party_order_no", "TEXT"),
+        ("custom_field_1", "TEXT"),
+        ("custom_field_2", "TEXT"),
+        ("custom_field_3", "TEXT"),
+    ]
+    for col, col_type in _order_new_cols:
+        try:
+            cursor.execute(f"ALTER TABLE OrderRecord ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # ignore if column already exists
+
+    # -- OrderRecord v5 新增列（对齐观麦订单列表字段）--
+    _order_v5_cols = [
+        ("merchant_tag", "TEXT"),          # 商户标签
+        ("sorting_status", "TEXT"),        # 分拣状态
+        ("inspection_status", "TEXT"),     # 验货状态
+        ("cabinet_status", "TEXT"),        # 投柜状态
+        ("route_name", "TEXT"),            # 线路
+        ("pickup_point", "TEXT"),          # 自提点
+        ("total_order_quantity", "REAL DEFAULT 0"),      # 总下单数
+        ("accounting_quantity_sale", "REAL DEFAULT 0"),  # 记账数（销售单位）
+        ("accounting_quantity_base", "REAL DEFAULT 0"),  # 记账数（基本单位）
+        ("product_category_count", "INTEGER DEFAULT 0"), # 商品种类数
+        ("merchant_custom_code", "TEXT"),  # 商户自定义编码
+        ("after_sale_amount", "REAL DEFAULT 0"),         # 订单售后金额
+        ("should_refund_amount", "REAL DEFAULT 0"),      # 应退金额
+        ("edit_status", "TEXT"),           # 编辑状态
+        ("vehicle_status", "TEXT"),        # 装车状态
+        ("batch_status", "TEXT"),          # 集包状态
+        ("batch_merchant_name", "TEXT"),   # 分仓原始商户名
+        ("main_sorting_category", "TEXT"), # 主分拣品类
+        ("main_sorting_category_count", "INTEGER DEFAULT 0"), # 主分拣品类数
+    ]
+    for col, col_type in _order_v5_cols:
+        try:
+            cursor.execute(f"ALTER TABLE OrderRecord ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # ignore if column already exists
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OrderAfterSale (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL REFERENCES OrderRecord(id),
+            product_id TEXT,
+            product_name TEXT NOT NULL,
+            after_sale_type TEXT,
+            return_quantity REAL DEFAULT 0,
+            return_amount REAL DEFAULT 0,
+            accounting_quantity REAL DEFAULT 0,
+            total_abnormal REAL DEFAULT 0,
+            total_return REAL DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_order_record_date ON OrderRecord(order_date)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_order_record_merchant ON OrderRecord(merchant_name)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_order_record_status ON OrderRecord(order_status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_order_item_order ON OrderItem(order_id)")
+
+    # ----------------------------------------------------------------
+    # P1: 供应商结算
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MerchantSettlement (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            settlement_period TEXT NOT NULL,
+            payable_amount REAL DEFAULT 0,
+            paid_amount REAL DEFAULT 0,
+            fee_amount REAL DEFAULT 0,
+            discount_amount REAL DEFAULT 0,
+            balance_amount REAL DEFAULT 0,
+            reconciliation_status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'pending',
+            remark TEXT,
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_settlement_supplier ON SupplierSettlement(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_settlement_period ON SupplierSettlement(settlement_period)")
+
+    # ----------------------------------------------------------------
+    # P1: 营销工具 - 限时锁价
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PriceLockRule (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rule_code TEXT UNIQUE,
+            rule_name TEXT NOT NULL,
+            salemenu_id TEXT,
+            salemenu_name TEXT,
+            target_count INTEGER DEFAULT 0,
+            category_count INTEGER DEFAULT 0,
+            start_time TEXT,
+            end_time TEXT,
+            status TEXT DEFAULT 'active',
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PriceLockRuleItem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rule_id INTEGER NOT NULL REFERENCES PriceLockRule(id) ON DELETE CASCADE,
+            veg_name TEXT NOT NULL,
+            locked_price REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P1: 营销工具 - 优惠券
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Coupon (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT UNIQUE,
+            name TEXT NOT NULL,
+            coupon_type TEXT DEFAULT 'discount',
+            discount_value REAL DEFAULT 0,
+            min_order_amount REAL DEFAULT 0,
+            total_quantity INTEGER DEFAULT 0,
+            used_quantity INTEGER DEFAULT 0,
+            start_time TEXT,
+            end_time TEXT,
+            status TEXT DEFAULT 'active',
+            -- FUTURE: 会员模块 - member_level_required
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 配送管理 (远期预留)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS DeliveryRoute (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT UNIQUE,
+            name TEXT NOT NULL,
+            driver_id INTEGER,
+            -- FUTURE: 配送管理 - vehicle_info, default_departure_time
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS DeliveryTask (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            route_id INTEGER REFERENCES DeliveryRoute(id),
+            order_id INTEGER REFERENCES OrderRecord(id),
+            delivery_date TEXT NOT NULL,
+            delivery_status TEXT DEFAULT 'pending',
+            -- FUTURE: 配送管理 - gps_tracking, signature_image, delivery_photo
+            driver_name TEXT,
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 分拣管理 (远期预留)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS SortingTask (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_date TEXT NOT NULL,
+            category TEXT,
+            product_count INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            -- FUTURE: 分拣管理 - sorter_id, sorting_station, weight_data
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS SortingPerformance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sorter_name TEXT NOT NULL,
+            sorter_username TEXT,
+            performance_date TEXT NOT NULL,
+            total_performance REAL DEFAULT 0,
+            base_salary REAL DEFAULT 0,
+            piece_performance REAL DEFAULT 0,
+            weight_performance REAL DEFAULT 0,
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 加工管理 (远期预留)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ProcessingPlan (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            plan_code TEXT UNIQUE,
+            plan_date TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            -- FUTURE: 加工管理 - workshop_id, material_list, output_target
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 积分管理 (远期预留)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PointsRecord (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            merchant_name TEXT,
+            merchant_id TEXT,
+            points_change INTEGER DEFAULT 0,
+            change_type TEXT,
+            description TEXT,
+            -- FUTURE: 积分模块 - points_balance, exchange_history
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P1: 系统设置 (运营时间)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OperationTimeConfig (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            day_type TEXT NOT NULL,
+            order_start_time TEXT DEFAULT '00:00',
+            order_end_time TEXT DEFAULT '23:59',
+            delivery_time_range TEXT,
+            status TEXT DEFAULT 'active',
+            operator TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 系统设置 (运费模板)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS FreightTemplate (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            base_freight REAL DEFAULT 0,
+            free_threshold REAL DEFAULT 0,
+            -- FUTURE: 运费模板 - distance_rules, weight_rules, zone_pricing
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 商品分类
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Category (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            parent_id INTEGER REFERENCES Category(id),
+            level INTEGER NOT NULL DEFAULT 1,
+            sort_order INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_category_parent ON Category(parent_id)
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 商品主表
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Product (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            alias TEXT DEFAULT '',
+            category_id INTEGER REFERENCES Category(id),
+            product_type TEXT DEFAULT '通用',
+            custom_code TEXT DEFAULT '',
+            delivery_method TEXT DEFAULT '按订单投框',
+            purchase_type TEXT DEFAULT '临采',
+            base_unit TEXT NOT NULL DEFAULT '斤',
+            image_url TEXT DEFAULT '',
+            shelf_life_days INTEGER DEFAULT 0,
+            purchase_mode TEXT DEFAULT '订单采购',
+            default_supplier_id INTEGER DEFAULT NULL,
+            description TEXT DEFAULT '',
+            tax_category_code TEXT DEFAULT '',
+            tax_rate REAL DEFAULT 0,
+            custom_field_1 TEXT DEFAULT '',
+            custom_field_2 TEXT DEFAULT '',
+            custom_field_3 TEXT DEFAULT '',
+            has_inspection_report INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            -- Phase 3: 扩展字段（对齐观麦）
+            performance_method TEXT DEFAULT '计重',
+            suggested_min_cost REAL DEFAULT 0,
+            product_tags TEXT DEFAULT '',
+            fixed_url TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_product_code ON Product(code)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_product_category ON Product(category_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_product_name ON Product(name)
+    """)
+
+    # ----------------------------------------------------------------
+    # P2: 商品规格
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ProductSku (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id INTEGER NOT NULL REFERENCES Product(id) ON DELETE CASCADE,
+            sku_code TEXT DEFAULT '',
+            spec_name TEXT DEFAULT '',
+            sku_type TEXT DEFAULT '销售规格',
+            is_listed INTEGER DEFAULT 1,
+            price REAL DEFAULT 0,
+            stock REAL DEFAULT 0,
+            -- Phase 1: 报价单增强字段（对齐观麦）
+            pricing_method TEXT DEFAULT 'manual',
+            min_order_qty REAL DEFAULT 1,
+            sale_spec_value REAL DEFAULT 1,
+            sale_spec_unit TEXT DEFAULT '',
+            reference_cost REAL DEFAULT 0,
+            purchase_spec TEXT DEFAULT '',
+            stock_setting TEXT DEFAULT 'none',
+            stock_limit_value REAL DEFAULT 0,
+            -- Phase 2: 报价单增强字段
+            pricing_rule TEXT DEFAULT 'normal',
+            is_spot INTEGER DEFAULT 0,
+            default_stock_slot TEXT DEFAULT '',
+            waste_ratio REAL DEFAULT 0,
+            box_type TEXT DEFAULT 'loose',
+            -- Phase 3: 扩展字段
+            order_round_up INTEGER DEFAULT 0,
+            is_cycle_item INTEGER DEFAULT 0
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_product_sku_product ON ProductSku(product_id)
+    """)
+
+    # ----------------------------------------------------------------
+    # Migration marker
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        INSERT OR IGNORE INTO schema_migrations (version, name)
+        VALUES (3, 'business_schema')
+    """)
+
+    # ----------------------------------------------------------------
+    # Quotation management (v4 migration)
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Quotation (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            external_name TEXT DEFAULT '',
+            currency TEXT DEFAULT '人民币',
+            operation_time TEXT DEFAULT '默认运营时间',
+            tags TEXT DEFAULT '',
+            status TEXT DEFAULT 'active',
+            pricing_start_date TEXT DEFAULT '',
+            pricing_end_date TEXT DEFAULT '',
+            auto_pricing INTEGER DEFAULT 0,
+            description TEXT DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_quotation_status ON Quotation(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_quotation_name ON Quotation(name)")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS QuotationProduct (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            quotation_id INTEGER NOT NULL REFERENCES Quotation(id),
+            product_id INTEGER NOT NULL REFERENCES Product(id),
+            sku_id INTEGER DEFAULT 0,
+            price REAL DEFAULT 0,
+            is_active INTEGER DEFAULT 1
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_qp_quotation ON QuotationProduct(quotation_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_qp_product ON QuotationProduct(product_id)")
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO schema_migrations (version, name)
+        VALUES (4, 'quotation_management')
+    """)
+
+    # ----------------------------------------------------------------
+    # Order management v5: 用户列偏好 + OrderRecord 新字段
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS UserColumnPreference (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            page_key TEXT NOT NULL,
+            visible_columns TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, page_key)
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_ucp_user_page ON UserColumnPreference(user_id, page_key)")
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO schema_migrations (version, name)
+        VALUES (5, 'order_management_v5')
+    """)
+
+
+def _seed_default_categories(cursor: sqlite3.Cursor) -> None:
+    """Seed the 11 Guanmai first-level categories with common sub-categories."""
+
+    cursor.execute("SELECT COUNT(*) AS cnt FROM Category")
+    row = cursor.fetchone()
+    if row and row["cnt"] > 0:
+        return  # already seeded
+
+    categories: list[tuple[str, int | None, int, int]] = [
+        # (name, parent_id, level, sort_order)
+        # Level 1
+        ("通用", None, 1, 1),
+        ("蔬菜（通用）", None, 1, 2),
+        ("肉（通用）", None, 1, 3),
+        ("水产（通用）", None, 1, 4),
+        ("冻品（通用）", None, 1, 5),
+        ("干货&调味品（通用）", None, 1, 6),
+        ("厨房用品（通用）", None, 1, 7),
+        ("粮油（通用）", None, 1, 8),
+        ("其它（通用）", None, 1, 9),
+        ("测试分类（通用）", None, 1, 10),
+        ("动物制品（通用）", None, 1, 11),
+    ]
+
+    for name, parent_id, level, sort_order in categories:
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, ?, ?, 1)",
+            (name, parent_id, level, sort_order),
+        )
+
+    # Level 2 — 蔬菜
+    veg_id = cursor.execute("SELECT id FROM Category WHERE name = '蔬菜（通用）'").fetchone()["id"]
+    veg_subs = ["叶菜类", "根茎类", "瓜果类", "菌菇类", "豆类", "其它蔬菜"]
+    for i, name in enumerate(veg_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 2, ?, 1)",
+            (name, veg_id, i + 1),
+        )
+
+    # Level 2 — 肉
+    meat_id = cursor.execute("SELECT id FROM Category WHERE name = '肉（通用）'").fetchone()["id"]
+    meat_subs = ["猪肉类", "牛肉类", "羊肉类", "禽肉类", "其它肉类"]
+    for i, name in enumerate(meat_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 2, ?, 1)",
+            (name, meat_id, i + 1),
+        )
+
+    # Level 2 — 水产
+    fish_id = cursor.execute("SELECT id FROM Category WHERE name = '水产（通用）'").fetchone()["id"]
+    fish_subs = ["鱼类", "虾蟹类", "贝类", "其它水产"]
+    for i, name in enumerate(fish_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 2, ?, 1)",
+            (name, fish_id, i + 1),
+        )
+
+    # Level 2 — 冻品
+    frozen_id = cursor.execute("SELECT id FROM Category WHERE name = '冻品（通用）'").fetchone()["id"]
+    frozen_subs = ["冷冻肉类", "冷冻水产", "冷冻面点", "其它冻品"]
+    for i, name in enumerate(frozen_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 2, ?, 1)",
+            (name, frozen_id, i + 1),
+        )
+
+    # Level 2 — 干货&调味品
+    dry_id = cursor.execute("SELECT id FROM Category WHERE name = '干货&调味品（通用）'").fetchone()["id"]
+    dry_subs = ["干货类", "调味料", "酱料类", "其它干货"]
+    for i, name in enumerate(dry_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 2, ?, 1)",
+            (name, dry_id, i + 1),
+        )
+
+    # Level 3 — a few example categories
+    leaf_id = cursor.execute("SELECT id FROM Category WHERE name = '叶菜类'").fetchone()["id"]
+    leaf_subs = ["青菜", "白菜", "菠菜", "生菜", "其它叶菜"]
+    for i, name in enumerate(leaf_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 3, ?, 1)",
+            (name, leaf_id, i + 1),
+        )
+
+    pork_id = cursor.execute("SELECT id FROM Category WHERE name = '猪肉类'").fetchone()["id"]
+    pork_subs = ["五花肉", "里脊肉", "排骨", "猪蹄", "其它猪肉"]
+    for i, name in enumerate(pork_subs):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 3, ?, 1)",
+            (name, pork_id, i + 1),
+        )
+
+    fish_sub_id = cursor.execute("SELECT id FROM Category WHERE name = '鱼类'").fetchone()["id"]
+    fish_sub3 = ["草鱼", "鲫鱼", "鲈鱼", "黑鱼", "其它鱼类"]
+    for i, name in enumerate(fish_sub3):
+        cursor.execute(
+            "INSERT INTO Category (name, parent_id, level, sort_order, is_active) VALUES (?, ?, 3, ?, 1)",
+            (name, fish_sub_id, i + 1),
+        )
+
+
+def _seed_weekly_quote_defaults(cursor: sqlite3.Cursor) -> None:
+    for name, weekly_limit, summary_rule, is_builtin, sort_order in WEEKLY_QUOTE_DEFAULT_SUPPLIERS:
+        cursor.execute(
+            """
+            INSERT INTO WeeklyQuoteSupplierConfig (
+                name, weekly_batch_limit, summary_rule, is_builtin, sort_order
+            )
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                weekly_batch_limit = excluded.weekly_batch_limit,
+                summary_rule = excluded.summary_rule,
+                is_builtin = excluded.is_builtin,
+                sort_order = excluded.sort_order,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (name, weekly_limit, summary_rule, is_builtin, sort_order),
+        )
+
+    for name, sort_order in WEEKLY_QUOTE_DEFAULT_MEASURE_UNITS:
+        cursor.execute(
+            """
+            INSERT INTO WeeklyQuoteMeasureUnitOption (name, sort_order)
+            VALUES (?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                sort_order = excluded.sort_order,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (name, sort_order),
+        )
+
+
+    # ----------------------------------------------------------------
+    # P1.1: 检测报告归档
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS InspectionReport (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_no TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL DEFAULT '',
+            file_url TEXT NOT NULL DEFAULT '',
+            test_date TEXT NOT NULL DEFAULT '',
+            valid_from TEXT NOT NULL DEFAULT '',
+            valid_until TEXT NOT NULL DEFAULT '',
+            supplier_id INTEGER DEFAULT 0,
+            submit_org TEXT NOT NULL DEFAULT '',
+            test_org TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'draft',
+            source TEXT NOT NULL DEFAULT 'manual',
+            pesticide_task_id INTEGER DEFAULT 0,
+            uploaded_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_ir_report_no ON InspectionReport(report_no)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_ir_supplier ON InspectionReport(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_ir_status ON InspectionReport(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_ir_test_date ON InspectionReport(test_date)")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS InspectionReportProduct (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_id INTEGER NOT NULL REFERENCES InspectionReport(id),
+            sku_id INTEGER NOT NULL DEFAULT 0,
+            product_id INTEGER NOT NULL DEFAULT 0,
+            batch TEXT NOT NULL DEFAULT ''
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_irp_report ON InspectionReportProduct(report_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_irp_sku ON InspectionReportProduct(sku_id)")
+
+    # ----------------------------------------------------------------
+    # P2.8: 上浮定价
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PriceMarkup (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL DEFAULT '',
+            rate REAL NOT NULL DEFAULT 0,
+            scope TEXT NOT NULL DEFAULT 'global',
+            scope_id INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ----------------------------------------------------------------
+    # P2.9: 协议价管理
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MerchantProductPrice (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            product_id INTEGER NOT NULL REFERENCES Product(id),
+            price REAL NOT NULL DEFAULT 0,
+            unit_name TEXT DEFAULT '',
+            effective_from TEXT DEFAULT '',
+            effective_to TEXT DEFAULT '',
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_supplier ON SupplierProductPrice(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_product ON SupplierProductPrice(product_id)")
+
+    # ----------------------------------------------------------------
+    # P2.12: 报损报溢
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS LossReport (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_no TEXT UNIQUE NOT NULL DEFAULT '',
+            report_date TEXT NOT NULL DEFAULT '',
+            report_type TEXT NOT NULL DEFAULT 'loss',
+            warehouse_id INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            total_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'draft',
+            created_by TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS LossReportItem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_id INTEGER NOT NULL REFERENCES LossReport(id),
+            product_id INTEGER NOT NULL REFERENCES Product(id),
+            quantity REAL NOT NULL DEFAULT 0,
+            unit_name TEXT DEFAULT '',
+            reason TEXT DEFAULT '',
+            unit_price REAL DEFAULT 0,
+            amount REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_lri_report ON LossReportItem(report_id)")
+
+    # ----------------------------------------------------------------
+    # P3.1: 改单审核
+    # ----------------------------------------------------------------
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OrderModification (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL REFERENCES OrderRecord(id),
+            order_no TEXT NOT NULL DEFAULT '',
+            modifier_name TEXT DEFAULT '',
+            summary TEXT DEFAULT '',
+            status TEXT DEFAULT 'pending',
+            reviewer_name TEXT DEFAULT '',
+            review_comment TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_om_order ON OrderModification(order_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_om_status ON OrderModification(status)")
+
+    # ----------------------------------------------------------------
+    # P3.4: 商品台账 (read-only report, no new table needed — uses InventoryTransaction)
+    # ----------------------------------------------------------------
+
+
+def _create_auth_schema(cursor: sqlite3.Cursor) -> None:
+    """Create authentication and authorization tables without seeding data."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+            version INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            display_name TEXT NOT NULL DEFAULT '',
+            password_hash TEXT NOT NULL,
+            password_salt TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            is_super_admin INTEGER NOT NULL DEFAULT 0,
+            must_change_password INTEGER NOT NULL DEFAULT 0,
+            failed_login_count INTEGER NOT NULL DEFAULT 0,
+            locked_until TEXT,
+            last_failed_login_at TEXT,
+            last_login_at TEXT,
+            password_changed_at TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CHECK (is_active IN (0, 1)),
+            CHECK (is_super_admin IN (0, 1)),
+            CHECK (must_change_password IN (0, 1))
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            is_system INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CHECK (is_system IN (0, 1))
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_permissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            module TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_user_roles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            role_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (user_id, role_id),
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+            FOREIGN KEY (role_id) REFERENCES auth_roles(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_role_permissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            role_id INTEGER NOT NULL,
+            permission_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (role_id, permission_id),
+            FOREIGN KEY (role_id) REFERENCES auth_roles(id) ON DELETE CASCADE,
+            FOREIGN KEY (permission_id) REFERENCES auth_permissions(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_user_permission_overrides (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            permission_id INTEGER NOT NULL,
+            effect TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (user_id, permission_id),
+            CHECK (effect IN ('allow', 'deny')),
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+            FOREIGN KEY (permission_id) REFERENCES auth_permissions(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_permission_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            permission_id INTEGER,
+            permission_code TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'pending',
+            reviewer_id INTEGER,
+            review_comment TEXT NOT NULL DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reviewed_at TEXT,
+            CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+            FOREIGN KEY (permission_id) REFERENCES auth_permissions(id) ON DELETE SET NULL,
+            FOREIGN KEY (reviewer_id) REFERENCES auth_users(id) ON DELETE SET NULL
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_devices (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            device_name TEXT NOT NULL DEFAULT '',
+            device_fingerprint TEXT NOT NULL,
+            user_agent TEXT NOT NULL DEFAULT '',
+            browser TEXT NOT NULL DEFAULT '',
+            os TEXT NOT NULL DEFAULT '',
+            ip_address TEXT NOT NULL DEFAULT '',
+            first_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_revoked INTEGER NOT NULL DEFAULT 0,
+            revoked_at TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (user_id, device_fingerprint),
+            CHECK (is_revoked IN (0, 1)),
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            device_id INTEGER NOT NULL,
+            access_token_hash TEXT NOT NULL UNIQUE,
+            refresh_token_hash TEXT UNIQUE,
+            access_expires_at TEXT NOT NULL,
+            refresh_expires_at TEXT,
+            revoked_at TEXT,
+            revoke_reason TEXT NOT NULL DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ip_address TEXT NOT NULL DEFAULT '',
+            user_agent TEXT NOT NULL DEFAULT '',
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE,
+            FOREIGN KEY (device_id) REFERENCES auth_devices(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_refresh_token_grace (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            refresh_token_hash TEXT NOT NULL UNIQUE,
+            valid_until TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (session_id) REFERENCES auth_sessions(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_pending_logins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            pending_token_hash TEXT NOT NULL UNIQUE,
+            ip_address TEXT NOT NULL DEFAULT '',
+            user_agent TEXT NOT NULL DEFAULT '',
+            device_name TEXT NOT NULL DEFAULT '',
+            expires_at TEXT NOT NULL,
+            used_at TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES auth_users(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS auth_audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_user_id INTEGER,
+            target_user_id INTEGER,
+            action TEXT NOT NULL,
+            module TEXT NOT NULL DEFAULT 'auth',
+            description TEXT NOT NULL DEFAULT '',
+            ip_address TEXT NOT NULL DEFAULT '',
+            user_agent TEXT NOT NULL DEFAULT '',
+            result TEXT NOT NULL DEFAULT 'success',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (actor_user_id) REFERENCES auth_users(id) ON DELETE SET NULL,
+            FOREIGN KEY (target_user_id) REFERENCES auth_users(id) ON DELETE SET NULL
+        )
+        """
+    )
+
+
+def _ensure_auth_schema_columns(cursor: sqlite3.Cursor) -> None:
+    """Apply small idempotent auth table shape updates until a full migration layer exists."""
+    pending_columns = _table_columns(cursor, "auth_pending_logins")
+    if "device_name" not in pending_columns:
+        cursor.execute(
+            """
+            ALTER TABLE auth_pending_logins
+            ADD COLUMN device_name TEXT NOT NULL DEFAULT ''
+            """
+        )
+
+
+def _table_columns(cursor: sqlite3.Cursor, table_name: str) -> set[str]:
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    return {row["name"] for row in cursor.fetchall()}
+
+
+def _create_auth_indexes(cursor: sqlite3.Cursor) -> None:
+    """Create indexes that auth lookups will rely on in later phases."""
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_user_roles_user
+        ON auth_user_roles (user_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_role_permissions_role
+        ON auth_role_permissions (role_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_permission_overrides_user
+        ON auth_user_permission_overrides (user_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_permission_requests_user_status
+        ON auth_permission_requests (user_id, status, created_at DESC)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_permission_requests_pending
+        ON auth_permission_requests (user_id, permission_code)
+        WHERE status = 'pending'
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_devices_user_active
+        ON auth_devices (user_id, is_revoked, last_active_at DESC)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_device
+        ON auth_sessions (user_id, device_id, revoked_at)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_sessions_active_access
+        ON auth_sessions (access_token_hash, access_expires_at)
+        WHERE revoked_at IS NULL
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_sessions_active_refresh
+        ON auth_sessions (refresh_token_hash, refresh_expires_at)
+        WHERE revoked_at IS NULL AND refresh_token_hash IS NOT NULL
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_refresh_token_grace_session
+        ON auth_refresh_token_grace (session_id, valid_until)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_pending_logins_user_expires
+        ON auth_pending_logins (user_id, expires_at)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_audit_actor_created
+        ON auth_audit_logs (actor_user_id, created_at DESC)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_audit_target_created
+        ON auth_audit_logs (target_user_id, created_at DESC)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_auth_audit_module_action_created
+        ON auth_audit_logs (module, action, created_at DESC)
+        """
+    )
+
+
+def run(sql: str, params: tuple | None = None):
+    """Execute an INSERT/UPDATE/DELETE statement."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        conn.commit()
+        return cursor.lastrowid
+    except Exception as exc:
+        conn.rollback()
+        if _is_mysql_connection_error(exc):
+            _drop_mysql_thread_connection()
+        logging.exception("SQL执行失败: %s, 参数: %s", sql, params)
+        raise
+    finally:
+        cursor.close()
+
+
+def query(sql: str, params: tuple | None = None) -> list[dict]:
+    """Execute a SELECT query and return rows as dicts."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+
+        rows = cursor.fetchall()
+        if not rows:
+            return []
+        if isinstance(rows[0], dict):
+            result = [dict(row) for row in rows]
+            if is_mysql_driver():
+                conn.commit()
+            return result
+        columns = [description[0] for description in cursor.description]
+        result = [dict(zip(columns, row)) for row in rows]
+        if is_mysql_driver():
+            conn.commit()
+        return result
+    except Exception as exc:
+        if _is_mysql_connection_error(exc):
+            _drop_mysql_thread_connection()
+        logging.exception("查询失败: %s, 参数: %s", sql, params)
+        raise
+    finally:
+        cursor.close()
+
+
+def query_one(sql: str, params: tuple | None = None) -> dict | None:
+    """Return the first row from a query or None."""
+    results = query(sql, params)
+    return results[0] if results else None

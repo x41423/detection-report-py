@@ -1,142 +1,51 @@
-"""Supplier management API routes."""
+"""Supplier API routes — 真实供应商（上游供货商）管理."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from backend.api.response_utils import future_endpoint
 from backend.auth.dependencies import require_permission
-from backend.models.supplier_schemas import SupplierCreate, SupplierResponse, SupplierUpdate
+from backend.models.supplier_schemas import SupplierCreate, SupplierUpdate
 from backend.services.supplier_service import SupplierService
 
 router = APIRouter()
 service = SupplierService()
 
 
-def _raise_http_error(exc: Exception) -> None:
-    if isinstance(exc, LookupError):
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-# ------------------------------------------------------------------
-# CRUD
-# ------------------------------------------------------------------
-
-
-@router.get(
-    "/",
-    dependencies=[Depends(require_permission("supplier:view"))],
-)
+@router.get("/", dependencies=[Depends(require_permission("supplier:view"))])
 def list_suppliers(
     search: str = Query(default=""),
-    status: str | None = Query(default=None),
-    supplier_type: str | None = Query(default=None),
-    level: str | None = Query(default=None),
-    limit: int = Query(default=20, ge=1, le=100),
+    status: str = Query(default=""),
+    limit: int = Query(default=20, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    try:
-        return service.list_suppliers(search=search, status=status, supplier_type=supplier_type, level=level, limit=limit, offset=offset)
-    except ValueError as exc:
-        _raise_http_error(exc)
+    return service.list(search=search, status=status, limit=limit, offset=offset)
 
 
-@router.post(
-    "/",
-    response_model=SupplierResponse,
-    dependencies=[Depends(require_permission("supplier:create"))],
-)
+@router.get("/{sid}", dependencies=[Depends(require_permission("supplier:view"))])
+def get_supplier(sid: int):
+    result = service.get(sid)
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("message"))
+    return result
+
+
+@router.post("/", dependencies=[Depends(require_permission("supplier:create"))])
 def create_supplier(data: SupplierCreate):
-    try:
-        result = service.create_supplier(data)
-        return result["supplier"]
-    except ValueError as exc:
-        _raise_http_error(exc)
+    return service.create(data)
 
 
-@router.get(
-    "/{supplier_id}",
-    response_model=SupplierResponse,
-    dependencies=[Depends(require_permission("supplier:view"))],
-)
-def get_supplier(supplier_id: int):
-    try:
-        return service.get_supplier(supplier_id)
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
+@router.put("/{sid}", dependencies=[Depends(require_permission("supplier:update"))])
+def update_supplier(sid: int, data: SupplierUpdate):
+    updates = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not updates:
+        raise HTTPException(status_code=400, detail="没有要更新的字段")
+    result = service.update(sid, updates)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("message"))
+    return result
 
 
-@router.put(
-    "/{supplier_id}",
-    response_model=SupplierResponse,
-    dependencies=[Depends(require_permission("supplier:edit"))],
-)
-def update_supplier(supplier_id: int, data: SupplierUpdate):
-    try:
-        result = service.update_supplier(supplier_id, data)
-        return result["supplier"]
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
-
-
-@router.delete(
-    "/{supplier_id}",
-    dependencies=[Depends(require_permission("supplier:delete"))],
-)
-def delete_supplier(supplier_id: int):
-    try:
-        return service.deactivate_supplier(supplier_id)
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
-
-
-@router.post(
-    "/{supplier_id}/activate",
-    dependencies=[Depends(require_permission("supplier:edit"))],
-)
-def activate_supplier(supplier_id: int):
-    """重新启用已停用的供应商"""
-    try:
-        return service.activate_supplier(supplier_id)
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
-
-
-@router.delete(
-    "/{supplier_id}/hard",
-    dependencies=[Depends(require_permission("supplier:delete"))],
-)
-def hard_delete_supplier(supplier_id: int):
-    """永久删除供应商"""
-    try:
-        return service.hard_delete_supplier(supplier_id)
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
-
-
-# ------------------------------------------------------------------
-# FUTURE endpoints (P1 / P2)
-# ------------------------------------------------------------------
-
-
-@router.get("/{supplier_id}/purchase-history")
-def supplier_purchase_history(supplier_id: int):
-    raise HTTPException(status_code=501, detail=future_endpoint("supplier_purchase_history"))
-
-
-@router.get("/{supplier_id}/transaction-summary")
-def supplier_transaction_summary(
-    supplier_id: int,
-    date_from: str | None = Query(default=None),
-    date_to: str | None = Query(default=None),
-):
-    """Get supplier transaction overview (观麦-style 交易情况 tab)."""
-    try:
-        return service.get_transaction_summary(supplier_id, date_from=date_from, date_to=date_to)
-    except (LookupError, ValueError) as exc:
-        _raise_http_error(exc)
-
-
-@router.get("/{supplier_id}/settlement")
-def supplier_settlement(supplier_id: int):
-    raise HTTPException(status_code=501, detail=future_endpoint("supplier_settlement"))
+@router.delete("/{sid}", dependencies=[Depends(require_permission("supplier:delete"))])
+def delete_supplier(sid: int):
+    return service.delete(sid)

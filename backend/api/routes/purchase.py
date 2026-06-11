@@ -30,7 +30,7 @@ def _raise(exc: Exception) -> None:
 
 @router.get(
     "/in",
-    dependencies=[Depends(require_permission("inventory:view"))],
+    dependencies=[Depends(require_permission("purchase:view"))],
 )
 def list_purchase_in(
     search: str = Query(default=""),
@@ -51,7 +51,7 @@ def list_purchase_in(
 @router.post(
     "/in",
     response_model=PurchaseInResponse,
-    dependencies=[Depends(require_permission("inventory:create"))],
+    dependencies=[Depends(require_permission("purchase:create"))],
 )
 def create_purchase_in(data: PurchaseInCreate):
     try:
@@ -64,7 +64,7 @@ def create_purchase_in(data: PurchaseInCreate):
 @router.get(
     "/in/{record_id}",
     response_model=PurchaseInResponse,
-    dependencies=[Depends(require_permission("inventory:view"))],
+    dependencies=[Depends(require_permission("purchase:view"))],
 )
 def get_purchase_in(record_id: int):
     try:
@@ -76,7 +76,7 @@ def get_purchase_in(record_id: int):
 @router.put(
     "/in/{record_id}",
     response_model=PurchaseInResponse,
-    dependencies=[Depends(require_permission("inventory:update"))],
+    dependencies=[Depends(require_permission("purchase:update"))],
 )
 def update_purchase_in(record_id: int, data: PurchaseInUpdate):
     try:
@@ -87,7 +87,7 @@ def update_purchase_in(record_id: int, data: PurchaseInUpdate):
 
 @router.post(
     "/in/{record_id}/confirm",
-    dependencies=[Depends(require_permission("inventory:update"))],
+    dependencies=[Depends(require_permission("purchase:update"))],
 )
 def confirm_purchase_in(record_id: int):
     """确认入库 → 自动同步库存 (IN)"""
@@ -103,7 +103,7 @@ def confirm_purchase_in(record_id: int):
 
 @router.get(
     "/return",
-    dependencies=[Depends(require_permission("inventory:view"))],
+    dependencies=[Depends(require_permission("purchase:view"))],
 )
 def list_purchase_return(
     search: str = Query(default=""),
@@ -124,7 +124,7 @@ def list_purchase_return(
 @router.post(
     "/return",
     response_model=PurchaseReturnResponse,
-    dependencies=[Depends(require_permission("inventory:create"))],
+    dependencies=[Depends(require_permission("purchase:create"))],
 )
 def create_purchase_return(data: PurchaseReturnCreate):
     try:
@@ -137,7 +137,7 @@ def create_purchase_return(data: PurchaseReturnCreate):
 @router.get(
     "/return/{record_id}",
     response_model=PurchaseReturnResponse,
-    dependencies=[Depends(require_permission("inventory:view"))],
+    dependencies=[Depends(require_permission("purchase:view"))],
 )
 def get_purchase_return(record_id: int):
     try:
@@ -148,7 +148,7 @@ def get_purchase_return(record_id: int):
 
 @router.post(
     "/return/{record_id}/confirm",
-    dependencies=[Depends(require_permission("inventory:update"))],
+    dependencies=[Depends(require_permission("purchase:update"))],
 )
 def confirm_purchase_return(record_id: int):
     """确认退货 → 自动同步库存 (OUT)"""

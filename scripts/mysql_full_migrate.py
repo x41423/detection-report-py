@@ -32,6 +32,14 @@ MYSQL_USER = os.getenv("APP_DB_MYSQL_USER", "inspection_app")
 TYPE_MAP = {"INTEGER": "BIGINT", "INT": "INT", "TEXT": "LONGTEXT", "REAL": "DOUBLE",
             "BLOB": "LONGBLOB", "TIMESTAMP": "TIMESTAMP", "DATETIME": "DATETIME"}
 
+# 表名映射: SQLite旧名 → MySQL新名
+TABLE_RENAME = {
+    "Supplier": "Merchant",
+    "SupplierSettlement": "MerchantSettlement",
+    "SupplierProductPrice": "MerchantProductPrice",
+    "WeeklyQuoteSupplierConfig": "WeeklyQuoteMerchantConfig",
+}
+
 MIGRATION_ORDER = [
     "Veg", "Unit", "Category", "Product", "ProductSku",
     "Supplier", "SupplierSettlement", "SupplierProductPrice",
@@ -102,6 +110,7 @@ def migrate_data(sqlite_conn, mysql_cursor, order) -> dict:
         sqlite_cur.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'")
         if not sqlite_cur.fetchone():
             continue
+        mysql_table = TABLE_RENAME.get(table, table)  # 映射到MySQL新表名
         sqlite_cur.execute(f"SELECT * FROM `{table}`")
         rows = sqlite_cur.fetchall()
         if not rows:
@@ -110,13 +119,13 @@ def migrate_data(sqlite_conn, mysql_cursor, order) -> dict:
         col_names = [d[0] for d in sqlite_cur.description]
         quoted_cols = ", ".join(f"`{c}`" for c in col_names)
         placeholders = ", ".join(["%s"] * len(col_names))
-        sql = f"INSERT INTO `{table}` ({quoted_cols}) VALUES ({placeholders})"
+        sql = f"INSERT INTO `{mysql_table}` ({quoted_cols}) VALUES ({placeholders})"
         values = [tuple(None if v is None else (v.decode() if isinstance(v, bytes) else v) for v in row) for row in rows]
         try:
             mysql_cursor.executemany(sql, values)
             counts[table] = len(rows)
         except Exception as e:
-            print(f"  ERROR {table}: {str(e)[:80]}")
+            print(f"  ERROR {table}→{mysql_table}: {str(e)[:80]}")
             counts[table] = -1
     return counts
 
@@ -156,7 +165,8 @@ def main():
             c.execute("SET FOREIGN_KEY_CHECKS = 0")
             try:
                 for table in MIGRATION_ORDER:
-                    try: c.execute(f"DELETE FROM `{table}`")
+                    mysql_table = TABLE_RENAME.get(table, table)
+                    try: c.execute(f"DELETE FROM `{mysql_table}`")
                     except Exception: pass
                 counts = migrate_data(sqlite_conn, c, MIGRATION_ORDER)
             finally:

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.db.settlement_repository import SettlementRepository
-from app.db.supplier_repository import SupplierRepository
+from app.db.merchant_repository import MerchantRepository
 from backend.api.response_utils import list_response, mutation_response
 from backend.models.settlement_schemas import SettlementCreate, SettlementUpdate
 
@@ -16,7 +16,7 @@ class SettlementService:
         pass
 
     def create(self, data: SettlementCreate) -> dict[str, Any]:
-        if SupplierRepository.get_by_id(data.supplier_id) is None:
+        if MerchantRepository.get_by_id(data.supplier_id) is None:
             raise LookupError(f"供应商 {data.supplier_id} 不存在")
 
         payload = data.model_dump()
@@ -68,7 +68,7 @@ class SettlementService:
 
     def auto_create(self, supplier_id: int, period: str) -> dict[str, Any]:
         """Auto-create settlement from confirmed purchase-in records for a period."""
-        if SupplierRepository.get_by_id(supplier_id) is None:
+        if MerchantRepository.get_by_id(supplier_id) is None:
             raise LookupError(f"供应商 {supplier_id} 不存在")
 
         payable = SettlementRepository.get_payable_for_period(supplier_id, period)

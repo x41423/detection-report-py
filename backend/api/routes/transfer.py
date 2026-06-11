@@ -7,9 +7,10 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
+from backend.auth.dependencies import require_permission
 from backend.models.schemas import (
     BrowseRequest,
     BrowseResponse,
@@ -52,7 +53,7 @@ def _run_in_executor(func, *args):
     return loop.run_in_executor(None, func, *args)
 
 
-@router.post("/detect", response_model=DetectResponse)
+@router.post("/detect", response_model=DetectResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def detect_tables(req: DetectRequest):
     if not os.path.isdir(req.folder_path):
         raise HTTPException(status_code=400, detail="文件夹路径无效")
@@ -74,7 +75,7 @@ async def detect_tables(req: DetectRequest):
     return DetectResponse(files=files, count=len(files))
 
 
-@router.post("/varieties", response_model=VarietiesResponse)
+@router.post("/varieties", response_model=VarietiesResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def extract_varieties(req: VarietiesRequest):
     if not req.table_paths:
         raise HTTPException(status_code=400, detail="未提供大表文件路径")
@@ -83,7 +84,7 @@ async def extract_varieties(req: VarietiesRequest):
     return VarietiesResponse(varieties=varieties, count=len(varieties))
 
 
-@router.post("/varieties/upload", response_model=VarietiesResponse)
+@router.post("/varieties/upload", response_model=VarietiesResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def extract_varieties_from_uploads(
     table_files: list[UploadFile] = File(...),
 ):
@@ -96,7 +97,7 @@ async def extract_varieties_from_uploads(
     return VarietiesResponse(varieties=varieties, count=len(varieties))
 
 
-@router.post("/varieties/from-paths", response_model=VarietiesResponse)
+@router.post("/varieties/from-paths", response_model=VarietiesResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def extract_varieties_from_paths(table_paths: str = Form(...)):
     paths = [p.strip() for p in table_paths.split("\n") if p.strip()]
     if not paths:
@@ -108,7 +109,7 @@ async def extract_varieties_from_paths(table_paths: str = Form(...)):
     return VarietiesResponse(varieties=varieties, count=len(varieties))
 
 
-@router.post("/dedup", response_model=DedupResponse)
+@router.post("/dedup", response_model=DedupResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def dedup_veg_names(req: DedupRequest):
     seen = set()
     deduped = []
@@ -126,12 +127,12 @@ async def dedup_veg_names(req: DedupRequest):
     )
 
 
-@router.get("/templates", response_model=TransferTemplateStatusResponse)
+@router.get("/templates", response_model=TransferTemplateStatusResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def get_templates():
     return TransferTemplateStatusResponse(**get_transfer_templates())
 
 
-@router.post("/templates/upload", response_model=TransferTemplateStatusResponse)
+@router.post("/templates/upload", response_model=TransferTemplateStatusResponse, dependencies=[Depends(require_permission("transfer:execute"))])
 async def upload_template(
     small_type: str = Form(...),
     template_file: UploadFile = File(...),
@@ -145,7 +146,7 @@ async def upload_template(
     return TransferTemplateStatusResponse(**status)
 
 
-@router.post("/templates/upload-from-path", response_model=TransferTemplateStatusResponse)
+@router.post("/templates/upload-from-path", response_model=TransferTemplateStatusResponse, dependencies=[Depends(require_permission("transfer:execute"))])
 async def upload_template_from_path(
     small_type: str = Form(...),
     file_path: str = Form(...),
@@ -160,7 +161,7 @@ async def upload_template_from_path(
     return TransferTemplateStatusResponse(**status)
 
 
-@router.post("/monthly/preview", response_model=MonthlyTransferPreviewResponse)
+@router.post("/monthly/preview", response_model=MonthlyTransferPreviewResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def preview_monthly_transfer(
     month: str = Form(...),
     table_files: list[UploadFile] = File(...),
@@ -171,7 +172,7 @@ async def preview_monthly_transfer(
     return MonthlyTransferPreviewResponse(success=bool(result["groups"]), **result)
 
 
-@router.post("/monthly/preview-from-paths", response_model=MonthlyTransferPreviewResponse)
+@router.post("/monthly/preview-from-paths", response_model=MonthlyTransferPreviewResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def preview_monthly_from_paths(
     month: str = Form(...),
     table_paths: str = Form(...),
@@ -186,7 +187,7 @@ async def preview_monthly_from_paths(
     return MonthlyTransferPreviewResponse(success=bool(result["groups"]), **result)
 
 
-@router.post("/execute", response_model=TransferResponse)
+@router.post("/execute", response_model=TransferResponse, dependencies=[Depends(require_permission("transfer:execute"))])
 async def execute_transfer(req: TransferRequest):
     if not req.table_paths:
         raise HTTPException(status_code=400, detail="未提供大表文件")
@@ -224,7 +225,7 @@ async def execute_transfer(req: TransferRequest):
     )
 
 
-@router.post("/execute/upload")
+@router.post("/execute/upload", dependencies=[Depends(require_permission("transfer:execute"))])
 async def execute_transfer_upload(
     veg_names_json: str = Form(...),
     small_type: str = Form(default="small"),
@@ -276,7 +277,7 @@ async def execute_transfer_upload(
         )
 
 
-@router.post("/monthly/execute")
+@router.post("/monthly/execute", dependencies=[Depends(require_permission("transfer:execute"))])
 async def execute_monthly_transfer_upload(
     month: str = Form(...),
     veg_names_json: str = Form(...),
@@ -385,7 +386,7 @@ async def execute_monthly_transfer_upload(
         )
 
 
-@router.post("/monthly/execute-from-paths")
+@router.post("/monthly/execute-from-paths", dependencies=[Depends(require_permission("transfer:execute"))])
 async def execute_monthly_transfer_from_paths(
     month: str = Form(...),
     veg_names_json: str = Form(...),
@@ -519,7 +520,7 @@ async def execute_monthly_transfer_from_paths(
     )
 
 
-@router.post("/find-files", response_model=BrowseResponse)
+@router.post("/find-files", response_model=BrowseResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def find_docx_files(req: BrowseRequest):
     """List .doc/.docx files in a server-side directory."""
     dir_path = (req.path or "").strip()
@@ -533,7 +534,7 @@ async def find_docx_files(req: BrowseRequest):
     return BrowseResponse(path=dir_path, subdirs=[], files=docx_files)
 
 
-@router.post("/execute-from-paths")
+@router.post("/execute-from-paths", dependencies=[Depends(require_permission("transfer:execute"))])
 async def execute_transfer_from_paths(
     table_paths_json: str = Form(...),
     small_template_path: str = Form(...),
@@ -637,7 +638,7 @@ async def execute_transfer_from_paths(
         )
 
 
-@router.post("/log-restore")
+@router.post("/log-restore", dependencies=[Depends(require_permission("transfer:execute"))])
 async def log_path_restore(req: BrowseRequest):
     """Log when the frontend restores path-lock state from localStorage cache."""
     dir_path = (req.path or "").strip()
@@ -645,7 +646,7 @@ async def log_path_restore(req: BrowseRequest):
     return {"ok": True}
 
 
-@router.post("/browse", response_model=BrowseResponse)
+@router.post("/browse", response_model=BrowseResponse, dependencies=[Depends(require_permission("transfer:view"))])
 async def browse_directory(req: BrowseRequest):
     path = (req.path or "").strip()
 
@@ -668,7 +669,7 @@ async def browse_directory(req: BrowseRequest):
     return BrowseResponse(path=path, subdirs=subdirs, files=files)
 
 
-@router.post("/open-local")
+@router.post("/open-local", dependencies=[Depends(require_permission("transfer:view"))])
 async def open_local_file(req: dict):
     """在操作系统中打开本地文件（Windows: os.startfile）"""
     file_path = (req.get("path") or "").strip()

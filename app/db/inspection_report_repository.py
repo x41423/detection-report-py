@@ -22,7 +22,7 @@ class InspectionReportRepository:
     def _generate_report_no(cursor: Any) -> str:
         today = date.today().strftime("%Y%m%d")
         cursor.execute(
-            "SELECT COALESCE(MAX(CAST(SUBSTR(report_no, -3) AS INTEGER)), 0) + 1 AS seq "
+            "SELECT COALESCE(MAX(CAST(SUBSTR(report_no, -3) AS SIGNED)), 0) + 1 AS seq "
             "FROM InspectionReport WHERE report_no LIKE ?",
             (f"IRT-{today}-%",),
         )
@@ -185,7 +185,7 @@ class InspectionReportRepository:
                    ir.uploaded_by AS uploader_name,
                    (SELECT COUNT(*) FROM InspectionReportProduct WHERE report_id = ir.id) AS product_count
             FROM InspectionReport ir
-            LEFT JOIN Supplier s ON ir.supplier_id = s.id
+            LEFT JOIN Merchant s ON ir.supplier_id = s.id
             WHERE {where}
             ORDER BY ir.created_at DESC
             LIMIT ? OFFSET ?
@@ -242,7 +242,7 @@ class InspectionReportRepository:
                       ir.uploaded_by AS uploader_name,
                       (SELECT COUNT(*) FROM InspectionReportProduct WHERE report_id = ir.id) AS product_count
                FROM InspectionReport ir
-               LEFT JOIN Supplier s ON ir.supplier_id = s.id
+               LEFT JOIN Merchant s ON ir.supplier_id = s.id
                WHERE ir.id = ?""",
             (report_id,),
         )

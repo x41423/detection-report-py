@@ -501,7 +501,7 @@ class InventoryRepository:
             LEFT JOIN PurchaseReturnRecord prt ON prt.id = pri.record_id
             LEFT JOIN OrderItem oi ON oi.id = tx.source_ref_id AND tx.source_type = 'purchase_outbound'
             LEFT JOIN OrderRecord ord ON ord.id = oi.order_id
-            LEFT JOIN Supplier s ON s.id = COALESCE(pin.supplier_id, prt.supplier_id)
+            LEFT JOIN Merchant s ON s.id = COALESCE(pin.supplier_id, prt.supplier_id)
             {where}
             ORDER BY tx.business_date DESC, tx.id DESC
             LIMIT ?""",

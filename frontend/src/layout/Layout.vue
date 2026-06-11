@@ -17,7 +17,12 @@
           <div v-if="!isCollapsed" class="app-layout__nav-group">{{ section.title }}</div>
           <ul class="app-layout__nav-list">
             <li v-for="item in section.items" :key="item.path">
-              <router-link :to="item.path" class="app-layout__nav-link" active-class="is-active">
+              <router-link
+                :to="item.path"
+                class="app-layout__nav-link"
+                active-class="is-active"
+                @mouseenter="prefetchRoute(item.path)"
+              >
                 <el-icon class="app-layout__nav-icon">
                   <component :is="item.icon" />
                 </el-icon>
@@ -25,7 +30,12 @@
               </router-link>
               <ul v-if="!isCollapsed && item.children?.length" class="app-layout__sub-list">
                 <li v-for="child in item.children" :key="child.path">
-                  <router-link :to="child.path" class="app-layout__sub-link" active-class="is-active">
+                  <router-link
+                    :to="child.path"
+                    class="app-layout__sub-link"
+                    active-class="is-active"
+                    @mouseenter="prefetchRoute(child.path)"
+                  >
                     {{ child.shortTitle || child.title }}
                   </router-link>
                 </li>
@@ -125,6 +135,29 @@ const userInitial = computed(() => {
   const name = auth.currentUser.value?.display_name || auth.currentUser.value?.username || ''
   return name.slice(0, 1).toUpperCase()
 })
+
+// ── Hover 预加载：鼠标悬停菜单时提前下载目标页面的 JS chunk ──
+// 用 WeakSet 防止重复预加载同一个路由
+const prefetched = new WeakSet<object>()
+
+function prefetchRoute(path: string) {
+  try {
+    const resolved = router.resolve(path)
+    const record = resolved.matched[0]
+    if (!record) return
+
+    const component = record.components?.default
+    // 只对懒加载组件（函数）进行预加载
+    if (typeof component !== 'function') return
+    if (prefetched.has(component)) return
+    prefetched.add(component)
+
+    // 触发 Vite 的动态 import，浏览器开始下载 chunk
+    ;(component as () => Promise<unknown>)()
+  } catch {
+    // 静默失败，预加载是可选的增强
+  }
+}
 
 function toggleCollapsed() {
   isCollapsed.value = !isCollapsed.value

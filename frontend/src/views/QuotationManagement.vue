@@ -360,7 +360,7 @@ async function handleToggle(q: Quotation) {
     ElMessage.success(`报价单已${action}`)
     load()
   } catch (e: any) {
-    if (e !== \'cancel\') ElMessage.error(e?.response?.data?.detail || \'操作失败\')
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '操作失败')
   }
 }
 
@@ -435,7 +435,7 @@ async function removeQp(qp: any) {
       load()
     }
   } catch (e: any) {
-    if (e !== \'cancel\') ElMessage.error(e?.response?.data?.detail || \'操作失败\')
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.detail || '操作失败')
   }
 }
 

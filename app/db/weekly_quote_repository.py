@@ -152,6 +152,13 @@ class WeeklyQuoteRepository:
             "SELECT id FROM WeeklyQuoteBatch WHERE supplier = ? AND quote_date = ?",
             (supplier, quote_date),
         )
+        # 空条目 → 删除批次（不留空壳）
+        if not entries:
+            if existing:
+                run("DELETE FROM WeeklyQuoteEntry WHERE batch_id = ?", (existing["id"],))
+                run("DELETE FROM WeeklyQuoteBatch WHERE id = ?", (existing["id"],))
+            return {"deleted": True, "supplier": supplier, "quote_date": quote_date}
+
         if existing:
             batch_id = existing["id"]
             run(

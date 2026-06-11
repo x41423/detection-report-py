@@ -22,7 +22,7 @@ class SettlementRepository:
                 2,
             )
             cursor.execute(
-                """INSERT INTO SupplierSettlement
+                """INSERT INTO MerchantSettlement
                    (supplier_id, settlement_period, payable_amount, paid_amount,
                     fee_amount, discount_amount, balance_amount, remark)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -49,8 +49,8 @@ class SettlementRepository:
     def get_by_id(settlement_id: int) -> dict[str, Any] | None:
         return query_one(
             """SELECT ss.*, s.name AS supplier_name
-               FROM SupplierSettlement ss
-               JOIN Supplier s ON s.id = ss.supplier_id
+               FROM MerchantSettlement ss
+               JOIN Merchant s ON s.id = ss.supplier_id
                WHERE ss.id = ?""",
             (settlement_id,),
         )
@@ -78,8 +78,8 @@ class SettlementRepository:
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         return query(
             f"""SELECT ss.*, s.name AS supplier_name
-                FROM SupplierSettlement ss
-                JOIN Supplier s ON s.id = ss.supplier_id
+                FROM MerchantSettlement ss
+                JOIN Merchant s ON s.id = ss.supplier_id
                 {where}
                 ORDER BY ss.settlement_period DESC, ss.created_at DESC
                 LIMIT ? OFFSET ?""",
@@ -103,7 +103,7 @@ class SettlementRepository:
             params.append(status)
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         row = query_one(
-            f"SELECT COUNT(*) AS cnt FROM SupplierSettlement {where}", tuple(params)
+            f"SELECT COUNT(*) AS cnt FROM MerchantSettlement {where}", tuple(params)
         )
         return row["cnt"] if row else 0
 
@@ -123,7 +123,7 @@ class SettlementRepository:
 
             # Recalc balance
             current = query_one(
-                "SELECT payable_amount, paid_amount, fee_amount, discount_amount FROM SupplierSettlement WHERE id = ?",
+                "SELECT payable_amount, paid_amount, fee_amount, discount_amount FROM MerchantSettlement WHERE id = ?",
                 (settlement_id,),
             )
             if current:
@@ -136,7 +136,7 @@ class SettlementRepository:
 
             vals.append(settlement_id)
             cursor.execute(
-                f"UPDATE SupplierSettlement SET {', '.join(sets)}, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                f"UPDATE MerchantSettlement SET {', '.join(sets)}, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 vals,
             )
             conn.commit()
@@ -153,7 +153,7 @@ class SettlementRepository:
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "UPDATE SupplierSettlement SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                "UPDATE MerchantSettlement SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 (status, settlement_id),
             )
             conn.commit()

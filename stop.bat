@@ -1,111 +1,71 @@
 @echo off
+chcp 65001 >nul 2>&1
 setlocal EnableExtensions EnableDelayedExpansion
 
 set "DRY_RUN=0"
 if /I "%~1"=="--dry-run" set "DRY_RUN=1"
 if /I "%~1"=="--help" goto :help
 if /I "%~1"=="-h" goto :help
-if /I "%~1"=="/?" goto :help
 
 echo ========================================
-echo   Binxian Workbench - Stop Services
+echo    Binxian Workbench - Stop Services
 echo ========================================
 echo.
 if "%DRY_RUN%"=="1" echo [INFO] Dry run mode.
-echo.
 
-REM ---- Step 1: Kill by port (most reliable) ----
-echo [STEP 1/3] Stopping services by port...
-call :kill_by_port 9000 "MinIO API"
-call :kill_by_port 9001 "MinIO Console"
-call :kill_by_port 8000 "Backend"
-call :kill_by_port 5173 "Frontend"
+REM ---- 1. Cloudflare Tunnel ----
+echo [1/4] Stopping Cloudflare Tunnel...
+taskkill /IM "cloudflared.exe" /F >nul 2>&1 && echo   [OK] cloudflared.exe || echo   [SKIP] Not running
+powershell -NoProfile -Command "Get-Process cmd -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*cloudflared*' } | Stop-Process -Force" 2>nul
 
-REM ---- Step 2: Kill by process name (cleanup) ----
+REM ---- 2. Nginx ----
 echo.
-echo [STEP 2/3] Cleaning up remaining processes...
-call :kill_by_name "minio.exe"
-call :kill_by_name "uvicorn.exe"
+echo [2/4] Stopping Nginx...
+netstat -ano 2>nul | findstr ":8080 " | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":8080 " ^| findstr "LISTENING"') do (
+        taskkill /PID %%a /T /F >nul 2>&1
+    )
+    echo   [OK] Nginx stopped.
+) else (
+    echo   [SKIP] Nginx not running.
+)
 
-REM ---- Step 3: Close cmd windows via PowerShell ----
+REM ---- 3. Backend ----
 echo.
-echo [STEP 3/3] Closing terminal windows...
-call :close_ps_window "minio"
-call :close_ps_window "MinIO Object Storage"
-call :close_ps_window "backend"
-call :close_ps_window "frontend"
+echo [3/4] Stopping Backend...
+netstat -ano 2>nul | findstr ":8000 " | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":8000 " ^| findstr "LISTENING"') do (
+        taskkill /PID %%a /T /F >nul 2>&1
+    )
+    echo   [OK] Backend stopped.
+) else (
+    echo   [SKIP] Backend not running.
+)
+powershell -NoProfile -Command "Get-Process cmd -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*backend*' } | Stop-Process -Force" 2>nul
+
+REM ---- 4. MinIO ----
+echo.
+echo [4/4] Stopping MinIO...
+for %%p in (9000 9001) do (
+    netstat -ano 2>nul | findstr ":%%p " | findstr "LISTENING" >nul 2>&1
+    if not errorlevel 1 (
+        for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":%%p " ^| findstr "LISTENING"') do (
+            taskkill /PID %%a /T /F >nul 2>&1
+        )
+    )
+)
+taskkill /IM "minio.exe" /F >nul 2>&1
+echo   [OK] MinIO stopped.
 
 echo.
-echo [OK] All services stopped.
+echo ========================================
+echo    All services stopped.
+echo ========================================
 ping -n 2 127.0.0.1 >nul 2>&1
 exit /b 0
 
-REM ============================================================
-REM Kill process by port number
-REM ============================================================
-:kill_by_port
-set "PORT=%~1"
-set "NAME=%~2"
-if "%DRY_RUN%"=="1" (
-    echo   [DRY] Would kill process on port %PORT% ^(%NAME%^)
-    exit /b 0
-)
-set "FOUND=0"
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr /C:":%PORT% " ^| findstr /C:"LISTENING"') do (
-    set "PID=%%a"
-    if not "!PID!"=="0" if not "!PID!"=="" (
-        taskkill /PID !PID! /T /F >nul 2>&1
-        if not errorlevel 1 (
-            echo   [OK] Killed PID !PID! on port %PORT% ^(%NAME%^)
-            set "FOUND=1"
-        )
-    )
-)
-if "!FOUND!"=="0" (
-    for /f "tokens=4" %%a in ('netstat -ano 2^>nul ^| findstr /C:":%PORT% " ^| findstr /C:"LISTENING"') do (
-        set "PID=%%a"
-        if not "!PID!"=="0" if not "!PID!"=="" (
-            taskkill /PID !PID! /T /F >nul 2>&1
-            if not errorlevel 1 (
-                echo   [OK] Killed PID !PID! on port %PORT% ^(%NAME%^)
-                set "FOUND=1"
-            )
-        )
-    )
-)
-exit /b 0
-
-REM ============================================================
-REM Kill process by image name
-REM ============================================================
-:kill_by_name
-set "NAME=%~1"
-if "%DRY_RUN%"=="1" (
-    echo   [DRY] Would kill process %NAME%
-    exit /b 0
-)
-taskkill /IM "%NAME%" /F >nul 2>&1
-if not errorlevel 1 (
-    echo   [OK] Killed process %NAME%.
-)
-exit /b 0
-
-REM ============================================================
-REM Close cmd window by title via PowerShell
-REM Works reliably on ALL Windows language versions
-REM ============================================================
-:close_ps_window
-set "TITLE=%~1"
-if "%DRY_RUN%"=="1" (
-    echo   [DRY] Would close window "%TITLE%"
-    exit /b 0
-)
-powershell -NoProfile -Command "Get-Process cmd -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like '*%TITLE%*' } | ForEach-Object { Stop-Process -Id $_.Id -Force; Write-Host '  [OK] Closed window \"%TITLE%\".' }" 2>nul
-exit /b 0
-
 :help
-echo Usage:
-echo   stop.bat              Stop all project services.
-echo   stop.bat --dry-run    Show what would be stopped.
-echo   stop.bat --help       Show this help.
+echo Usage: stop.bat [--dry-run] [--help]
 exit /b 0

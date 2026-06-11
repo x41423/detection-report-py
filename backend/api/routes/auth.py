@@ -489,7 +489,7 @@ def update_managed_user(
 def delete_managed_user(
     user_id: int,
     request: Request,
-    context: AuthContext = Depends(get_current_auth_context),
+    context: AuthContext = Depends(require_permission("user:delete")),
 ):
     try:
         deleted = user_role_management_service.delete_user(context, user_id)

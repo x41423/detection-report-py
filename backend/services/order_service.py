@@ -61,6 +61,7 @@ class OrderService:
         record = OrderRepository.get_order_by_id(order_id)
         if record is None:
             raise LookupError(f"订单 {order_id} 不存在")
+        self._check_not_frozen(record)
         if record["order_status"] == "delivered":
             raise ValueError("已发货订单不可修改")
         payload = data.model_dump(exclude_none=True)
@@ -72,6 +73,7 @@ class OrderService:
         record = OrderRepository.get_order_by_id(order_id)
         if record is None:
             raise LookupError(f"订单 {order_id} 不存在")
+        self._check_not_frozen(record)
         if record["order_status"] == "delivered":
             raise ValueError("订单已出库，无需重复操作")
 
@@ -151,9 +153,131 @@ class OrderService:
     # Delete Order
     # ==================================================================
 
+    def _check_not_frozen(self, order: dict) -> None:
+        if order.get("edit_status") == "frozen":
+            raise ValueError("订单已冻结，无法操作")
+
     def delete_order(self, order_id: int) -> dict[str, Any]:
+        record = OrderRepository.get_order_by_id(order_id)
+        if record is None:
+            raise LookupError(f"订单 {order_id} 不存在")
+        self._check_not_frozen(record)
+        if record["payment_status"] == "paid":
+            raise ValueError("订单已付款，请先退款后再取消")
         OrderRepository.delete_order(order_id)
-        return mutation_response("订单已删除")
+        return mutation_response("订单已取消")
+
+    def refund(self, order_id: int) -> dict[str, Any]:
+        record = OrderRepository.get_order_by_id(order_id)
+        if record is None:
+            raise LookupError(f"订单 {order_id} 不存在")
+        if record["payment_status"] != "paid":
+            raise ValueError("仅已付款订单可退款")
+        OrderRepository.update_order_payment_status(order_id, "refunded")
+        return mutation_response("已退款")
+
+    def freeze(self, order_id: int) -> dict[str, Any]:
+        record = OrderRepository.get_order_by_id(order_id)
+        if record is None:
+            raise LookupError(f"订单 {order_id} 不存在")
+        if record["order_status"] == "cancelled":
+            raise ValueError("已取消订单无需冻结")
+        OrderRepository.update_order_edit_status(order_id, "frozen")
+        return mutation_response("订单已冻结")
+
+    def unfreeze(self, order_id: int) -> dict[str, Any]:
+        record = OrderRepository.get_order_by_id(order_id)
+        if record is None:
+            raise LookupError(f"订单 {order_id} 不存在")
+        if record.get("edit_status") != "frozen":
+            raise ValueError("订单未被冻结")
+        OrderRepository.update_order_edit_status(order_id, None)
+        return mutation_response("订单已解冻")
+    # ==================================================================
+    # Batch Operations
+    # ==================================================================
+
+    # 状态流转规则：只允许正向推进
+    _FORWARD_TRANSITIONS = {
+        "pending": ["sorting", "cancelled"],
+        "sorting": ["in_delivery", "cancelled"],
+        "in_delivery": ["delivered"],
+        "delivered": ["arrived"],
+        "arrived": [],       # 终态
+        "cancelled": [],     # 终态
+    }
+
+    def batch_operate(self, order_ids: list[int], action: str) -> dict[str, Any]:
+        VALID_ACTIONS = {
+            "confirm_outbound", "cancel", "undo_outbound", "delete",
+            "set_sorting", "set_in_delivery", "set_arrived",
+        }
+        if not order_ids:
+            raise ValueError("请选择至少一个订单")
+        if action not in VALID_ACTIONS:
+            raise ValueError(f"不支持的操作: {action}")
+
+        # 预检查所有订单
+        orders = {}
+        for oid in order_ids:
+            record = OrderRepository.get_order_by_id(oid)
+            if record is None:
+                raise LookupError(f"订单 {oid} 不存在")
+            orders[oid] = record
+
+        # 状态校验
+        for oid, order in orders.items():
+            st = order["order_status"]
+            if action == "confirm_outbound" and st != "in_delivery":
+                raise ValueError(f"订单 {oid} 状态为 {st}，需先改为「配送中」才能确认出库")
+            if action == "undo_outbound" and st != "delivered":
+                raise ValueError(f"订单 {oid} 不是「已出库」状态，无法撤销")
+            if action == "cancel" and st not in ("pending", "sorting"):
+                raise ValueError(f"订单 {oid} 状态为 {st}，无法取消")
+            if action == "delete" and st != "cancelled":
+                raise ValueError(f"订单 {oid} 状态为 {st}，只能删除已取消订单")
+            if action == "set_sorting":
+                self._check_forward(order["order_status"], "sorting", oid)
+            if action == "set_in_delivery":
+                self._check_forward(order["order_status"], "in_delivery", oid)
+            if action == "set_arrived":
+                self._check_forward(order["order_status"], "arrived", oid)
+
+        # 执行
+        for oid in order_ids:
+            if action == "confirm_outbound":
+                self.confirm_outbound(oid)
+            elif action == "cancel":
+                OrderRepository.update_order_status(oid, "cancelled")
+            elif action == "undo_outbound":
+                self.undo_outbound(oid)
+            elif action == "delete":
+                OrderRepository.delete_order(oid)
+            elif action == "set_sorting":
+                OrderRepository.update_order_status(oid, "sorting")
+            elif action == "set_in_delivery":
+                OrderRepository.update_order_status(oid, "in_delivery")
+            elif action == "set_arrived":
+                OrderRepository.update_order_status(oid, "arrived")
+
+        labels = {
+            "confirm_outbound": "已批量确认出库", "cancel": "已批量取消",
+            "undo_outbound": "已批量撤销出库", "delete": "已批量删除",
+            "set_sorting": "已批量改为分拣中", "set_in_delivery": "已批量改为配送中",
+            "set_arrived": "已批量改为已送达",
+        }
+        return {"success": True, "affected": len(order_ids),
+                "message": f"{labels.get(action, '操作完成')}，共 {len(order_ids)} 个订单"}
+
+    def _check_forward(self, current: str, target: str, oid: int) -> None:
+        allowed = self._FORWARD_TRANSITIONS.get(current, [])
+        if target not in allowed:
+            raise ValueError(
+                f"订单 {oid} 当前状态为「{current}」，"
+                f"不能直接改为「{target}」。"
+                f"允许的下一步: {allowed}"
+            )
+
 
     # ==================================================================
     # Copy Order
@@ -319,6 +443,8 @@ class OrderService:
             "order_date": record["order_date"],
             "order_amount": record.get("order_amount", 0),
             "order_status": record.get("order_status"),
+            "payment_status": record.get("payment_status"),
+            "edit_status": record.get("edit_status"),
             "outbound_status": record.get("outbound_status"),
             "remark": record.get("remark"),
             "created_at": record["created_at"],

@@ -15,8 +15,17 @@ tags: [mysql, sqlite, database, migration]
 | 初期 | 项目使用 SQLite 开发 |
 | 2026-05 | MySQL 双写开始（部分表） |
 | 2026-06-05 | 首次迁移：20 张核心表到 MySQL |
-| 2026-06-07 | **SQLite 完全删除**，项目切换纯 MySQL |
-| 2026-06-07 | `mysql_schema.py` 从 34 张扩展到 59 张表 |
+| 2026-06-07 | SQLite 删除，项目切换纯 MySQL |
+| 2026-06-08 | **SQLite 彻底废弃**，`APP_DB_DRIVER` 默认 `mysql`，密码延迟加载修复 |
+
+## 2026-06-08 修复清单
+
+| 问题 | 修复 |
+|------|------|
+| 密码在 `load_project_env()` 前读取 | `_create_mysql_connection()` 中动态 `os.getenv` |
+| TEXT 列不能做索引 | 所有 KEY + UNIQUE KEY 加 `(N)` 长度 |
+| TEXT 列不能有 DEFAULT | 改为 VARCHAR 或 `DEFAULT ('')` |
+| `key` 是 MySQL 保留字 | Config 表改为 `` `key` `` |
 
 ## 关键文件
 

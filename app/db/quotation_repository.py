@@ -74,7 +74,7 @@ class QuotationRepository:
             cursor = conn.cursor()
             try:
                 cursor.execute(
-                    "SELECT COALESCE(MAX(CAST(SUBSTR(code, -3) AS INTEGER)), 0) + 1 AS seq "
+                    "SELECT COALESCE(MAX(CAST(SUBSTR(code, -3) AS SIGNED)), 0) + 1 AS seq "
                     "FROM Quotation WHERE code LIKE ?",
                     (f"QUO-{today}-%",),
                 )

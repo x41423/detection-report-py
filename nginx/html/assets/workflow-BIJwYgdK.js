@@ -1,0 +1,1 @@
+import{st as e}from"./index-DpAGxftT.js";function t(e,t,n=`info`){e.value?.append(t,n)}function n(e){e.value?.clear()}async function r(t){await e(t)}export{n,r,t};

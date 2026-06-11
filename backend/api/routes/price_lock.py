@@ -21,7 +21,7 @@ def _raise(exc: Exception) -> None:
     raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@router.get("/", dependencies=[Depends(require_permission("supplier:view"))])
+@router.get("/", dependencies=[Depends(require_permission("price_lock:view"))])
 def list_rules(
     search: str = Query(default=""),
     status: str | None = Query(default=None),
@@ -34,7 +34,7 @@ def list_rules(
         _raise(exc)
 
 
-@router.post("/", response_model=PriceLockResponse, dependencies=[Depends(require_permission("supplier:create"))])
+@router.post("/", response_model=PriceLockResponse, dependencies=[Depends(require_permission("price_lock:create"))])
 def create_rule(data: PriceLockCreate):
     try:
         result = service.create(data)
@@ -43,7 +43,7 @@ def create_rule(data: PriceLockCreate):
         _raise(exc)
 
 
-@router.get("/{rule_id}", response_model=PriceLockResponse, dependencies=[Depends(require_permission("supplier:view"))])
+@router.get("/{rule_id}", response_model=PriceLockResponse, dependencies=[Depends(require_permission("price_lock:view"))])
 def get_rule(rule_id: int):
     try:
         return service.get(rule_id)
@@ -51,7 +51,7 @@ def get_rule(rule_id: int):
         _raise(exc)
 
 
-@router.put("/{rule_id}", response_model=PriceLockResponse, dependencies=[Depends(require_permission("supplier:edit"))])
+@router.put("/{rule_id}", response_model=PriceLockResponse, dependencies=[Depends(require_permission("price_lock:update"))])
 def update_rule(rule_id: int, data: PriceLockUpdate):
     try:
         return service.update(rule_id, data)
@@ -59,7 +59,7 @@ def update_rule(rule_id: int, data: PriceLockUpdate):
         _raise(exc)
 
 
-@router.delete("/{rule_id}", dependencies=[Depends(require_permission("supplier:edit"))])
+@router.delete("/{rule_id}", dependencies=[Depends(require_permission("price_lock:update"))])
 def deactivate_rule(rule_id: int):
     try:
         return service.deactivate(rule_id)

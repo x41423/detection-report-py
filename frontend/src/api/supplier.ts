@@ -69,29 +69,29 @@ export interface SupplierUpdateForm {
 export function getSuppliers(params?: {
   search?: string; status?: string; supplier_type?: string; level?: string; limit?: number; offset?: number
 }) {
-  return api.get<ListResponse<Supplier>>('/api/supplier/', { params })
+  return api.get<ListResponse<Supplier>>('/api/merchant/', { params })
 }
 
 export function getSupplier(id: number) {
-  return api.get<Supplier>(`/api/supplier/${id}`)
+  return api.get<Supplier>(`/api/merchant/${id}`)
 }
 
 export function createSupplier(data: SupplierCreateForm) {
-  return api.post<MutationResponse & { id: number; code: string }>('/api/supplier/', data)
+  return api.post<MutationResponse & { id: number; code: string }>('/api/merchant/', data)
 }
 
 export function updateSupplier(id: number, data: SupplierUpdateForm) {
-  return api.put<MutationResponse>(`/api/supplier/${id}`, data)
+  return api.put<MutationResponse>(`/api/merchant/${id}`, data)
 }
 
 export function deleteSupplier(id: number) {
-  return api.delete<MutationResponse>(`/api/supplier/${id}`)
+  return api.delete<MutationResponse>(`/api/merchant/${id}`)
 }
 
 export function activateSupplier(id: number) {
-  return api.post<MutationResponse>(`/api/supplier/${id}/activate`)
+  return api.post<MutationResponse>(`/api/merchant/${id}/activate`)
 }
 
 export function hardDeleteSupplier(id: number) {
-  return api.delete<MutationResponse>(`/api/supplier/${id}/hard`)
+  return api.delete<MutationResponse>(`/api/merchant/${id}/hard`)
 }

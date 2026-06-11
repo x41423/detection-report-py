@@ -26,7 +26,7 @@ def _headers(client: TestClient) -> dict[str, str]:
 
 def _create_supplier(client: TestClient) -> int:
     resp = client.post(
-        "/api/supplier/",
+        "/api/merchant/",
         json={"name": "采购测试供应商"},
         headers=_headers(client),
     )

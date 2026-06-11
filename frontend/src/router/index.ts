@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import { trackAudit } from '../api/audit'
 import { useAuth } from '../composables/useAuth'
+import { useRouteLoadingBar } from '../composables/useLoadingBar'
 import { appRoutes } from '../navigation/appNavigation'
 import { installAuthGuard } from './authGuard'
 
@@ -11,6 +12,18 @@ const router = createRouter({
 })
 
 installAuthGuard(router)
+
+// ── 全局 loading 条 ──
+const loadingBar = useRouteLoadingBar()
+
+router.beforeEach((_to, _from) => {
+  loadingBar.start()
+})
+
+// 用 afterEach 而非 beforeResolve，确保 chunk 加载 + 组件渲染都完成
+router.afterEach(() => {
+  loadingBar.done()
+})
 
 // Page-view audit: fire-and-forget after each authenticated navigation.
 router.afterEach((to, from) => {

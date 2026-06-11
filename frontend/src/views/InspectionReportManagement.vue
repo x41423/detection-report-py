@@ -70,8 +70,11 @@
         <el-table-column prop="product_count" label="关联商品" width="90" align="center" />
         <el-table-column prop="uploader_name" label="上传人" width="100" />
         <el-table-column prop="created_at" label="上传时间" width="160" />
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
+            <el-button v-if="row.file_url" link type="primary" size="small" @click.stop="openPreview(row.file_url, row.name)" title="预览文件">
+              <el-icon><View /></el-icon>
+            </el-button>
             <el-button link type="primary" size="small" @click.stop="openEdit(row)">编辑</el-button>
             <el-popconfirm title="确定删除？" @confirm="handleDelete(row.id)">
               <template #reference>
@@ -200,8 +203,12 @@
         </el-descriptions>
 
         <div v-if="detail.file_url" style="margin-top:12px">
-          <el-button link type="primary" @click="window.open(detail.file_url, '_blank')">
-            查看/下载报告文件
+          <el-button type="primary" @click="openPreview(detail.file_url, detail.name)">
+            <el-icon><View /></el-icon>
+            预览报告文件
+          </el-button>
+          <el-button style="margin-left:8px" @click="window.open(detail.file_url, '_blank')">
+            新窗口打开
           </el-button>
         </div>
 
@@ -216,15 +223,23 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- File Preview Dialog -->
+    <FilePreviewDialog
+      v-model:visible="previewVisible"
+      :src="previewSrc"
+      :file-name="previewFileName"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, View } from '@element-plus/icons-vue'
 import type { UploadFile, UploadRawFile } from 'element-plus'
 import PageHero from '../components/PageHero.vue'
+import FilePreviewDialog from '../components/FilePreviewDialog.vue'
 import { useAuth } from '../composables/useAuth'
 import {
   getReports,
@@ -394,6 +409,17 @@ async function openDetail(row: InspectionReport) {
     detail.value = (data as any).item ?? data
     detailVisible.value = true
   } catch (e: any) { /* non-critical */ }
+}
+
+// ── File Preview ──
+const previewVisible = ref(false)
+const previewSrc = ref('')
+const previewFileName = ref('')
+
+function openPreview(url: string, name: string) {
+  previewSrc.value = url
+  previewFileName.value = name || '检测报告'
+  previewVisible.value = true
 }
 
 onMounted(() => {

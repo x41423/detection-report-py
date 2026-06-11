@@ -1,9 +1,9 @@
 <template>
   <section class="page-hero" :class="[`tone-${tone}`]">
     <div class="page-hero__copy">
-      <div class="page-hero__eyebrow">{{ eyebrow }}</div>
+      <div v-if="eyebrow" class="page-hero__eyebrow">{{ eyebrow }}</div>
       <h1 class="page-hero__title">{{ title }}</h1>
-      <p class="page-hero__description">{{ description }}</p>
+      <p class="page-hero__description">{{ subtitle || description }}</p>
 
       <div v-if="$slots.actions" class="page-hero__actions">
         <slot name="actions" />
@@ -19,12 +19,16 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    eyebrow: string
+    eyebrow?: string
     title: string
-    description: string
+    description?: string
+    subtitle?: string
     tone?: 'teal' | 'orange' | 'green' | 'sun'
   }>(),
   {
+    eyebrow: '',
+    description: '',
+    subtitle: '',
     tone: 'teal',
   },
 )

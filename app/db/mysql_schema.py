@@ -49,7 +49,7 @@ MYSQL_SCHEMA_STATEMENTS = [
     """,
     """
     CREATE TABLE IF NOT EXISTS Config (
-        key TEXT,
+        `key` TEXT,
         value TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -70,7 +70,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         operator TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY sqlite_autoindex_Coupon_1 (code)
+        UNIQUE KEY sqlite_autoindex_Coupon_1 (code(200))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -115,7 +115,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         status TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY sqlite_autoindex_DeliveryRoute_1 (code)
+        UNIQUE KEY sqlite_autoindex_DeliveryRoute_1 (code(200))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -162,9 +162,9 @@ MYSQL_SCHEMA_STATEMENTS = [
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_ir_test_date (test_date),
         KEY idx_ir_status (status),
-        KEY idx_ir_supplier (supplier_id),
+        KEY idx_ir_merchant (supplier_id),
         KEY idx_ir_report_no (report_no),
-        UNIQUE KEY sqlite_autoindex_InspectionReport_1 (report_no)
+        UNIQUE KEY sqlite_autoindex_InspectionReport_1 (report_no(200))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -211,7 +211,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_by TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY sqlite_autoindex_LossReport_1 (report_no)
+        UNIQUE KEY sqlite_autoindex_LossReport_1 (report_no(200))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -473,7 +473,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         fixed_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        KEY idx_product_name (name),
+        KEY idx_product_name (name(100)),
         KEY idx_product_is_active (is_active),
         KEY idx_product_category (category_id),
         KEY idx_product_code (code),
@@ -536,7 +536,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_purchase_in_record_date (inbound_date),
-        KEY idx_purchase_in_record_supplier (supplier_id),
+        KEY idx_purchase_in_record_merchant (supplier_id),
         UNIQUE KEY sqlite_autoindex_PurchaseInRecord_1 (order_no)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
@@ -566,7 +566,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_purchase_return_record_date (return_date),
-        KEY idx_purchase_return_record_supplier (supplier_id),
+        KEY idx_purchase_return_record_merchant (supplier_id),
         UNIQUE KEY sqlite_autoindex_PurchaseReturnRecord_1 (order_no)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
@@ -586,7 +586,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         description TEXT,
         created_at TEXT,
         updated_at TEXT,
-        KEY idx_quotation_name (name),
+        KEY idx_quotation_name (name(100)),
         KEY idx_quotation_status (status),
         UNIQUE KEY sqlite_autoindex_Quotation_1 (code)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -631,7 +631,7 @@ MYSQL_SCHEMA_STATEMENTS = [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
-    CREATE TABLE IF NOT EXISTS Supplier (
+    CREATE TABLE IF NOT EXISTS Merchant (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         code TEXT,
         name TEXT,
@@ -659,13 +659,13 @@ MYSQL_SCHEMA_STATEMENTS = [
         freeze_status BIGINT DEFAULT 0,
         approval_status BIGINT DEFAULT 1,
         sorting_priority BIGINT DEFAULT 0,
-        KEY idx_supplier_name (name),
-        KEY idx_supplier_status (status),
-        UNIQUE KEY sqlite_autoindex_Supplier_1 (code)
+        KEY idx_merchant_name (name(100)),
+        KEY idx_merchant_status (status(20)),
+        UNIQUE KEY sqlite_autoindex_Merchant_1 (code(200))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
-    CREATE TABLE IF NOT EXISTS SupplierProductPrice (
+    CREATE TABLE IF NOT EXISTS MerchantProductPrice (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         supplier_id BIGINT,
         product_id BIGINT,
@@ -677,11 +677,11 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_spp_product (product_id),
-        KEY idx_spp_supplier (supplier_id)
+        KEY idx_spp_merchant (supplier_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
-    CREATE TABLE IF NOT EXISTS SupplierSettlement (
+    CREATE TABLE IF NOT EXISTS MerchantSettlement (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         supplier_id BIGINT,
         settlement_period TEXT,
@@ -696,8 +696,75 @@ MYSQL_SCHEMA_STATEMENTS = [
         operator TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        KEY idx_supplier_settlement_period (settlement_period),
-        KEY idx_supplier_settlement_supplier (supplier_id)
+        KEY idx_merchant_settlement_period (settlement_period(50)),
+        KEY idx_merchant_settlement_merchant (supplier_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS Supplier (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_code VARCHAR(50) NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        company_name VARCHAR(200),
+        contact_address VARCHAR(300),
+        remark VARCHAR(500),
+        default_purchaser VARCHAR(50),
+        linked_station VARCHAR(100),
+        settlement_cycle VARCHAR(20) DEFAULT '日结',
+        invoice_type VARCHAR(30) DEFAULT '普票或无票',
+        sales_purchase_settlement BIGINT DEFAULT 0,
+        business_license VARCHAR(50),
+        bank_account_name VARCHAR(100),
+        bank_name VARCHAR(100),
+        bank_account VARCHAR(50),
+        supplier_nature VARCHAR(20) DEFAULT '普通',
+        purchase_auto_sync BIGINT DEFAULT 0,
+        geo_location VARCHAR(500),
+        qualification_images TEXT DEFAULT ('[]'),
+        payment_qr TEXT,
+        status VARCHAR(20) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY idx_supplier_code (supplier_code(50))
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS SupplierCategory (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_id BIGINT NOT NULL,
+        category_id BIGINT NOT NULL,
+        UNIQUE KEY idx_sc_unique (supplier_id, category_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS SupplierProduct (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_id BIGINT NOT NULL,
+        product_id BIGINT NOT NULL,
+        UNIQUE KEY idx_sp_unique (supplier_id, product_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS SupplierContact (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_id BIGINT NOT NULL,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        role TEXT,
+        is_default BIGINT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS SupplierContract (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        supplier_id BIGINT NOT NULL,
+        contract_no TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        file_url TEXT,
+        status VARCHAR(20) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -706,7 +773,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         name TEXT,
         description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY sqlite_autoindex_Unit_1 (name)
+        UNIQUE KEY sqlite_autoindex_Unit_1 (name(100))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -728,7 +795,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         category TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY sqlite_autoindex_Veg_1 (name)
+        UNIQUE KEY sqlite_autoindex_Veg_1 (name(100))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
@@ -772,11 +839,11 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_weekly_quote_measure_unit_order (sort_order, id),
-        UNIQUE KEY sqlite_autoindex_WeeklyQuoteMeasureUnitOption_1 (name)
+        UNIQUE KEY sqlite_autoindex_WeeklyQuoteMeasureUnitOption_1 (name(100))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """
-    CREATE TABLE IF NOT EXISTS WeeklyQuoteSupplierConfig (
+    CREATE TABLE IF NOT EXISTS WeeklyQuoteMerchantConfig (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         name TEXT,
         weekly_batch_limit BIGINT DEFAULT 7,
@@ -786,7 +853,7 @@ MYSQL_SCHEMA_STATEMENTS = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         KEY idx_weekly_quote_supplier_config_order (sort_order, id),
-        UNIQUE KEY sqlite_autoindex_WeeklyQuoteSupplierConfig_1 (name)
+        UNIQUE KEY sqlite_autoindex_WeeklyQuoteMerchantConfig_1 (name(100))
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """,
     """

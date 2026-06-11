@@ -37,20 +37,20 @@ class AgreementUpdate(BaseModel):
     is_active: int | None = None
 
 
-@router.get("/", dependencies=[Depends(require_permission("supplier:view"))])
+@router.get("/", dependencies=[Depends(require_permission("agreement_price:view"))])
 def list_agreements(limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0)):
     items = simple_list(TABLE, limit, offset)
     total = len(simple_list(TABLE, 1000, 0))
     return {"success": True, "message": f"共{total}条", "items": items, "total": total}
 
 
-@router.post("/", dependencies=[Depends(require_permission("supplier:create"))])
+@router.post("/", dependencies=[Depends(require_permission("agreement_price:create"))])
 def create_agreement(body: AgreementCreate):
     aid = simple_create(TABLE, COLS, body.model_dump())
     return {"success": True, "message": "已创建", "id": aid}
 
 
-@router.put("/{aid}", dependencies=[Depends(require_permission("supplier:edit"))])
+@router.put("/{aid}", dependencies=[Depends(require_permission("agreement_price:update"))])
 def update_agreement(aid: int, body: AgreementUpdate):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if not data:
@@ -61,7 +61,7 @@ def update_agreement(aid: int, body: AgreementUpdate):
     return {"success": True, "message": "已更新"}
 
 
-@router.delete("/{aid}", dependencies=[Depends(require_permission("supplier:delete"))])
+@router.delete("/{aid}", dependencies=[Depends(require_permission("agreement_price:delete"))])
 def delete_agreement(aid: int):
     ok = simple_delete(TABLE, aid)
     if not ok:

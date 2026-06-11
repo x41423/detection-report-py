@@ -29,20 +29,20 @@ class MarkupUpdate(BaseModel):
     is_active: int | None = None
 
 
-@router.get("/", dependencies=[Depends(require_permission("supplier:view"))])
+@router.get("/", dependencies=[Depends(require_permission("price_markup:view"))])
 def list_markups(limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0)):
     items = simple_list(TABLE, limit, offset)
     total = len(simple_list(TABLE, 1000, 0))
     return {"success": True, "items": items, "total": total}
 
 
-@router.post("/", dependencies=[Depends(require_permission("supplier:create"))])
+@router.post("/", dependencies=[Depends(require_permission("price_markup:create"))])
 def create_markup(body: MarkupCreate):
     mid = simple_create(TABLE, COLS, body.model_dump())
     return {"success": True, "message": "已创建", "id": mid}
 
 
-@router.put("/{mid}", dependencies=[Depends(require_permission("supplier:edit"))])
+@router.put("/{mid}", dependencies=[Depends(require_permission("price_markup:update"))])
 def update_markup(mid: int, body: MarkupUpdate):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
     if not data:
@@ -53,7 +53,7 @@ def update_markup(mid: int, body: MarkupUpdate):
     return {"success": True, "message": "已更新"}
 
 
-@router.delete("/{mid}", dependencies=[Depends(require_permission("supplier:delete"))])
+@router.delete("/{mid}", dependencies=[Depends(require_permission("price_markup:delete"))])
 def delete_markup(mid: int):
     ok = simple_delete(TABLE, mid)
     if not ok:

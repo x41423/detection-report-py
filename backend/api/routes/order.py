@@ -188,3 +188,69 @@ def list_after_sales(order_id: int):
         return service.get_after_sales(order_id)
     except LookupError as exc:
         _raise(exc)
+
+
+# ==================================================================
+# Order Protection
+# ==================================================================
+
+@router.post(
+    "/{order_id}/refund",
+    dependencies=[Depends(require_permission("order:update"))],
+)
+def refund_order(order_id: int):
+    """标记订单已退款（paid → refunded）"""
+    try:
+        return service.refund(order_id)
+    except (ValueError, LookupError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{order_id}/freeze",
+    dependencies=[Depends(require_permission("order:update"))],
+)
+def freeze_order(order_id: int):
+    """冻结订单"""
+    try:
+        return service.freeze(order_id)
+    except (ValueError, LookupError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{order_id}/unfreeze",
+    dependencies=[Depends(require_permission("order:update"))],
+)
+def unfreeze_order(order_id: int):
+    """解冻订单"""
+    try:
+        return service.unfreeze(order_id)
+    except (ValueError, LookupError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+# ==================================================================
+# Batch Operations
+# ==================================================================
+
+@router.post(
+    "/batch",
+    dependencies=[Depends(require_permission("order:update"))],
+)
+def batch_operate(payload: dict):
+    """批量操作订单。
+    
+    请求体: {"order_ids": [1,2,3], "action": "confirm_outbound|cancel|undo_outbound|delete"}
+    返回: {"success": true, "affected": N, "message": "..."}
+    """
+    try:
+        return service.batch_operate(
+            order_ids=payload.get("order_ids", []),
+            action=payload.get("action", ""),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+

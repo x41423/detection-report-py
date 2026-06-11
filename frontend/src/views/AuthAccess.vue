@@ -138,7 +138,7 @@
           class="auth-dialog__item"
         >
           <div class="auth-dialog__item-name">{{ device.device_name || '未命名设备' }}</div>
-          <div class="auth-dialog__item-meta">{{ device.user_agent || '未知客户端' }} · 最近活跃 {{ device.last_active_at || '—' }}</div>
+          <div class="auth-dialog__item-meta">{{ shortUA(device.user_agent) }} · 最近活跃 {{ device.last_active_at || '—' }}</div>
         </el-radio>
       </el-radio-group>
       <template #footer>
@@ -205,6 +205,25 @@ function onFieldFocus(_field: string) {
 
 function onFieldBlur() {
   formState.isTyping = false
+}
+
+/** 把 User Agent 精简为「浏览器 · OS」短格式 */
+function shortUA(ua: string | null | undefined): string {
+  if (!ua) return '未知客户端'
+  let browser = ''
+  if (ua.includes('Edg/')) browser = 'Edge ' + (ua.match(/Edg\/(\d+)/)?.[1] || '')
+  else if (ua.includes('Chrome/')) browser = 'Chrome ' + (ua.match(/Chrome\/(\d+)/)?.[1] || '')
+  else if (ua.includes('Firefox/')) browser = 'Firefox ' + (ua.match(/Firefox\/(\d+)/)?.[1] || '')
+  else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari'
+  else browser = '浏览器'
+  let os = ''
+  if (ua.includes('Windows NT 10')) os = 'Win10'
+  else if (ua.includes('Windows NT')) os = 'Win'
+  else if (ua.includes('Mac OS X')) os = 'Mac'
+  else if (ua.includes('Android')) os = 'Android'
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS'
+  else if (ua.includes('Linux')) os = 'Linux'
+  return [browser, os].filter(Boolean).join(' · ') || ua.slice(0, 30)
 }
 
 function onInput() {
@@ -602,6 +621,10 @@ async function redirectAfterLogin() {
   margin-top: 2px;
   color: #999;
   font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 @media (max-width: 900px) {

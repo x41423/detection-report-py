@@ -18,7 +18,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_DIR))
 
 from backend.env import load_project_env  # noqa: E402
-from shared.logging_utils import configure_application_logging  # noqa: E402
+from shared.logging_utils import configure_application_logging, configure_access_logger  # noqa: E402
 
 load_project_env()
 
@@ -30,7 +30,8 @@ os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "0")
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
-configure_application_logging("backend.log", include_stream=True)
+configure_application_logging(ROOT_DIR / "logs", include_stream=True)
+configure_access_logger(ROOT_DIR / "logs")
 
 from app.db import init_database  # noqa: E402
 
@@ -91,7 +92,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="检测工具 API", version="1.0.0", lifespan=lifespan)
 
-from backend.middleware import AuditMiddleware  # noqa: E402 - after app init
+from backend.middleware import AuditMiddleware, RequestLogMiddleware  # noqa: E402 - after app init
 
 app.add_middleware(AuditMiddleware)
 
@@ -110,8 +111,11 @@ app.add_middleware(
         "X-Updated-Count",
         "X-Generated-Count",
         "X-Skipped-Count",
+        "X-Request-ID",
     ),
 )
+
+app.add_middleware(RequestLogMiddleware)
 
 for module_name, prefix, tags in [
     ("backend.api.routes.auth", "/api/auth", ["Auth"]),
@@ -124,6 +128,7 @@ for module_name, prefix, tags in [
     ("backend.api.routes.transfer", "/api/transfer", ["数据迁移"]),
     ("backend.api.routes.pesticide", "/api/pesticide", ["农残检测"]),
     ("backend.api.routes.smart_detection", "/api/pesticide", ["农残检测-智能"]),
+    ("backend.api.routes.merchant", "/api/merchant", ["商户管理"]),
     ("backend.api.routes.supplier", "/api/supplier", ["供应商管理"]),
     ("backend.api.routes.purchase", "/api/purchase", ["采购管理"]),
     ("backend.api.routes.order", "/api/order", ["订单管理"]),
@@ -144,6 +149,8 @@ for module_name, prefix, tags in [
     ("backend.funasr_lab.router", "", ["FunASR 实验"]),
     ("backend.api.routes.mimo", "/api", ["MiMo"]),
     ("backend.api.routes.storage", "", ["文件存储"]),
+    ("backend.api.routes.system_monitor", "/api/system", ["中控台"]),
+    ("backend.api.routes.log_viewer", "/api/system", ["中控台"]),
 ]:
     router = _load_router(module_name)
     if router is None:

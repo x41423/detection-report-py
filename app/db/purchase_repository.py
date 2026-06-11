@@ -18,7 +18,7 @@ class PurchaseRepository:
     def _generate_in_code(cursor: Any) -> str:
         today = date.today().strftime("%Y%m%d")
         cursor.execute(
-            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS INTEGER)), 0) + 1 AS seq "
+            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS SIGNED)), 0) + 1 AS seq "
             "FROM PurchaseInRecord WHERE order_no LIKE ?",
             (f"PIN-{today}-%",),
         )
@@ -30,7 +30,7 @@ class PurchaseRepository:
     def _generate_return_code(cursor: Any) -> str:
         today = date.today().strftime("%Y%m%d")
         cursor.execute(
-            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS INTEGER)), 0) + 1 AS seq "
+            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS SIGNED)), 0) + 1 AS seq "
             "FROM PurchaseReturnRecord WHERE order_no LIKE ?",
             (f"PRT-{today}-%",),
         )
@@ -114,7 +114,7 @@ class PurchaseRepository:
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         return query(
             f"SELECT r.*, s.name AS supplier_name "
-            f"FROM PurchaseInRecord r JOIN Supplier s ON s.id = r.supplier_id "
+            f"FROM PurchaseInRecord r JOIN Merchant s ON s.id = r.supplier_id "
             f"{where} ORDER BY r.created_at DESC LIMIT ? OFFSET ?",
             (*params, limit, offset),
         )
@@ -228,7 +228,7 @@ class PurchaseRepository:
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
         return query(
             f"SELECT r.*, s.name AS supplier_name "
-            f"FROM PurchaseReturnRecord r JOIN Supplier s ON s.id = r.supplier_id "
+            f"FROM PurchaseReturnRecord r JOIN Merchant s ON s.id = r.supplier_id "
             f"{where} ORDER BY r.created_at DESC LIMIT ? OFFSET ?",
             (*params, limit, offset),
         )

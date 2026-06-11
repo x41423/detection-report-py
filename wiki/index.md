@@ -1,7 +1,7 @@
 # Wiki Index
 
 > Content catalog. Every wiki page listed under its type with a one-line summary.
-> Last updated: 2026-06-07 | Total pages: 18
+> Last updated: 2026-06-11 | Total pages: 21
 
 ## 实体
 
@@ -14,16 +14,19 @@
 - [[entities/pesticide-detection]] — 农残检测（单次/月度批量、模板管理、报告生成）
 - [[entities/product-management]] — 商品管理（CRUD、分类、上下架）
 - [[entities/purchase-management]] — 采购管理（入库/退货、库存同步）
-- [[entities/supplier-management]] — 供应商管理（详情页、结算配置、交易概况、启用/停用）
+- [[entities/supplier-management]] — 商户管理（原"供应商管理"，2026-06-08 重命名）
+- [[entities/supplier-management-new]] — 供应商管理（上游供货商，观麦结构，2026-06-08 新建）
 - [[entities/weekly-price]] — 每周报价（粘贴双模式、别名库、预检匹配）
 
 ## 名词
 
 - [[concepts/auth-and-permissions]] — 认证与权限系统（JWT、权限依赖、审计中间件）
 - [[concepts/convention-pitfalls]] — 12 项开发约定与已知坑
+- [[concepts/file-preview]] — 文件预览统一组件（PDF/Word/Excel/图片/CSV/文本，一次开发全局复用）
 - [[concepts/inventory-sync]] — 库存同步机制（OUT/IN/UNDO 交易恢复）
 - [[concepts/pricing-center]] — 报价中心（锁价/协议价/上浮/报价单/改单审核）
 - [[concepts/settlement-flow]] — 结算业务流程（结款周期、日期维度、账期计算）
+- [[concepts/test-data-cleanup]] — 功能试用数据清理（3 种模式，一键恢复干净状态）
 
 ## 对向→比较
 

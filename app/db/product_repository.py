@@ -21,7 +21,7 @@ class ProductRepository:
         """Generate product code: SPU-YYYYMMDD-NNN."""
         today = date.today().strftime("%Y%m%d")
         cursor.execute(
-            "SELECT COALESCE(MAX(CAST(SUBSTR(code, -3) AS INTEGER)), 0) + 1 AS seq "
+            "SELECT COALESCE(MAX(CAST(SUBSTR(code, -3) AS SIGNED)), 0) + 1 AS seq "
             "FROM Product WHERE code LIKE ?",
             (f"SPU-{today}-%",),
         )

@@ -276,11 +276,13 @@ def _create_mysql_connection() -> MySQLConnectionAdapter:
         raise RuntimeError("APP_DB_DRIVER=mysql requires PyMySQL to be installed")
     if not MYSQL_DATABASE or not MYSQL_USER:
         raise RuntimeError("MySQL database and user must be configured for APP_DB_DRIVER=mysql")
+    # 密码在连接时读取，支持 load_project_env() 延迟加载
+    password = os.getenv("APP_DB_MYSQL_PASSWORD", os.getenv("MYSQL_PASSWORD", MYSQL_PASSWORD)).strip()
     connection = pymysql.connect(
         host=MYSQL_HOST,
         port=MYSQL_PORT,
         user=MYSQL_USER,
-        password=MYSQL_PASSWORD,
+        password=password,
         database=MYSQL_DATABASE,
         charset=MYSQL_CHARSET,
         cursorclass=DictCursor,
@@ -341,8 +343,57 @@ def _is_mysql_connection_error(exc: Exception) -> bool:
     )
 
 
-def _migrate_supplier_columns(cursor: sqlite3.Cursor) -> None:
-    """Add columns that may be missing from older Supplier table definitions."""
+def _run_supplier_to_merchant_migration(cursor: sqlite3.Cursor) -> None:
+    """自动迁移v2: 将旧 Supplier 表重命名为 Merchant，创建新 Supplier 表。
+
+    仅重命名表名。每一步独立幂等——已存在的跳过。
+    """
+    # Step 1: 重命名主表（保留所有列名不变）
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Supplier'")
+    if cursor.fetchone():
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Merchant'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE Supplier RENAME TO Merchant")
+
+    # Step 2: 重命名依赖表（每张表独立检查+重命名）
+    for old_t, new_t in [
+        ("SupplierProductPrice", "MerchantProductPrice"),
+        ("SupplierSettlement", "MerchantSettlement"),
+        ("WeeklyQuoteSupplierConfig", "WeeklyQuoteMerchantConfig"),
+    ]:
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (old_t,))
+        if cursor.fetchone():
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (new_t,))
+            if not cursor.fetchone():
+                cursor.execute(f"ALTER TABLE {old_t} RENAME TO {new_t}")
+
+    # Step 3: 逆向修复 v1 迁移遗留——把 merchant_id 改回 supplier_id
+    for table in ["PurchaseInRecord", "PurchaseReturnRecord", "InspectionReport",
+                  "MerchantProductPrice", "MerchantSettlement"]:
+        cursor.execute(f"PRAGMA table_info({table})")
+        cols = {r[1] for r in cursor.fetchall()}
+        if "merchant_id" in cols and "supplier_id" not in cols:
+            try:
+                cursor.execute(f"ALTER TABLE {table} RENAME COLUMN merchant_id TO supplier_id")
+            except sqlite3.OperationalError:
+                pass
+
+    # 记录迁移版本
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS app_version (
+            category TEXT, version TEXT,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (category, version)
+        )
+    """)
+    cursor.execute(
+        "INSERT OR IGNORE INTO app_version (category, version) VALUES (?, ?)",
+        ("migration", "supplier_to_merchant_v2"),
+    )
+
+
+def _migrate_merchant_columns(cursor: sqlite3.Cursor) -> None:
+    """Add columns that may be missing from older Merchant table definitions."""
     migrations = [
         ("supplier_type", "TEXT DEFAULT 'enterprise'"),
         ("business_license", "TEXT"),
@@ -361,10 +412,10 @@ def _migrate_supplier_columns(cursor: sqlite3.Cursor) -> None:
         ("approval_status", "INTEGER DEFAULT 1"),
         ("sorting_priority", "INTEGER DEFAULT 0"),
     ]
-    existing = {r[1] for r in cursor.execute("PRAGMA table_info(Supplier)")}
+    existing = {r[1] for r in cursor.execute("PRAGMA table_info(Merchant)")}
     for col, col_def in migrations:
         if col not in existing:
-            cursor.execute(f"ALTER TABLE Supplier ADD COLUMN {col} {col_def}")
+            cursor.execute(f"ALTER TABLE Merchant ADD COLUMN {col} {col_def}")
 
 
 def init_database():
@@ -379,6 +430,8 @@ def init_database():
     cursor = conn.cursor()
 
     try:
+        # ── 自动迁移: Supplier → Merchant (v1) ──
+        _run_supplier_to_merchant_migration(cursor)
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS Veg (
@@ -463,7 +516,7 @@ def init_database():
 
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS WeeklyQuoteSupplierConfig (
+            CREATE TABLE IF NOT EXISTS WeeklyQuoteMerchantConfig (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 weekly_batch_limit INTEGER NOT NULL DEFAULT 7,
@@ -581,7 +634,7 @@ def init_database():
         cursor.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_weekly_quote_supplier_config_order
-            ON WeeklyQuoteSupplierConfig (sort_order, id)
+            ON WeeklyQuoteMerchantConfig (sort_order, id)
             """
         )
 
@@ -754,7 +807,7 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
     # P0: 供应商管理
     # ----------------------------------------------------------------
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Supplier (
+        CREATE TABLE IF NOT EXISTS Merchant (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             code TEXT UNIQUE,
             name TEXT NOT NULL,
@@ -785,11 +838,11 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_status ON Supplier(status)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_name ON Supplier(name)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_status ON Merchant(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_name ON Merchant(name)")
 
     # Migration: add columns that may be missing from older table definitions
-    _migrate_supplier_columns(cursor)
+    _migrate_merchant_columns(cursor)
 
     # ----------------------------------------------------------------
     # P0: 采购入库
@@ -798,7 +851,7 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
         CREATE TABLE IF NOT EXISTS PurchaseInRecord (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             order_no TEXT UNIQUE NOT NULL,
-            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            supplier_id INTEGER NOT NULL REFERENCES Merchant(id),
             inbound_date TEXT NOT NULL,
             total_amount REAL DEFAULT 0,
             status TEXT DEFAULT 'pending',
@@ -834,7 +887,7 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
         CREATE TABLE IF NOT EXISTS PurchaseReturnRecord (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             order_no TEXT UNIQUE NOT NULL,
-            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            supplier_id INTEGER NOT NULL REFERENCES Merchant(id),
             return_date TEXT NOT NULL,
             total_amount REAL DEFAULT 0,
             status TEXT DEFAULT 'pending',
@@ -989,9 +1042,9 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
     # P1: 供应商结算
     # ----------------------------------------------------------------
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS SupplierSettlement (
+        CREATE TABLE IF NOT EXISTS MerchantSettlement (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            supplier_id INTEGER NOT NULL REFERENCES Merchant(id),
             settlement_period TEXT NOT NULL,
             payable_amount REAL DEFAULT 0,
             paid_amount REAL DEFAULT 0,
@@ -1006,8 +1059,8 @@ def _create_business_schema(cursor: sqlite3.Cursor) -> None:
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_settlement_supplier ON SupplierSettlement(supplier_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_supplier_settlement_period ON SupplierSettlement(settlement_period)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_settlement_merchant ON MerchantSettlement(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_merchant_settlement_period ON MerchantSettlement(settlement_period)")
 
     # ----------------------------------------------------------------
     # P1: 营销工具 - 限时锁价
@@ -1468,7 +1521,7 @@ def _seed_weekly_quote_defaults(cursor: sqlite3.Cursor) -> None:
     for name, weekly_limit, summary_rule, is_builtin, sort_order in WEEKLY_QUOTE_DEFAULT_SUPPLIERS:
         cursor.execute(
             """
-            INSERT INTO WeeklyQuoteSupplierConfig (
+            INSERT INTO WeeklyQuoteMerchantConfig (
                 name, weekly_batch_limit, summary_rule, is_builtin, sort_order
             )
             VALUES (?, ?, ?, ?, ?)
@@ -1555,9 +1608,9 @@ def _seed_weekly_quote_defaults(cursor: sqlite3.Cursor) -> None:
     # P2.9: 协议价管理
     # ----------------------------------------------------------------
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS SupplierProductPrice (
+        CREATE TABLE IF NOT EXISTS MerchantProductPrice (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            supplier_id INTEGER NOT NULL REFERENCES Supplier(id),
+            supplier_id INTEGER NOT NULL REFERENCES Merchant(id),
             product_id INTEGER NOT NULL REFERENCES Product(id),
             price REAL NOT NULL DEFAULT 0,
             unit_name TEXT DEFAULT '',
@@ -1568,8 +1621,8 @@ def _seed_weekly_quote_defaults(cursor: sqlite3.Cursor) -> None:
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_supplier ON SupplierProductPrice(supplier_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_product ON SupplierProductPrice(product_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_merchant ON MerchantProductPrice(supplier_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_spp_product ON MerchantProductPrice(product_id)")
 
     # ----------------------------------------------------------------
     # P2.12: 报损报溢

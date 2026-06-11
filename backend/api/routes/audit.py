@@ -9,7 +9,7 @@ from threading import Lock
 
 from fastapi import APIRouter, Depends, Request
 
-from backend.auth.dependencies import get_current_auth_context
+from backend.auth.dependencies import get_current_auth_context, require_permission
 from backend.middleware._request_meta import client_ip, user_agent
 from backend.models.auth_schemas import AuditTrackRequest, AuditTrackResponse
 from backend.services.audit_log_service import AuditLogService
@@ -65,7 +65,7 @@ def _compose_description(payload: AuditTrackRequest) -> str:
     return " | ".join(parts)[:2000]
 
 
-@router.post("/track", response_model=AuditTrackResponse)
+@router.post("/track", response_model=AuditTrackResponse, dependencies=[Depends(require_permission("audit:view"))])
 def track_event(
     payload: AuditTrackRequest,
     request: Request,

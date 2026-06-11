@@ -23,7 +23,7 @@ def _raise(exc: Exception) -> None:
 
 @router.get(
     "/",
-    dependencies=[Depends(require_permission("supplier:view"))],
+    dependencies=[Depends(require_permission("settlement:view"))],
 )
 def list_settlements(
     supplier_id: int | None = Query(default=None),
@@ -44,7 +44,7 @@ def list_settlements(
 @router.post(
     "/",
     response_model=SettlementResponse,
-    dependencies=[Depends(require_permission("supplier:create"))],
+    dependencies=[Depends(require_permission("settlement:create"))],
 )
 def create_settlement(data: SettlementCreate):
     try:
@@ -56,7 +56,7 @@ def create_settlement(data: SettlementCreate):
 
 @router.post(
     "/auto",
-    dependencies=[Depends(require_permission("supplier:create"))],
+    dependencies=[Depends(require_permission("settlement:create"))],
 )
 def auto_create_settlement(
     supplier_id: int = Query(...),
@@ -72,7 +72,7 @@ def auto_create_settlement(
 @router.get(
     "/{settlement_id}",
     response_model=SettlementResponse,
-    dependencies=[Depends(require_permission("supplier:view"))],
+    dependencies=[Depends(require_permission("settlement:view"))],
 )
 def get_settlement(settlement_id: int):
     try:
@@ -84,7 +84,7 @@ def get_settlement(settlement_id: int):
 @router.put(
     "/{settlement_id}",
     response_model=SettlementResponse,
-    dependencies=[Depends(require_permission("supplier:edit"))],
+    dependencies=[Depends(require_permission("settlement:update"))],
 )
 def update_settlement(settlement_id: int, data: SettlementUpdate):
     try:
@@ -95,7 +95,7 @@ def update_settlement(settlement_id: int, data: SettlementUpdate):
 
 @router.post(
     "/{settlement_id}/confirm",
-    dependencies=[Depends(require_permission("supplier:edit"))],
+    dependencies=[Depends(require_permission("settlement:update"))],
 )
 def confirm_settlement(settlement_id: int):
     try:

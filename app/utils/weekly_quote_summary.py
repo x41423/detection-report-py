@@ -239,7 +239,8 @@ def _normalize_batches(
             )
 
         if not normalized_entries:
-            raise ValueError(f"{supplier} {quote_date} 没有可用的报价记录")
+            # 空批次静默跳过（可能是用户清空了所有记录后保存导致）
+            continue
 
         normalized_batches.append(
             {

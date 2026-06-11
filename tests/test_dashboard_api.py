@@ -29,7 +29,7 @@ def _headers(client: TestClient) -> dict[str, str]:
 
 def _create_supplier(client: TestClient) -> int:
     resp = client.post(
-        "/api/supplier/", json={"name": "驾驶舱测试供应商"},
+        "/api/merchant/", json={"name": "驾驶舱测试供应商"},
         headers=_headers(client),
     )
     assert resp.status_code == 200

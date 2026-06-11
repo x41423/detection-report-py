@@ -17,6 +17,49 @@
       />
     </el-card>
 
+    <!-- 批量操作栏 -->
+    <el-card shadow="never" class="panel-card batch-bar" v-if="selectedOrders.length > 0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span>已选 <strong>{{ selectedOrders.length }}</strong> 个订单</span>
+        <el-button
+          v-if="canBatchSorting"
+          type="primary" size="small"
+          @click="batchOperate('set_sorting')"
+        >批量改为分拣中</el-button>
+        <el-button
+          v-if="canBatchInDelivery"
+          type="warning" size="small"
+          @click="batchOperate('set_in_delivery')"
+        >批量改为配送中</el-button>
+        <el-button
+          v-if="canBatchConfirm"
+          type="success" size="small"
+          @click="batchOperate('confirm_outbound')"
+        >批量确认出库</el-button>
+        <el-button
+          v-if="canBatchArrived"
+          type="primary" size="small"
+          @click="batchOperate('set_arrived')"
+        >批量改为已送达</el-button>
+        <el-button
+          v-if="canBatchCancel"
+          type="warning" size="small"
+          @click="batchOperate('cancel')"
+        >批量取消</el-button>
+        <el-button
+          v-if="canBatchUndo"
+          type="info" size="small"
+          @click="batchOperate('undo_outbound')"
+        >批量撤销出库</el-button>
+        <el-button
+          v-if="canBatchDelete"
+          type="danger" size="small"
+          @click="batchOperate('delete')"
+        >批量删除</el-button>
+        <el-button size="small" @click="clearSelection">取消选择</el-button>
+      </div>
+    </el-card>
+
     <!-- 列选择器 + 表格 -->
     <el-card shadow="never" class="panel-card">
       <div class="table-toolbar">
@@ -38,7 +81,7 @@
             <el-divider style="margin: 8px 0" />
             <el-checkbox-group v-model="visibleColumnKeys" @change="onColumnChange">
               <div v-for="col in allColumnDefs" :key="col.key" class="column-selector__item">
-                <el-checkbox :label="col.key" :disabled="mandatoryKeys.includes(col.key)">
+                <el-checkbox :value="col.key" :disabled="mandatoryKeys.includes(col.key)">
                   {{ col.label }}
                 </el-checkbox>
               </div>
@@ -47,7 +90,9 @@
         </el-popover>
       </div>
 
-      <el-table :data="items" stripe v-loading="loading" @row-click="showDetail" style="width: 100%">
+      <el-table :data="items" stripe v-loading="loading" @row-click="showDetail" @selection-change="onSelectionChange" ref="tableRef" :row-class-name="rowClassName" style="width: 100%">
+                <!-- 勾选列 -->
+        <el-table-column type="selection" width="40" fixed="left" />
         <!-- 动态列 -->
         <el-table-column
           v-for="col in activeColumns"
@@ -61,8 +106,8 @@
           <template #default="{ row }">
             <!-- 订单状态标签 -->
             <template v-if="col.key === 'order_status'">
-              <el-tag :type="orderStatusType(row.order_status)" size="small">
-                {{ orderStatusLabel(row.order_status) }}
+              <el-tag :type="row.edit_status === 'frozen' ? 'info' : orderStatusType(row.order_status)" size="small">
+                {{ row.edit_status === 'frozen' ? '❄️ 已冻结' : orderStatusLabel(row.order_status) }}
               </el-tag>
             </template>
             <!-- 支付状态标签 -->
@@ -83,16 +128,34 @@
         </el-table-column>
 
         <!-- 操作列（固定右侧） -->
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click.stop="showDetail(row)">详情</el-button>
-            <el-button size="small" type="primary" link @click.stop="openEdit(row)">编辑</el-button>
-            <template v-if="row.order_status === 'delivered'">
+
+            <!-- 冻结态：只显示解冻 -->
+            <template v-if="row.edit_status === 'frozen'">
+              <el-button size="small" type="warning" link @click.stop="handleUnfreeze(row)">解冻</el-button>
+            </template>
+
+            <!-- 已取消：只显示删除（需退款后才能删） -->
+            <template v-else-if="row.order_status === 'cancelled'">
+              <el-button v-if="row.payment_status !== 'paid'" size="small" type="danger" link @click.stop="handleDelete(row)">删除</el-button>
+            </template>
+
+            <!-- 已出库 -->
+            <template v-else-if="row.order_status === 'delivered'">
               <el-button size="small" type="warning" link @click.stop="handleUndoOutbound(row)">撤销出库</el-button>
+              <el-button size="small" type="info" link @click.stop="handleFreeze(row)">冻结</el-button>
             </template>
+
+            <!-- 待处理 / 分拣中 -->
             <template v-else>
-              <el-button size="small" type="danger" link @click.stop="handleDelete(row)">删除</el-button>
+              <el-button size="small" type="primary" link @click.stop="openEdit(row)">编辑</el-button>
+              <el-button v-if="row.payment_status === 'paid' || row.payment_status === 'partial'" size="small" type="warning" link @click.stop="handleRefund(row)">退款</el-button>
+              <el-button v-else size="small" type="danger" link @click.stop="handleCancel(row)">取消</el-button>
+              <el-button size="small" type="info" link @click.stop="handleFreeze(row)">冻结</el-button>
             </template>
+
             <el-dropdown trigger="click" @command="(cmd: string) => handleCopyCommand(row, cmd)">
               <el-button size="small" type="success" link @click.stop>复制</el-button>
               <template #dropdown>
@@ -388,6 +451,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import api from '../api/client'
 import { Setting } from '@element-plus/icons-vue'
 import { Plus } from '@element-plus/icons-vue'
 import FilterBar from '../components/FilterBar.vue'
@@ -417,48 +481,48 @@ const allColumnDefs: ColumnDef[] = [
   { key: 'order_status', label: '订单状态', width: 100, mandatory: true },
   { key: 'payment_status', label: '支付状态', width: 100, mandatory: true },
   // 基础字段
-  { key: 'receive_start_date', label: '收货日期', width: 120 },
-  { key: 'related_outbound_no', label: '关联出库单', width: 140 },
-  { key: 'sorting_status', label: '分拣状态', width: 100 },
-  { key: 'inspection_status', label: '验货状态', width: 100 },
-  { key: 'cabinet_status', label: '投柜状态', width: 100 },
-  { key: 'route_name', label: '线路', width: 100 },
-  { key: 'merchant_name', label: '商户名/ID', width: 140 },
-  { key: 'merchant_custom_code', label: '商户自定义编码', width: 140 },
-  { key: 'custom_field_1', label: '商户定义字段1', width: 120 },
-  { key: 'custom_field_2', label: '商户定义字段2', width: 120 },
-  { key: 'custom_field_3', label: '商户定义字段3', width: 120 },
-  { key: 'delivery_method', label: '收货方式', width: 100 },
-  { key: 'pickup_point', label: '自提点', width: 100 },
-  { key: 'order_type', label: '订单类型', width: 100 },
+  { key: 'receive_start_date', label: '收货日期', minWidth: 120 },
+  { key: 'related_outbound_no', label: '关联出库单', minWidth: 140 },
+  { key: 'sorting_status', label: '分拣状态', minWidth: 100 },
+  { key: 'inspection_status', label: '验货状态', minWidth: 100 },
+  { key: 'cabinet_status', label: '投柜状态', minWidth: 100 },
+  { key: 'route_name', label: '线路', minWidth: 100 },
+  { key: 'merchant_name', label: '商户名/ID', minWidth: 140 },
+  { key: 'merchant_custom_code', label: '商户自定义编码', minWidth: 140 },
+  { key: 'custom_field_1', label: '商户定义字段1', minWidth: 120 },
+  { key: 'custom_field_2', label: '商户定义字段2', minWidth: 120 },
+  { key: 'custom_field_3', label: '商户定义字段3', minWidth: 120 },
+  { key: 'delivery_method', label: '收货方式', minWidth: 100 },
+  { key: 'pickup_point', label: '自提点', minWidth: 100 },
+  { key: 'order_type', label: '订单类型', minWidth: 100 },
   // 金额字段
-  { key: 'order_amount', label: '下单金额', width: 110 },
-  { key: 'total_order_quantity', label: '总下单数', width: 100 },
-  { key: 'accounting_quantity_sale', label: '记账数(销售)', width: 120 },
-  { key: 'accounting_quantity_base', label: '记账数(基本)', width: 120 },
-  { key: 'product_category_count', label: '商品种类数', width: 110 },
-  { key: 'after_sale_amount', label: '订单售后', width: 100 },
-  { key: 'should_refund_amount', label: '应退金额', width: 100 },
-  { key: 'discount_amount', label: '优惠金额', width: 100 },
-  { key: 'freight', label: '运费', width: 80 },
-  { key: 'sales_amount_incl_freight', label: '销售额(含运费)', width: 130 },
+  { key: 'order_amount', label: '下单金额', minWidth: 110 },
+  { key: 'total_order_quantity', label: '总下单数', minWidth: 100 },
+  { key: 'accounting_quantity_sale', label: '记账数(销售)', minWidth: 120 },
+  { key: 'accounting_quantity_base', label: '记账数(基本)', minWidth: 120 },
+  { key: 'product_category_count', label: '商品种类数', minWidth: 110 },
+  { key: 'after_sale_amount', label: '订单售后', minWidth: 100 },
+  { key: 'should_refund_amount', label: '应退金额', minWidth: 100 },
+  { key: 'discount_amount', label: '优惠金额', minWidth: 100 },
+  { key: 'freight', label: '运费', minWidth: 80 },
+  { key: 'sales_amount_incl_freight', label: '销售额(含运费)', minWidth: 130 },
   // 状态字段
-  { key: 'edit_status', label: '编辑状态', width: 100 },
-  { key: 'loading_status', label: '装车状态', width: 100 },
-  { key: 'vehicle_status', label: '装车状态', width: 100 },
-  { key: 'driver_name', label: '司机', width: 80 },
-  { key: 'order_source', label: '订单来源', width: 100 },
-  { key: 'print_status', label: '打印状态', width: 100 },
-  { key: 'outbound_status', label: '出库状态', width: 100 },
-  { key: 'remark', label: '订单备注', width: 150 },
-  { key: 'batch_status', label: '集包状态', width: 100 },
-  { key: 'operator', label: '下单员', width: 80 },
-  { key: 'print_time', label: '打印时间', width: 140 },
+  { key: 'edit_status', label: '编辑状态', minWidth: 100 },
+  { key: 'loading_status', label: '装车状态', minWidth: 100 },
+  { key: 'vehicle_status', label: '装车状态', minWidth: 100 },
+  { key: 'driver_name', label: '司机', minWidth: 80 },
+  { key: 'order_source', label: '订单来源', minWidth: 100 },
+  { key: 'print_status', label: '打印状态', minWidth: 100 },
+  { key: 'outbound_status', label: '出库状态', minWidth: 100 },
+  { key: 'remark', label: '订单备注', minWidth: 150 },
+  { key: 'batch_status', label: '集包状态', minWidth: 100 },
+  { key: 'operator', label: '下单员', minWidth: 80 },
+  { key: 'print_time', label: '打印时间', minWidth: 140 },
   // 其他
-  { key: 'batch_merchant_name', label: '分仓原始商户名', width: 140 },
-  { key: 'main_sorting_category', label: '主分拣品类', width: 120 },
-  { key: 'main_sorting_category_count', label: '主分拣品类数', width: 120 },
-  { key: 'third_party_order_no', label: '第三方订单号', width: 140 },
+  { key: 'batch_merchant_name', label: '分仓原始商户名', minWidth: 140 },
+  { key: 'main_sorting_category', label: '主分拣品类', minWidth: 120 },
+  { key: 'main_sorting_category_count', label: '主分拣品类数', minWidth: 120 },
+  { key: 'third_party_order_no', label: '第三方订单号', minWidth: 140 },
 ]
 
 const mandatoryKeys = allColumnDefs.filter(c => c.mandatory).map(c => c.key)
@@ -557,15 +621,19 @@ const filterConfigs = [
   },
 ]
 
+const todayStr = new Date().toISOString().slice(0, 10)
+
 const filterValues = ref<Record<string, any>>({
   search: '', order_status: '', payment_status: '',
-  date_mode: '', date_range: [],
+  date_mode: 'receipt_date',  // 默认按收货日期
+  date_range: [todayStr, todayStr],  // 默认锁定今天
 })
 
 function resetFilters() {
   filterValues.value = {
     search: '', order_status: '', payment_status: '',
-    date_mode: '', date_range: [],
+    date_mode: 'receipt_date',
+    date_range: [todayStr, todayStr],
   }
   load()
 }
@@ -578,6 +646,8 @@ const router = useRouter()
 const items = ref<Order[]>([])
 const total = ref(0)
 const loading = ref(false)
+const selectedOrders = ref<Order[]>([])
+const tableRef = ref()
 const page = ref(1)
 const limit = ref(20)
 
@@ -607,14 +677,16 @@ async function load() {
 
 function orderStatusLabel(status: string) {
   const map: Record<string, string> = {
-    pending: '待处理', sorting: '分拣中', delivered: '已出库', cancelled: '已取消',
+    pending: '待处理', sorting: '分拣中', in_delivery: '配送中',
+    delivered: '已出库', arrived: '已送达', cancelled: '已取消',
   }
   return map[status] || status
 }
 
 function orderStatusType(status: string) {
   const map: Record<string, string> = {
-    pending: 'info', sorting: 'warning', delivered: 'success', cancelled: 'danger',
+    pending: 'info', sorting: 'warning', in_delivery: '',
+    delivered: 'success', arrived: '', cancelled: 'danger',
   }
   return (map[status] || 'info') as any
 }
@@ -682,7 +754,7 @@ async function fetchMerchantSuggestions(keyword: string, cb: (results: { value: 
 
 function onMerchantSelect(item: { value: string; tag?: string; supplier?: Supplier; action?: string }) {
   if (item.action === 'create') {
-    window.open('/suppliers', '_blank')
+    window.open('/merchants', '_blank')
     return
   }
   const s = item.supplier
@@ -900,8 +972,144 @@ async function confirmCopy() {
 // ====================================================================
 // 其他
 // ====================================================================
+
 function showDetail(row: Order) {
   router.push(`/orders/${row.id}`)
+}
+
+// ====================================================================
+// 批量操作
+// ====================================================================
+
+function onSelectionChange(rows: Order[]) {
+  selectedOrders.value = rows
+}
+
+function rowClassName({ row }: { row: Order }) {
+  if (row.edit_status === 'frozen') return 'row-frozen'
+  return ''
+}
+
+function clearSelection() {
+  tableRef.value?.clearSelection()
+}
+
+const canBatchSorting = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'pending')
+)
+
+const canBatchInDelivery = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'sorting')
+)
+
+const canBatchConfirm = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'in_delivery')
+)
+
+const canBatchArrived = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'delivered')
+)
+
+const canBatchCancel = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => ['pending', 'sorting'].includes(o.order_status))
+)
+
+const canBatchUndo = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'delivered')
+)
+
+const canBatchDelete = computed(() =>
+  selectedOrders.value.length > 0 &&
+  selectedOrders.value.every(o => o.order_status === 'cancelled')
+)
+
+async function handleCancel(row: Order) {
+  try {
+    await ElMessageBox.confirm(
+      row.order_status === 'sorting'
+        ? `订单 ${row.order_no} 正在分拣中，确定取消？`
+        : `确定取消订单 ${row.order_no}？`,
+      '取消订单',
+      { type: 'warning' }
+    )
+  } catch { return }
+  try {
+    await api.delete(`/api/order/${row.id}`)
+    ElMessage.success('订单已取消')
+    await load()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '取消失败')
+  }
+}
+
+async function handleRefund(row: Order) {
+  try {
+    await ElMessageBox.confirm(`确定标记订单 ${row.order_no} 已退款？`, '退款确认', { type: 'warning' })
+  } catch { return }
+  try {
+    await api.post(`/api/order/${row.id}/refund`)
+    ElMessage.success('已退款')
+    await load()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '退款失败')
+  }
+}
+
+async function handleFreeze(row: Order) {
+  try {
+    await ElMessageBox.confirm(`确定冻结订单 ${row.order_no}？冻结后不可编辑/取消/出库。`, '冻结确认', { type: 'warning' })
+  } catch { return }
+  try {
+    await api.post(`/api/order/${row.id}/freeze`)
+    ElMessage.success('已冻结')
+    await load()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '冻结失败')
+  }
+}
+
+async function handleUnfreeze(row: Order) {
+  try {
+    await api.post(`/api/order/${row.id}/unfreeze`)
+    ElMessage.success('已解冻')
+    await load()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '解冻失败')
+  }
+}
+
+async function batchOperate(action: string) {
+  const labels: Record<string, string> = {
+    confirm_outbound: '确认出库',
+    cancel: '取消',
+    undo_outbound: '撤销出库',
+    delete: '删除',
+  }
+  const label = labels[action] || action
+  try {
+    await ElMessageBox.confirm(
+      `确定要对 ${selectedOrders.value.length} 个订单执行「${label}」吗？`,
+      '批量操作确认',
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  try {
+    const ids = selectedOrders.value.map(o => o.id)
+    await api.post('/api/order/batch', { order_ids: ids, action })
+    ElMessage.success(`${label}成功，共 ${ids.length} 个订单`)
+    clearSelection()
+    await load()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.detail || e?.message || '批量操作失败')
+  }
 }
 
 onMounted(() => {
@@ -932,5 +1140,24 @@ onMounted(() => {
 .merchant-option--create {
   color: var(--el-color-primary);
   font-weight: 500;
+}
+
+.row-frozen {
+  background-color: #e6f0fa !important;
+}
+.row-frozen .el-table__cell {
+  background-color: #e6f0fa !important;
+}
+
+<style scoped>
+.order-page {
+  max-width: none !important;
+  width: 100%;
+}
+.row-frozen {
+  background-color: #e6f0fa !important;
+}
+.row-frozen .el-table__cell {
+  background-color: #e6f0fa !important;
 }
 </style>

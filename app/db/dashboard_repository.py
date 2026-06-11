@@ -12,8 +12,8 @@ class DashboardRepository:
     @staticmethod
     def get_overview(current_month: str) -> dict[str, Any]:
         # Total & active suppliers
-        sup = query_one("SELECT COUNT(*) AS total FROM Supplier")
-        act = query_one("SELECT COUNT(*) AS total FROM Supplier WHERE status = 'active'")
+        sup = query_one("SELECT COUNT(*) AS total FROM Merchant")
+        act = query_one("SELECT COUNT(*) AS total FROM Merchant WHERE status = 'active'")
 
         # Purchase this month (confirmed)
         pur = query_one(
@@ -36,7 +36,7 @@ class DashboardRepository:
         )
 
         # Pending settlements
-        stl = query_one("SELECT COUNT(*) AS total FROM SupplierSettlement WHERE status = 'pending'")
+        stl = query_one("SELECT COUNT(*) AS total FROM MerchantSettlement WHERE status = 'pending'")
 
         # Low stock items (<= 10)
         low = query_one(
@@ -47,7 +47,7 @@ class DashboardRepository:
                 GROUP BY tx.normalized_name
                 HAVING COALESCE(SUM(CASE WHEN tx.direction = 'IN'  THEN tx.quantity_delta ELSE 0 END), 0)
                      - COALESCE(SUM(CASE WHEN tx.direction = 'OUT' THEN tx.quantity_delta ELSE 0 END), 0) <= 10
-            )""",
+            ) AS low_stock""",
         )
 
         return {
@@ -99,7 +99,7 @@ class DashboardRepository:
                 COUNT(DISTINCT r.id) AS order_count
                FROM PurchaseInRecord r
                JOIN PurchaseInItem pi ON pi.record_id = r.id
-               JOIN Supplier s ON s.id = r.supplier_id
+               JOIN Merchant s ON s.id = r.supplier_id
                WHERE r.status = 'confirmed'
                GROUP BY r.supplier_id
                ORDER BY total_amount DESC

@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 from mimetypes import guess_type
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 
+from backend.auth.dependencies import require_permission
 from backend.services.storage_service import storage_service
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/storage", tags=["storage"])
 
 
-@router.get("/{bucket}/{object_path:path}")
+@router.get("/{bucket}/{object_path:path}", dependencies=[Depends(require_permission("storage:view"))])
 async def get_file(bucket: str, object_path: str):
     """
     从MinIO获取文件

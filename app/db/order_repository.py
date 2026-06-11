@@ -18,7 +18,7 @@ class OrderRepository:
     def _generate_order_no(cursor: Any) -> str:
         today = date.today().strftime("%Y%m%d")
         cursor.execute(
-            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS INTEGER)), 0) + 1 AS seq "
+            "SELECT COALESCE(MAX(CAST(SUBSTR(order_no, -3) AS SIGNED)), 0) + 1 AS seq "
             "FROM OrderRecord WHERE order_no LIKE ?",
             (f"ORD-{today}-%",),
         )
@@ -229,6 +229,40 @@ class OrderRepository:
         try:
             cursor.execute(
                 "UPDATE OrderRecord SET order_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (status, order_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+    @staticmethod
+    def update_order_payment_status(order_id: int, status: str) -> bool:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE OrderRecord SET payment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (status, order_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+    @staticmethod
+    def update_order_edit_status(order_id: int, status: str | None) -> bool:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE OrderRecord SET edit_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 (status, order_id),
             )
             conn.commit()

@@ -40,7 +40,7 @@ class LossReportUpdate(BaseModel):
 
 # ---- Routes ----
 
-@router.get("/", dependencies=[Depends(require_permission("inventory:view"))])
+@router.get("/", dependencies=[Depends(require_permission("loss_report:view"))])
 def list_reports(limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0)):
     conn = get_connection()
     cur = conn.execute("SELECT COUNT(*) FROM LossReport")
@@ -51,7 +51,7 @@ def list_reports(limit: int = Query(default=50, ge=1, le=200), offset: int = Que
     return {"success": True, "items": rows, "total": total}
 
 
-@router.get("/{rid}", dependencies=[Depends(require_permission("inventory:view"))])
+@router.get("/{rid}", dependencies=[Depends(require_permission("loss_report:view"))])
 def get_report(rid: int):
     conn = get_connection()
     cur = conn.execute("SELECT * FROM LossReport WHERE id=?", (rid,))
@@ -65,7 +65,7 @@ def get_report(rid: int):
     return {"success": True, "report": dict(report), "items": items}
 
 
-@router.post("/", dependencies=[Depends(require_permission("inventory:create"))])
+@router.post("/", dependencies=[Depends(require_permission("loss_report:create"))])
 def create_report(body: LossReportCreate):
     conn = get_connection()
     # generate report_no if empty
@@ -89,7 +89,7 @@ def create_report(body: LossReportCreate):
     return {"success": True, "message": "已创建", "id": rid}
 
 
-@router.put("/{rid}", dependencies=[Depends(require_permission("inventory:edit"))])
+@router.put("/{rid}", dependencies=[Depends(require_permission("loss_report:update"))])
 def update_report(rid: int, body: LossReportUpdate):
     conn = get_connection()
     cur = conn.execute("SELECT id FROM LossReport WHERE id=?", (rid,))
@@ -111,7 +111,7 @@ def update_report(rid: int, body: LossReportUpdate):
     return {"success": True, "message": "已更新"}
 
 
-@router.delete("/{rid}", dependencies=[Depends(require_permission("inventory:create"))])
+@router.delete("/{rid}", dependencies=[Depends(require_permission("loss_report:create"))])
 def delete_report(rid: int):
     conn = get_connection()
     cur = conn.execute("SELECT id FROM LossReport WHERE id=?", (rid,))

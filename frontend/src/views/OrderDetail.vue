@@ -291,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { PictureFilled, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
@@ -430,7 +430,7 @@ async function handleMoreCommand(command: string) {
       await deleteOrder(order.value.id)
       ElMessage.success('订单已删除')
       router.push('/orders')
-    } catch (e: any) { ElMessage.error(e?.response?.data?.detail || \'操作失败\') }
+    } catch (e: any) { ElMessage.error(e?.response?.data?.detail || '操作失败') }
   } else if (command === 'copy-order' || command === 'copy-supplement') {
     copyTargetType.value = command === 'copy-supplement' ? 'supplement' : 'order'
     copyForm.copy_type = 'normal'
@@ -476,7 +476,14 @@ async function confirmCopy() {
 // 初始化
 // ====================================================================
 
-onMounted(loadOrder)
+// 路由参数变化时重新加载（同组件切换不同订单）
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) loadOrder()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

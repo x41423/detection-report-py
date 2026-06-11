@@ -65,6 +65,7 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTreeSelect: typeof import('element-plus/es')['ElTreeSelect']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    FilePreviewDialog: typeof import('./src/components/FilePreviewDialog.vue')['default']
     FileSourcePanel: typeof import('./src/components/FileSourcePanel.vue')['default']
     FilterBar: typeof import('./src/components/FilterBar.vue')['default']
     FormDialog: typeof import('./src/components/FormDialog.vue')['default']
