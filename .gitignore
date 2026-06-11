@@ -64,3 +64,4 @@ data/asr_corrections/*.jsonl
 data/asr_corrections/audio/
 data/asr_shadow_compare/*.jsonl
 鏂板缓 鏂囨湰鏂囨。.json
+tools/cloudflared.exe
